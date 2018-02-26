@@ -55,6 +55,152 @@
 */
 /**
   @Summary
+    Sets the GPIO pin, RA3, high using LATA3.
+
+  @Description
+    Sets the GPIO pin, RA3, high using LATA3.
+
+  @Preconditions
+    The RA3 must be set to an output.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Set RA3 high (1)
+    RX_TX_SELECT_SetHigh();
+    </code>
+
+*/
+#define RX_TX_SELECT_SetHigh()          _LATA3 = 1
+/**
+  @Summary
+    Sets the GPIO pin, RA3, low using LATA3.
+
+  @Description
+    Sets the GPIO pin, RA3, low using LATA3.
+
+  @Preconditions
+    The RA3 must be set to an output.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Set RA3 low (0)
+    RX_TX_SELECT_SetLow();
+    </code>
+
+*/
+#define RX_TX_SELECT_SetLow()           _LATA3 = 0
+/**
+  @Summary
+    Toggles the GPIO pin, RA3, using LATA3.
+
+  @Description
+    Toggles the GPIO pin, RA3, using LATA3.
+
+  @Preconditions
+    The RA3 must be set to an output.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Toggle RA3
+    RX_TX_SELECT_Toggle();
+    </code>
+
+*/
+#define RX_TX_SELECT_Toggle()           _LATA3 ^= 1
+/**
+  @Summary
+    Reads the value of the GPIO pin, RA3.
+
+  @Description
+    Reads the value of the GPIO pin, RA3.
+
+  @Preconditions
+    None.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    uint16_t portValue;
+
+    // Read RA3
+    postValue = RX_TX_SELECT_GetValue();
+    </code>
+
+*/
+#define RX_TX_SELECT_GetValue()         _RA3
+/**
+  @Summary
+    Configures the GPIO pin, RA3, as an input.
+
+  @Description
+    Configures the GPIO pin, RA3, as an input.
+
+  @Preconditions
+    None.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Sets the RA3 as an input
+    RX_TX_SELECT_SetDigitalInput();
+    </code>
+
+*/
+#define RX_TX_SELECT_SetDigitalInput()  _TRISA3 = 1
+/**
+  @Summary
+    Configures the GPIO pin, RA3, as an output.
+
+  @Description
+    Configures the GPIO pin, RA3, as an output.
+
+  @Preconditions
+    None.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Sets the RA3 as an output
+    RX_TX_SELECT_SetDigitalOutput();
+    </code>
+
+*/
+#define RX_TX_SELECT_SetDigitalOutput() _TRISA3 = 0
+/**
+  @Summary
     Sets the GPIO pin, RB10, high using LATB10.
 
   @Description
