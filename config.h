@@ -78,8 +78,8 @@
 #define mrf24j40_set_ie(v) (IEC1bits.INT1IE = v)
 #define mrf24j40_get_ie() (IEC1bits.INT1IE)
 
-#define mrf24j40_reset_pin(v) (_LATB12 = v)
-#define mrf24j40_wake_pin(v) (_LATB11 = v)
+#define mrf24j40_wake_pin(v) (_LATB12 = v)
+#define mrf24j40_reset_pin(v) (_LATB11 = v)
 #define mrf24j40_cs_pin(v) (_LATB10 = v)
 
 #define mrf24j40_spi_read() spi_read()
@@ -90,5 +90,7 @@
 // Function prototypes
 uint8_t spi_read(void);
 void spi_write(uint8_t data);
+void delay_us(uint16_t us);
+void delay_ms(uint16_t ms);
 
 #endif	/* CONFIG_H */

@@ -30,7 +30,7 @@ int main(void) {
 
     mrf24j40_hard_reset();
 
-    //mrf24j40_write_short_ctrl_reg(SOFTRST, (RSTPWR | RSTBB | RSTMAC));
+    mrf24j40_write_short_ctrl_reg(SOFTRST, (RSTPWR | RSTBB | RSTMAC));
 
     mrf24j40_delay_us(192);
     
