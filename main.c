@@ -15,7 +15,8 @@
 #include "mcc_generated_files/spi1.h"
 #include <stdio.h>
     
-//static void uart1Print(char const * const str);
+static void uart1Print(char const * const str);
+static void printAllRegisters(void);
 
 int main(void) {
     SYSTEM_Initialize();
@@ -25,43 +26,16 @@ int main(void) {
     mrf24j40_initialize();
     
     printf("radio init done\r\n");
-    printf("waiting for 1s\r\n");
-    
-    delay_ms(1000);
-    
-    uint8_t num;
-    for (num = 0x00; num < 0xFF; num++) {
-        uint8_t val = mrf24j40_read_short_ctrl_reg(TXMCR);
-        //uint8_t newVal = ~val;
-        mrf24j40_write_short_ctrl_reg(TXMCR, num);
-        uint8_t retVal = mrf24j40_read_short_ctrl_reg(TXMCR);
-        printf("init val = %x\r\n", val);
-        printf("new val = %x\r\n", num);
-        printf("return val = %x\r\n", retVal);
+        
+    uint8_t rxMode = RX_TX_SELECT_GetValue(); // rx mode if the pin is high
+        
+    if (rxMode) {
+        printf("RX mode\r\n");
+    } else {
+        printf("TX mode\r\n");
+        TX_MODE_LED_SetHigh();
     }
     
-    while (1);
-//    
-//    // print out the values of all the registers on the MRF24J40
-//    uint16_t i;
-//    uint8_t flag = 0;
-//    for (i = 0; i <= 0x3F; i++) {
-//        if (i == 0x10) {
-//            flag = 1;
-//        }
-//        uint8_t val = mrf24j40_read_short_ctrl_reg(i);
-//        printf("reg %x = %d\r\n", i, val);
-//    }
-//    for (i = 0x200; i <= 0x24C; i++) {
-//        uint8_t val = mrf24j40_read_long_ctrl_reg(i);
-//        printf("reg %x = %d\r\n", i, val);
-//    } 
-    
-    uint8_t rxMode = RX_TX_SELECT_GetValue(); // rx mode if the pin is high
-    
-    printf(rxMode ? "RX mode\r\n" : "TX mode\r\n");
-    
-    printf("infinite loop\r\n");
     while (1) {
         delay_ms(1000);
     }
@@ -69,16 +43,96 @@ int main(void) {
     return 0;
 }
 
-uint8_t spi_exchange(uint8_t data) {
-    while (SPI1STATLbits.SPITBF);
-        
-    SPI1BUFL = data;
-
-    while (SPI1STATLbits.SPIRBE);
+uint8_t spi_read(void) {
+    while (SPI1STATLbits.SPITBF);   
     
+    SPI1BUFL = SPI1_DUMMY_DATA;
+    while (SPI1STATLbits.SPIRBE);    
     volatile uint8_t rx = SPI1BUFL;
     
     return rx;
+}
+
+void spi_write(uint8_t value) {
+    while (SPI1STATLbits.SPITBF);   
+    
+    SPI1BUFL = value;
+    while (SPI1STATLbits.SPIRBE);    
+    volatile uint8_t rx = SPI1BUFL;
+}
+
+uint8_t spi_read_short(uint8_t addr) {
+    // wait for tx buffer to be empty
+    while (SPI1STATLbits.SPITBF);      
+    
+    // write address to radio
+    SPI1BUFL = ((addr << 1) & 0x7E); // bit 7 = 0 for short, bit 0 = 0 for read
+    while (SPI1STATLbits.SPIRBE);    
+    volatile uint8_t rx = SPI1BUFL;
+    
+    // read data from radio
+    SPI1BUFL = SPI1_DUMMY_DATA;
+    while (SPI1STATLbits.SPIRBE);   
+    rx = SPI1BUFL;
+    
+    return rx;
+}
+
+void spi_write_short(uint8_t addr, uint8_t data) {
+    // wait for tx buffer to be empty
+    while (SPI1STATLbits.SPITBF);      
+    
+    // write address to radio
+    SPI1BUFL = (((addr << 1) & 0x7E) | 0x01); // bit 7 = 0 for short, bit 0 = 1 for write
+    while (SPI1STATLbits.SPIRBE);    
+    volatile uint8_t rx = SPI1BUFL;
+    
+    // write data to radio
+    SPI1BUFL = data;
+    while (SPI1STATLbits.SPIRBE);    
+    rx = SPI1BUFL;
+}
+
+uint8_t spi_read_long(uint16_t addr) {
+    // wait for tx buffer to be empty
+    while (SPI1STATLbits.SPITBF);      
+        
+    // write address MSBs to radio
+    SPI1BUFL = (((addr >> 3) & 0x7F) | 0x80);
+    while (SPI1STATLbits.SPIRBE);    
+    volatile uint8_t rx = SPI1BUFL;
+    
+    // write address LSBs to radio
+    SPI1BUFL = (((addr << 5) & 0xE0) | (1 << 4));
+    while (SPI1STATLbits.SPIRBE);    
+    rx = SPI1BUFL;
+    
+    // read data from radio
+    SPI1BUFL = SPI1_DUMMY_DATA;
+    while (SPI1STATLbits.SPIRBE);   
+    rx = SPI1BUFL;
+    
+    return rx;
+}
+
+void spi_write_long(uint16_t addr, uint8_t data) {
+    // wait for tx buffer to be empty
+    while (SPI1STATLbits.SPITBF);      
+    
+    // write address MSBs to radio
+    SPI1BUFL = (((addr >> 3) & 0x7F) | 0x80);
+    while (SPI1STATLbits.SPIRBE);    
+    volatile uint8_t rx = SPI1BUFL;
+    
+    // write address LSBs to radio
+    SPI1BUFL = (((addr << 5) & 0xE0) | (1 << 4));
+    while (SPI1STATLbits.SPIRBE);    
+    rx = SPI1BUFL;
+        
+    // write data to radio
+    SPI1BUFL = data;
+    while (SPI1STATLbits.SPIRBE);    
+    rx = SPI1BUFL;
 }
 
 void delay_us(uint16_t us) {
@@ -99,11 +153,24 @@ void delay_ms(uint16_t ms) {
     }
 }
 
-//void uart1Print(char const * const str) {
-//    if (str) {
-//        uint16_t i = 0; 
-//        while (str[i] != '\0') {
-//            UART1_Write((uint8_t)str[i++]);
-//        }    
-//    }
-//}
+void printAllRegisters(void) {
+    // print out the values of all the registers on the MRF24J40
+    uint16_t i;
+    for (i = 0; i <= 0x3F; i++) {
+        uint8_t val = mrf24j40_read_short_ctrl_reg(i);
+        printf("0x%x = 0x%x\r\n", i, val);
+    }
+    for (i = 0x200; i <= 0x24C; i++) {
+        uint8_t val = mrf24j40_read_long_ctrl_reg(i);
+        printf("0x%x = 0x%x\r\n", i, val);
+    } 
+}
+
+void uart1Print(char const * const str) {
+    if (str) {
+        uint16_t i = 0; 
+        while (str[i] != '\0') {
+            UART1_Write((uint8_t)str[i++]);
+        }    
+    }
+}

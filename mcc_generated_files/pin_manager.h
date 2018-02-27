@@ -55,6 +55,152 @@
 */
 /**
   @Summary
+    Sets the GPIO pin, RA2, high using LATA2.
+
+  @Description
+    Sets the GPIO pin, RA2, high using LATA2.
+
+  @Preconditions
+    The RA2 must be set to an output.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Set RA2 high (1)
+    TX_MODE_LED_SetHigh();
+    </code>
+
+*/
+#define TX_MODE_LED_SetHigh()          _LATA2 = 1
+/**
+  @Summary
+    Sets the GPIO pin, RA2, low using LATA2.
+
+  @Description
+    Sets the GPIO pin, RA2, low using LATA2.
+
+  @Preconditions
+    The RA2 must be set to an output.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Set RA2 low (0)
+    TX_MODE_LED_SetLow();
+    </code>
+
+*/
+#define TX_MODE_LED_SetLow()           _LATA2 = 0
+/**
+  @Summary
+    Toggles the GPIO pin, RA2, using LATA2.
+
+  @Description
+    Toggles the GPIO pin, RA2, using LATA2.
+
+  @Preconditions
+    The RA2 must be set to an output.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Toggle RA2
+    TX_MODE_LED_Toggle();
+    </code>
+
+*/
+#define TX_MODE_LED_Toggle()           _LATA2 ^= 1
+/**
+  @Summary
+    Reads the value of the GPIO pin, RA2.
+
+  @Description
+    Reads the value of the GPIO pin, RA2.
+
+  @Preconditions
+    None.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    uint16_t portValue;
+
+    // Read RA2
+    postValue = TX_MODE_LED_GetValue();
+    </code>
+
+*/
+#define TX_MODE_LED_GetValue()         _RA2
+/**
+  @Summary
+    Configures the GPIO pin, RA2, as an input.
+
+  @Description
+    Configures the GPIO pin, RA2, as an input.
+
+  @Preconditions
+    None.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Sets the RA2 as an input
+    TX_MODE_LED_SetDigitalInput();
+    </code>
+
+*/
+#define TX_MODE_LED_SetDigitalInput()  _TRISA2 = 1
+/**
+  @Summary
+    Configures the GPIO pin, RA2, as an output.
+
+  @Description
+    Configures the GPIO pin, RA2, as an output.
+
+  @Preconditions
+    None.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Sets the RA2 as an output
+    TX_MODE_LED_SetDigitalOutput();
+    </code>
+
+*/
+#define TX_MODE_LED_SetDigitalOutput() _TRISA2 = 0
+/**
+  @Summary
     Sets the GPIO pin, RA3, high using LATA3.
 
   @Description

@@ -82,13 +82,13 @@
 #define mrf24j40_reset_pin(v) (_LATB11 = v)
 #define mrf24j40_cs_pin(v) (_LATB10 = v)
 
-#define mrf24j40_spi_read() spi_exchange(0)
-#define mrf24j40_spi_write(val) spi_exchange(val)
+//#define mrf24j40_spi_read() spi_exchange8(0)
+//#define mrf24j40_spi_write(val) spi_exchange8(val)
 #define mrf24j40_delay_us(v) delay_us(v)
 #define mrf24j40_delay_ms(v) delay_ms(v)
 
 // Function prototypes
-uint8_t spi_exchange(uint8_t data);
+//uint8_t spi_exchange8(uint8_t data);
 void delay_us(uint16_t us);
 void delay_ms(uint16_t ms);
 
