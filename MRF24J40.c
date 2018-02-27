@@ -231,6 +231,7 @@ void mrf24j40_txpkt(uint8_t *frame, int16_t hdr_len, int16_t sec_hdr_len, int16_
 
   uint8_t w = mrf24j40_read_short_ctrl_reg(TXNCON);
   w &= ~(TXNSECEN);
+  w &= ~(TXNACKREQ);
 
   if (IEEE_802_15_4_HAS_SEC(frame[0])) {
     w |= TXNSECEN;

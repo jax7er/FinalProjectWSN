@@ -3659,7 +3659,7 @@
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="EXT_INT" registerAlias="INT1I" settingAlias="priority"/>
-         <value>1</value>
+         <value>2</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="Pin Module" registerAlias="ODCB" settingAlias="ODB0"/>
@@ -6497,7 +6497,7 @@
    <generatedFileHashHistoryMap class="java.util.HashMap">
       <entry>
          <file>mcc_generated_files\ext_int.c</file>
-         <hash>e567081e60c93d7f764e72455210caf664f98bfa4ae650adf086f773318bbd12</hash>
+         <hash>982d07752b392871fe465b81e5ef38d387125b696665d373d490aeca84f6d811</hash>
       </entry>
       <entry>
          <file>mcc_generated_files\interrupt_manager.h</file>
@@ -6541,11 +6541,11 @@
       </entry>
       <entry>
          <file>mcc_generated_files\ext_int.h</file>
-         <hash>7862350bffd0d4631adea39471dc00b3446fc01228ea91e8ac1f21fc959f754d</hash>
+         <hash>c293f0b1127a5e26f8aa490251a4fb329b97e42cd0b0a38b3d458950053c4d2f</hash>
       </entry>
       <entry>
          <file>mcc_generated_files\interrupt_manager.c</file>
-         <hash>8c34d2661037bad2ad51519225041a3e2edb574ad1059b403ff6e06b4b215441</hash>
+         <hash>d480b6e3553e833f7295371eaf8473704d143226b48acd812c8ddb1c511328bc</hash>
       </entry>
       <entry>
          <file>mcc_generated_files\mcc.c</file>
