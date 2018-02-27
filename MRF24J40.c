@@ -34,37 +34,16 @@
 
 #include "config.h"
 #include "MRF24J40.h"
+#include "SPI_functions.h"
 
 #include <stdlib.h>
 
 #define mrf24j40_spi_preamble() volatile uint8_t tmpIE = mrf24j40_get_ie(); mrf24j40_set_ie(0); mrf24j40_cs_pin(0);
 #define mrf24j40_spi_postamble() mrf24j40_cs_pin(1); mrf24j40_set_ie(tmpIE);
 
-//static void _mrf24j40_write_long_addr(uint16_t addr, uint8_t write);
-//static void _mrf24j40_write_short_addr(uint8_t addr, uint8_t write);
-extern uint8_t spi_read(void);
-extern void spi_write(uint8_t value);
-extern uint8_t spi_read_short(uint8_t addr);
-extern uint8_t spi_read_long(uint16_t addr);
-extern void spi_write_short(uint8_t addr, uint8_t data);
-extern void spi_write_long(uint16_t addr, uint8_t data);
-extern void delay_ms(uint16_t ms);
-extern void delay_us(uint16_t us);
-
-//void _mrf24j40_write_long_addr(uint16_t addr, uint8_t write) {
-//  mrf24j40_spi_write(((addr >> 3) & 0x7F) | 0x80);
-//  mrf24j40_spi_write(((addr << 5) & 0xE0) | (write << 4));
-//}
-
-//void _mrf24j40_write_short_addr(uint8_t addr, uint8_t write) {
-//  mrf24j40_spi_write(((addr << 1) & 0x7E) | write);
-//}
-
 uint8_t mrf24j40_read_long_ctrl_reg(uint16_t addr) {
   mrf24j40_spi_preamble();
   uint8_t value = spi_read_long(addr);
-//  _mrf24j40_write_long_addr(addr, 0);
-//  uint8_t value = mrf24j40_spi_read();
   mrf24j40_spi_postamble();
 
   return value;
@@ -73,8 +52,6 @@ uint8_t mrf24j40_read_long_ctrl_reg(uint16_t addr) {
 uint8_t mrf24j40_read_short_ctrl_reg(uint8_t addr) {
   mrf24j40_spi_preamble();
   uint8_t value = spi_read_short(addr);
-//  _mrf24j40_write_short_addr(addr, 0);
-//  uint8_t value = mrf24j40_spi_read();
   mrf24j40_spi_postamble();
   return value;
 }
@@ -82,16 +59,12 @@ uint8_t mrf24j40_read_short_ctrl_reg(uint8_t addr) {
 void mrf24j40_write_long_ctrl_reg(uint16_t addr, uint8_t value) {
   mrf24j40_spi_preamble();
   spi_write_long(addr, value);
-//  _mrf24j40_write_long_addr(addr, 1);
-//  mrf24j40_spi_write(value);
   mrf24j40_spi_postamble();
 }
 
 void mrf24j40_write_short_ctrl_reg(uint8_t addr, uint8_t value) {
   mrf24j40_spi_preamble();
   spi_write_short(addr, value);
-//  _mrf24j40_write_short_addr(addr, 1);
-//  mrf24j40_spi_write(value);
   mrf24j40_spi_postamble();
 }
 
@@ -175,8 +148,6 @@ void mrf24j40_set_eui(uint8_t *eui) {
 void mrf24j40_set_coordinator_short_addr(uint8_t *addr) {
   mrf24j40_write_long_ctrl_reg(ASSOSADR0, addr[0]);
   mrf24j40_write_long_ctrl_reg(ASSOSADR1, addr[1]);
-//  mrf24j40_write_short_ctrl_reg(ASSOSADR0, addr[0]);
-//  mrf24j40_write_short_ctrl_reg(ASSOSADR1, addr[1]);
 }
 
 void mrf24j40_set_coordinator_eui(uint8_t *eui) {
@@ -188,31 +159,21 @@ void mrf24j40_set_coordinator_eui(uint8_t *eui) {
   mrf24j40_write_long_ctrl_reg(ASSOEADR5, eui[5]);
   mrf24j40_write_long_ctrl_reg(ASSOEADR6, eui[6]);
   mrf24j40_write_long_ctrl_reg(ASSOEADR7, eui[7]);
-//  mrf24j40_write_short_ctrl_reg(ASSOEADR0, eui[0]);
-//  mrf24j40_write_short_ctrl_reg(ASSOEADR1, eui[1]);
-//  mrf24j40_write_short_ctrl_reg(ASSOEADR2, eui[2]);
-//  mrf24j40_write_short_ctrl_reg(ASSOEADR3, eui[3]);
-//  mrf24j40_write_short_ctrl_reg(ASSOEADR4, eui[4]);
-//  mrf24j40_write_short_ctrl_reg(ASSOEADR5, eui[5]);
-//  mrf24j40_write_short_ctrl_reg(ASSOEADR6, eui[6]);
-//  mrf24j40_write_short_ctrl_reg(ASSOEADR7, eui[7]);
 }
 
 void mrf24j40_set_key(uint16_t address, uint8_t *key) {
   mrf24j40_spi_preamble();
   spi_write_long(address, 1);
-//  _mrf24j40_write_long_addr(address, 1);
   
   int16_t i;
   for (i = 0; i < 16; i++) {
     spi_write(key[i]);
-//    mrf24j40_spi_write(key[i]);
   }
 
   mrf24j40_spi_postamble();
 }
 
-void mrf24j40_hard_reset() {
+void mrf24j40_hard_reset(void) {
   mrf24j40_reset_pin(0);
 
   mrf24j40_delay_us(192);
@@ -220,7 +181,7 @@ void mrf24j40_hard_reset() {
   mrf24j40_delay_us(192);
 }
 
-void mrf24j40_initialize() {
+void mrf24j40_initialize(void) {
   mrf24j40_cs_pin(1);
   mrf24j40_wake_pin(1);
   
@@ -250,7 +211,7 @@ void mrf24j40_initialize() {
   mrf24j40_ie();
 }
 
-void mrf24j40_sleep() {
+void mrf24j40_sleep(void) {
   mrf24j40_write_short_ctrl_reg(WAKECON, IMMWAKE);
 
   uint8_t r = mrf24j40_read_short_ctrl_reg(SLPACK);
@@ -260,7 +221,7 @@ void mrf24j40_sleep() {
   mrf24j40_write_short_ctrl_reg(SLPACK, r | _SLPACK);
 }
 
-void mrf24j40_wakeup() {
+void mrf24j40_wakeup(void) {
   mrf24j40_wake_pin(1);
   mrf24j40_rf_reset();
 }
@@ -282,13 +243,9 @@ void mrf24j40_txpkt(uint8_t *frame, int16_t hdr_len, int16_t sec_hdr_len, int16_
   mrf24j40_spi_preamble();
   spi_write_long(TXNFIFO, hdr_len);
   spi_write(frame_len);
-//  _mrf24j40_write_long_addr(TXNFIFO, 1);
-//  mrf24j40_spi_write(hdr_len);
-//  mrf24j40_spi_write(frame_len);
 
   while (frame_len-- > 0) {
     spi_write(*frame++);
-//    mrf24j40_spi_write(*frame++);
   }
   
   mrf24j40_spi_postamble();
@@ -300,7 +257,7 @@ void mrf24j40_set_cipher(uint8_t rxcipher, uint8_t txcipher) {
   mrf24j40_write_short_ctrl_reg(SECCON0, RXCIPHER(rxcipher) | TXNCIPHER(txcipher));
 }
 
-bool mrf24j40_rx_sec_fail() {
+bool mrf24j40_rx_sec_fail(void) {
   bool rx_sec_fail = (mrf24j40_read_short_ctrl_reg(RXSR) >> 2) & 0x01;
   mrf24j40_write_short_ctrl_reg(RXSR, 0x00);
   return rx_sec_fail;
@@ -331,19 +288,14 @@ int16_t mrf24j40_rxpkt_intcb(uint8_t *buf, uint8_t *plqi, uint8_t *prssi) {
 
   mrf24j40_spi_preamble();
   uint16_t flen = spi_read_long(RXFIFO);
-//  _mrf24j40_write_long_addr(RXFIFO, 0);
-//  uint16_t flen = mrf24j40_spi_read();
   
   uint16_t i;
   for (i = 0; i < flen; i++) {
     *buf++ = spi_read();
-//    *buf++ = mrf24j40_spi_read();
   }
 
   uint8_t lqi = spi_read();
   uint8_t rssi = spi_read();
-//  uint8_t lqi = mrf24j40_spi_read();
-//  uint8_t rssi = mrf24j40_spi_read();
 
   if (plqi != NULL) {
     *plqi = lqi;
