@@ -9,7 +9,7 @@
 #include "delay.h"
 
 void delay_us(uint16_t us) {
-    PR3 = us * 2; // each clock tick takes 0.5us
+    PR3 = us * 4; // each clock tick takes 0.25us
     TMR3 = 0; // reset timer value
     _T3IF = 0; // reset interrupt flag
     

@@ -13,15 +13,13 @@
 
 void mrf24j40PrintAllRegisters(void) {
     // print out the values of all the registers on the MRF24J40
-    uint16_t i;
-    for (i = 0; i <= 0x3F; i++) {
-        uint8_t val = mrf24j40_read_short_ctrl_reg(i);
-        printf("0x%x = 0x%x\r\n", i, val);
+    uint16_t addr;
+    for (addr = 0x00; addr <= 0x3F; addr++) {
+        printf("%x=%x\r\n", addr, mrf24j40_read_short_ctrl_reg(addr));
     }
-    for (i = 0x200; i <= 0x24C; i++) {
-        uint8_t val = mrf24j40_read_long_ctrl_reg(i);
-        printf("0x%x = 0x%x\r\n", i, val);
-    } 
+    for (addr = 0x200; addr <= 0x24C; addr++) {
+        printf("%x=%x\r\n", addr, mrf24j40_read_long_ctrl_reg(addr));
+    }
 }
 
 void uart1Print(char const * const str) {

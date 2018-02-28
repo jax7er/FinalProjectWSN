@@ -26,8 +26,6 @@
  */
 #include <xc.h>
 #include "ext_int.h"
-#include "../MRF24J40.h"
-#include <stdio.h>
 //***User Area Begin->code: Add External Interrupt handler specific headers 
 
 //***User Area End->code: Add External Interrupt handler specific headers
@@ -40,6 +38,9 @@
 */
 //void __attribute__ ( ( interrupt, no_auto_psv ) ) _INT1Interrupt(void)
 //{
+//    //***User Area Begin->code: INT1 - External Interrupt 1***
+//
+//    //***User Area End->code: INT1 - External Interrupt 1***
 //    EX_INT1_InterruptFlagClear();
 //}
 /**

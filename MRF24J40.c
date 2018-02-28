@@ -38,9 +38,6 @@
 
 #include <stdlib.h>
 
-#define mrf24j40_spi_preamble() volatile uint8_t tmpIE = mrf24j40_get_ie(); mrf24j40_set_ie(0); mrf24j40_cs_pin(0);
-#define mrf24j40_spi_postamble() mrf24j40_cs_pin(1); mrf24j40_set_ie(tmpIE);
-
 uint8_t mrf24j40_read_long_ctrl_reg(uint16_t addr) {
   mrf24j40_spi_preamble();
   uint8_t value = spi_read_long(addr);
@@ -176,39 +173,68 @@ void mrf24j40_set_key(uint16_t address, uint8_t *key) {
 void mrf24j40_hard_reset(void) {
   mrf24j40_reset_pin(0);
 
-  mrf24j40_delay_us(192);
+  mrf24j40_delay_ms(5); // wait at least 2ms
+//  mrf24j40_delay_us(192);
   mrf24j40_reset_pin(1);
-  mrf24j40_delay_us(192);
+  mrf24j40_delay_ms(5); // wait at least 2ms
+//  mrf24j40_delay_us(192);
 }
 
-void mrf24j40_initialize(void) {
+void mrf24j40_initialize(void) {        
   mrf24j40_cs_pin(1);
   mrf24j40_wake_pin(1);
   
   mrf24j40_hard_reset();
   
-  mrf24j40_write_short_ctrl_reg(SOFTRST, (RSTPWR | RSTBB | RSTMAC));
-
-  mrf24j40_delay_us(192);
-
-  mrf24j40_write_short_ctrl_reg(PACON2, FIFOEN | TXONTS(0x18));
-  mrf24j40_write_short_ctrl_reg(TXSTBL, RFSTBL(9) | MSIFS(5));
-  mrf24j40_write_long_ctrl_reg(RFCON1, VCOOPT(0x01));
-  mrf24j40_write_long_ctrl_reg(RFCON2, PLLEN);
-  mrf24j40_write_long_ctrl_reg(RFCON6, _20MRECVR);
-  mrf24j40_write_long_ctrl_reg(RFCON7, SLPCLKSEL(0x02));
-  mrf24j40_write_long_ctrl_reg(RFCON8, RFVCO);
-  mrf24j40_write_long_ctrl_reg(SLPCON1, SLPCLKDIV(1) | CLKOUTDIS);
-  mrf24j40_write_short_ctrl_reg(RXFLUSH, (WAKEPAD | WAKEPOL));
-
-  mrf24j40_write_short_ctrl_reg(BBREG2, CCAMODE(0x02) | CCASTH(0x00));
-  mrf24j40_write_short_ctrl_reg(CCAEDTH, 0x60);
-
-  mrf24j40_write_short_ctrl_reg(BBREG6, RSSIMODE2);
-
-  mrf24j40_rxfifo_flush();
+  mrf24j40_write_short_ctrl_reg(SOFTRST, 0x07); // Perform a software Reset. The bits will be automatically cleared to ?0? by hardware.
+ 
+  mrf24j40_write_short_ctrl_reg(PACON2, 0x98); // Initialize FIFOEN = 1 and TXONTS = 0x6.
+  mrf24j40_write_short_ctrl_reg(TXSTBL, 0x95); // Initialize RFSTBL = 0x9.
   
-  mrf24j40_ie();
+  mrf24j40_write_long_ctrl_reg(RFCON0, 0x03); // Initialize RFOPT = 0x03.
+  mrf24j40_write_long_ctrl_reg(RFCON1, 0x01); // Initialize VCOOPT = 0x02.
+  mrf24j40_write_long_ctrl_reg(RFCON2, 0x80); // Enable PLL (PLLEN = 1).
+  mrf24j40_write_long_ctrl_reg(RFCON6, 0x90); // Initialize TXFIL = 1 and 20MRECVR = 1.
+  mrf24j40_write_long_ctrl_reg(RFCON7, 0x80); // Initialize SLPCLKSEL = 0x2 (100 kHz Internal oscillator).
+  mrf24j40_write_long_ctrl_reg(RFCON8, 0x10); // Initialize RFVCO = 1.
+  mrf24j40_write_long_ctrl_reg(SLPCON1, 0x21); // Initialize CLKOUTEN = 1 and SLPCLKDIV = 0x01.
+
+  mrf24j40_write_short_ctrl_reg(BBREG2, 0x80); // Set CCA mode to ED.
+  mrf24j40_write_short_ctrl_reg(CCAEDTH, 0x60); // Set CCA ED threshold.
+  mrf24j40_write_short_ctrl_reg(BBREG6, 0x40); // Set appended RSSI value to RXFIFO.
+
+  mrf24j40_write_short_ctrl_reg(MRF24J40_INTCON, 0xB6); // Enable wake, RX and TX normal interrupts.
+  
+  mrf24j40_write_short_ctrl_reg(RFCTL, 0x04); // Reset RF state machine.
+  mrf24j40_write_short_ctrl_reg(RFCTL, 0x00);
+  mrf24j40_delay_us(192); 
+  
+//  mrf24j40_cs_pin(1);
+//  mrf24j40_wake_pin(1);
+//  
+//  mrf24j40_hard_reset();
+//  
+//  mrf24j40_write_short_ctrl_reg(SOFTRST, (RSTPWR | RSTBB | RSTMAC));
+//
+//  mrf24j40_delay_us(192);
+// 
+//  mrf24j40_write_short_ctrl_reg(PACON2, FIFOEN | TXONTS(0x18));
+//  mrf24j40_write_short_ctrl_reg(TXSTBL, RFSTBL(9) | MSIFS(5));
+//  mrf24j40_write_long_ctrl_reg(RFCON1, VCOOPT(0x01));
+//  mrf24j40_write_long_ctrl_reg(RFCON2, PLLEN);
+//  mrf24j40_write_long_ctrl_reg(RFCON6, _20MRECVR);
+//  mrf24j40_write_long_ctrl_reg(RFCON7, SLPCLKSEL(0x02));
+//  mrf24j40_write_long_ctrl_reg(RFCON8, RFVCO);
+//  mrf24j40_write_long_ctrl_reg(SLPCON1, SLPCLKDIV(1) | CLKOUTDIS);
+//  mrf24j40_write_short_ctrl_reg(RXFLUSH, (WAKEPAD | WAKEPOL));
+//
+//  mrf24j40_write_short_ctrl_reg(BBREG2, CCAMODE(0x02) | CCASTH(0x00));
+//  mrf24j40_write_short_ctrl_reg(CCAEDTH, 0x60);
+//  mrf24j40_write_short_ctrl_reg(BBREG6, RSSIMODE2);
+//
+//  mrf24j40_rxfifo_flush();
+//  
+//  mrf24j40_ie();
 }
 
 void mrf24j40_sleep(void) {
@@ -242,6 +268,7 @@ void mrf24j40_txpkt(uint8_t *frame, int16_t hdr_len, int16_t sec_hdr_len, int16_
   }
 
   mrf24j40_spi_preamble();
+  
   spi_write_long(TXNFIFO, hdr_len);
   spi_write(frame_len);
 
@@ -251,7 +278,7 @@ void mrf24j40_txpkt(uint8_t *frame, int16_t hdr_len, int16_t sec_hdr_len, int16_
   
   mrf24j40_spi_postamble();
 
-  mrf24j40_write_short_ctrl_reg(TXNCON, w | TXNTRIG);
+  //mrf24j40_write_short_ctrl_reg(TXNCON, w | TXNTRIG);
 }
 
 void mrf24j40_set_cipher(uint8_t rxcipher, uint8_t txcipher) {

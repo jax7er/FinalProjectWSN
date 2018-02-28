@@ -56,6 +56,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "config.h"
+
 /* Return values */
 #define MRF24J40_INT_RX		0x01
 #define MRF24J40_INT_TX		0x02
@@ -382,6 +384,8 @@
 #define CLKOUTDIS	(1 << 5)	/* CLKOUTEN' */
 #define SLPCLKDIV(x)	((x & 0x1F))	/* division ratio: 2^(SLPCLKDIV) */
 
+#define mrf24j40_spi_preamble() volatile uint8_t tmpIE = mrf24j40_get_ie(); mrf24j40_set_ie(0); mrf24j40_cs_pin(0);
+#define mrf24j40_spi_postamble() mrf24j40_cs_pin(1); mrf24j40_set_ie(tmpIE);
 
 uint8_t mrf24j40_read_long_ctrl_reg(uint16_t addr);
 uint8_t mrf24j40_read_short_ctrl_reg(uint8_t addr);
