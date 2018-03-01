@@ -53,44 +53,45 @@ int main(void) {
             
             delay_ms(5000);
             
-            uint8_t frame[2 + payloadLength]; // +2 for MHR
+            uint16_t totalLength = 2 + payloadLength;
+            uint8_t frame[totalLength]; // +2 for MHR
             uint16_t mhr = IEEE_MHR_NO_ACK_NO_SEC_NO_ADDR;
-            frame[0] = mhr >> 8;
-            frame[1] = mhr & 0xFF;
+            frame[0] = ((mhr >> 8) & 0xFF);
+            frame[1] = (mhr & 0xFF);
             memcpy(&(frame[2]), payloadString, payloadLength);
             
             printf("TXing [2]+%d bytes: [0x%x, 0x%x] \"%s\"\r\n", payloadLength, frame[0], frame[1], &(frame[2]));
             
             delay_ms(250);
             
-            mrf24j40_txpkt(frame, 2, 0, payloadLength); // write to TXNFIFO
+            //mrf24j40_txpkt(frame, 2, 0, payloadLength);
             
-//            uint16_t totalLength = 2 + payloadLength;
-//            mrf24j40_write_long_ctrl_reg(TXNFIFO, 2);
-//            mrf24j40_write_long_ctrl_reg(TXNFIFO + 1, totalLength);
-//            const uint16_t txFifoStart = TXNFIFO + 2;
-//            uint16_t i;
-//            for (i = 0; i < totalLength; i++) {
-//                mrf24j40_write_long_ctrl_reg(txFifoStart + i, frame[i]);
-//            }
-//            mrf24j40_write_short_ctrl_reg(TXNCON, 0x01); // trigger transmit
+            // write to TXNFIFO
+            mrf24j40_write_long_ctrl_reg(TXNFIFO, 0x02);
+            mrf24j40_write_long_ctrl_reg(TXNFIFO + 1, totalLength);
+            const uint16_t txFifoPayloadStart = TXNFIFO + 2;
+            uint16_t i;
+            for (i = 0; i < totalLength; i++) {
+                mrf24j40_write_long_ctrl_reg(txFifoPayloadStart + i, frame[i]);
+            }
+            mrf24j40_write_short_ctrl_reg(TXNCON, mrf24j40_read_short_ctrl_reg(TXNCON) | TXNTRIG); // trigger transmit
             
             delay_ms(10);
             
             // read back TXNFIFO  
-            printf("TXNFIFO = \"");
-            uint16_t fifoOff;
-            for (fifoOff = 0; fifoOff < (2 + payloadLength); fifoOff++) {
-              txBuffer[fifoOff] = mrf24j40_read_long_ctrl_reg(TXNFIFO + fifoOff);
-              if (txBuffer[fifoOff]) {
-                printf("%c", txBuffer[fifoOff]);
-              } else {
-                printf("!");
-              }
-            }
-            printf("\"\r\n");
-                        
-            mrf24j40_write_short_ctrl_reg(TXNCON, mrf24j40_read_short_ctrl_reg(TXNCON) | TXNTRIG); // trigger transmit
+//            printf("TXNFIFO = \"");
+//            uint16_t fifoOff;
+//            uint8_t value;
+//            for (fifoOff = 0; fifoOff < totalLength; fifoOff++) {
+//              value = mrf24j40_read_long_ctrl_reg(TXNFIFO + fifoOff);              
+//              if (value) {
+//                printf("%c", value);
+//              } else {
+//                printf("!");
+//              }
+//              
+//            }
+//            printf("\"\r\n");
             
             id++;
             payloadString[4] = '0' + (id / 100) % 10;
@@ -128,7 +129,7 @@ void __attribute__ ( ( interrupt, no_auto_psv ) ) _INT1Interrupt(void)
                     if (!(txstat & TXNSTAT)) { // TXNSTAT == 0 shows a successful transmission
                         printf("TX successful\r\n");
                     } else {
-                        printf("TX failed, retry count exceeded\r\n");
+                        printf("TX failed\r\n");
                     }
                 }
             }
