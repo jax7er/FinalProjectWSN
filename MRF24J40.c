@@ -172,12 +172,9 @@ void mrf24j40_set_key(uint16_t address, uint8_t *key) {
 
 void mrf24j40_hard_reset(void) {
   mrf24j40_reset_pin(0);
-
-  mrf24j40_delay_ms(5); // wait at least 2ms
-//  mrf24j40_delay_us(192);
+  mrf24j40_delay_ms(3); // wait at least 2ms
   mrf24j40_reset_pin(1);
-  mrf24j40_delay_ms(5); // wait at least 2ms
-//  mrf24j40_delay_us(192);
+  mrf24j40_delay_ms(3); // wait at least 2ms
 }
 
 void mrf24j40_initialize(void) {        
@@ -191,7 +188,7 @@ void mrf24j40_initialize(void) {
   mrf24j40_write_short_ctrl_reg(PACON2, 0x98); // Initialize FIFOEN = 1 and TXONTS = 0x6.
   mrf24j40_write_short_ctrl_reg(TXSTBL, 0x95); // Initialize RFSTBL = 0x9.
   
-  mrf24j40_write_long_ctrl_reg(RFCON0, 0x03); // Initialize RFOPT = 0x03.
+  mrf24j40_write_long_ctrl_reg(RFCON0, 0x03); // Initialize RFOPT = 0x03, Channel 11 (2.405GHz)
   mrf24j40_write_long_ctrl_reg(RFCON1, 0x01); // Initialize VCOOPT = 0x02.
   mrf24j40_write_long_ctrl_reg(RFCON2, 0x80); // Enable PLL (PLLEN = 1).
   mrf24j40_write_long_ctrl_reg(RFCON6, 0x90); // Initialize TXFIL = 1 and 20MRECVR = 1.
@@ -204,10 +201,12 @@ void mrf24j40_initialize(void) {
   mrf24j40_write_short_ctrl_reg(BBREG6, 0x40); // Set appended RSSI value to RXFIFO.
 
   mrf24j40_write_short_ctrl_reg(MRF24J40_INTCON, 0xB6); // Enable wake, RX and TX normal interrupts.
+  // tx power set to 0dBm at reset
   
   mrf24j40_write_short_ctrl_reg(RFCTL, 0x04); // Reset RF state machine.
+  mrf24j40_delay_us(200);
   mrf24j40_write_short_ctrl_reg(RFCTL, 0x00);
-  mrf24j40_delay_us(192); 
+  mrf24j40_delay_us(200); // delay at least 192 ?s 
   
 //  mrf24j40_cs_pin(1);
 //  mrf24j40_wake_pin(1);

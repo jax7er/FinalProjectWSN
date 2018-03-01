@@ -90,8 +90,8 @@
 void SYSTEM_Initialize(void)
 {
     PIN_MANAGER_Initialize();
-    OSCILLATOR_Initialize();
     INTERRUPT_Initialize();
+    OSCILLATOR_Initialize();
     SPI1_Initialize();
     UART1_Initialize();
     TMR3_Initialize();

@@ -86,8 +86,8 @@ void SPI1_Initialize (void)
     SPI1CON2L = 0x0000;
     // SPIROV disabled; FRMERR disabled; 
     SPI1STATL = 0x0000;
-    // SPI1BRGL 3; 
-    SPI1BRGL = 0x0003;
+    // SPI1BRGL 7; 
+    SPI1BRGL = 0x0007;
     // SPITBFEN disabled; SPITUREN disabled; FRMERREN disabled; SRMTEN disabled; SPIRBEN disabled; BUSYEN disabled; SPITBEN disabled; SPIROVEN disabled; SPIRBFEN disabled; 
     SPI1IMSKL = 0x0000;
     // RXMSK 0; TXWIEN disabled; TXMSK 0; RXWIEN disabled; 
