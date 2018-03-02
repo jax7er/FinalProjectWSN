@@ -70,22 +70,23 @@
 #define EBUSY			2
 
 /* IEEE 802.15.4 constants for building the MHR (MAC header) */
-#define IEEE_FRAME_TYPE_BEACON 0x0
-#define IEEE_FRAME_TYPE_DATA   0x1
-#define IEEE_FRAME_TYPE_ACK    0x2
-#define IEEE_FRAME_TYPE_MACCMD 0x3
-#define IEEE_ADDR_MODE_NONE    0x0
-#define IEEE_ADDR_MODE_16BIT   0x2
-#define IEEE_ADDR_MODE_64BIT   0x3
-#define IEEE_FRAME_VER_2003    0x0
-#define IEEE_FRAME_VER_2011    0x1
+#define IEEE_FRAME_TYPE_BEACON    0x0
+#define IEEE_FRAME_TYPE_DATA      0x1
+#define IEEE_FRAME_TYPE_ACK       0x2 // auto sent by the MRF24J40
+#define IEEE_FRAME_TYPE_MACCMD    0x3
+#define IEEE_ADDR_MODE_NONE       0x0
+#define IEEE_ADDR_MODE_16BIT      0x2 // 0xFFFF is the broadcast address
+#define IEEE_ADDR_MODE_64BIT      0x3
+#define IEEE_ADDR_BROADCAST_16BIT 0xFFFF
+#define IEEE_ADDR_BROADCAST_64BIT 0xFFFFFFFFFFFFFFFF
+#define IEEE_FRAME_VER_2003       0x0
+#define IEEE_FRAME_VER_2011       0x1
 
-//  ********** TODO ********** bits here are reversed in the 802.15.4 datasheet!
+#define IEEE_MAKE_FRAME_CTRL(srcAddrMode, frameVer, destAddrMode, panIdComp, ackReq, framePend, secEn, frameType) \
+        (((srcAddrMode) << 14) | ((frameVer) << 12) | ((destAddrMode) << 10) | ((panIdComp) << 6) | ((ackReq) << 5) | ((framePend) << 4) | ((secEn) << 3) | (frameType))
 
-#define IEEE_MAKE_FRAME_CTRL(frameType, secEn, framePend, ackReq, panIdComp, destAddrMode, frameVer, srcAddrMode) \
-        (((frameType) << 13) | ((secEn) << 12) | ((framePend) << 11) | ((ackReq) << 10) | ((panIdComp) << 11) | ((destAddrMode) << 4) | ((frameVer) << 2) | (srcAddrMode))
-#define IEEE_FRAME_CTRL_ACK_NO_SEC_NO_ADDR IEEE_MAKE_FRAME_CTRL(IEEE_FRAME_TYPE_DATA, 0, 0, 1, 0, IEEE_ADDR_MODE_NONE, IEEE_FRAME_VER_2003, IEEE_ADDR_MODE_16BIT)
-#define IEEE_FRAME_CTRL_NO_ACK_NO_SEC_NO_ADDR IEEE_MAKE_FRAME_CTRL(IEEE_FRAME_TYPE_DATA, 0, 0, 0, 0, IEEE_ADDR_MODE_NONE, IEEE_FRAME_VER_2003, IEEE_ADDR_MODE_16BIT)
+#define IEEE_FRAME_CTRL_16BIT_2003_ACK_NO_SEC_DATA IEEE_MAKE_FRAME_CTRL(IEEE_ADDR_MODE_16BIT, IEEE_FRAME_VER_2003, IEEE_ADDR_MODE_16BIT, 0, 1, 0, 0, IEEE_FRAME_TYPE_DATA)
+#define IEEE_FRAME_CTRL_16BIT_2003_NO_ACK_NO_SEC_DATA IEEE_MAKE_FRAME_CTRL(IEEE_ADDR_MODE_16BIT, IEEE_FRAME_VER_2003, IEEE_ADDR_MODE_16BIT, 0, 0, 0, 0, IEEE_FRAME_TYPE_DATA)
 
 /* IEEE 802.15.4 constants needed for some flags */
 #define IEEE_802_15_4_HAS_SEC(x)      ((x >> 3) & 0x01)

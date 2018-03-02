@@ -172,9 +172,9 @@ void mrf24j40_set_key(uint16_t address, uint8_t *key) {
 
 void mrf24j40_hard_reset(void) {
   mrf24j40_reset_pin(0);
-  mrf24j40_delay_ms(3); // wait at least 2ms
+  mrf24j40_delay_ms(500); // wait at least 2ms
   mrf24j40_reset_pin(1);
-  mrf24j40_delay_ms(3); // wait at least 2ms
+  mrf24j40_delay_ms(500); // wait at least 2ms
 }
 
 void mrf24j40_initialize(void) {        
@@ -183,7 +183,7 @@ void mrf24j40_initialize(void) {
   
   mrf24j40_hard_reset();
   
-  mrf24j40_write_short_ctrl_reg(SOFTRST, 0x07); // Perform a software Reset. The bits will be automatically cleared to ?0? by hardware.
+  //mrf24j40_write_short_ctrl_reg(SOFTRST, 0x07); // Perform a software Reset. The bits will be automatically cleared to ?0? by hardware.
  
   mrf24j40_write_short_ctrl_reg(PACON2, 0x98); // Initialize FIFOEN = 1 and TXONTS = 0x6.
   mrf24j40_write_short_ctrl_reg(TXSTBL, 0x95); // Initialize RFSTBL = 0x9.
