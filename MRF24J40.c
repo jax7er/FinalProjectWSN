@@ -50,6 +50,7 @@ uint8_t mrf24j40_read_short_ctrl_reg(uint8_t addr) {
   mrf24j40_spi_preamble();
   uint8_t value = spi_read_short(addr);
   mrf24j40_spi_postamble();
+  
   return value;
 }
 
