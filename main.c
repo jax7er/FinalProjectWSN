@@ -13,25 +13,16 @@
 #include "MRF24J40.h"
 #include "mcc_generated_files/mcc.h"
 #include "SPI_functions.h"
+#include "tests.h"
 
 // frame control | sequence number | address fields (dest PAN ID, dest addr, src addr)
 // 2 bytes       | 1 byte          | 6 bytes
 enum {
-    frameCtrlLength = 2,
-    seqNumLength = 1,
-    addrFieldsLength = 6,
-    mhrLength = frameCtrlLength + seqNumLength + addrFieldsLength,
     payloadLength = 8, // must be <= 126
-    totalLength = mhrLength + payloadLength,
-    srcAddrH = 0x55,
-    srcAddrL = 0xAA,
-    rxFifoLength = 144,
-    txFifoLength = 128
+    totalLength = mhrLength + payloadLength
 };
 
 uint8_t rxMode = 1; // default to RX mode
-uint8_t rxBuffer[rxFifoLength];
-uint8_t txBuffer[txFifoLength];
 char payloadString[payloadLength] = "SN: 000";
 uint8_t seqNum = 0;
 uint8_t frame[totalLength]; 
@@ -39,27 +30,40 @@ uint8_t frame[totalLength];
 int main(void) {
     SYSTEM_Initialize();
         
-    printf("board init done\r\n");      
+    println("board init done");      
     
     mrf24j40_initialize();
     
-    printf("radio init done\r\n");
+    println("radio init done");
     
     delay_ms(1000);
     
+    if (RX_TX_SELECT_GetValue()) { // perform tests by default
+        if (runAllTests()) {
+            println("Testing complete");
+        } else { 
+            println("Testing failed");
+
+            while (1); // do not continue if a test fails
+        }
+    } else {
+        println("Testing cancelled");
+    }
     //mrf24j40PrintAllRegisters();
+    
+    delay_ms(1000);
         
     rxMode = RX_TX_SELECT_GetValue(); // rx mode if the pin is high
         
     //uint8_t rfctl = mrf24j40_read_short_ctrl_reg(RFCTL);     
     if (rxMode) {
-        printf("RX mode\r\n");
+        println("RX mode");
         
         mrf24j40_set_promiscuous(0); // set RX error mode, accept all packets, good or bad CRC
         
 //        mrf24j40_write_short_ctrl_reg(RFCTL, rfctl | 0x01); // force rx mode
     } else {
-        printf("TX mode\r\n");
+        println("TX mode");
         
         mrf24j40_write_short_ctrl_reg(SADRH, srcAddrH); // set source address to be 0101010110101010
         mrf24j40_write_short_ctrl_reg(SADRL, srcAddrL);
@@ -75,10 +79,16 @@ int main(void) {
     while (1) {
         if (rxMode) {
             //delay_ms(1);
-            printf("Sleeping...\r\n");
+            println("Sleeping...");
             delay_ms(10);
             Sleep(); // executes the PWRSAV instruction
-            printf("Woken from sleep\r\n");
+            println("Woken from sleep");
+            if (checkAndClear(&ifs.rx)) {                
+                mrf24j40_read_rx();
+            }
+            if (checkAndClear(&ifs.wake)) {
+                println("Radio wake up");
+            }
         } else { 
             uint8_t mhrIndex = 0;
             
@@ -96,7 +106,7 @@ int main(void) {
             frame[mhrIndex++] = srcAddrH; // MSByte
             memcpy(&(frame[mhrIndex]), payloadString, payloadLength); // payload
             
-            printf("TXing [%d]+%d bytes: [0x%.2X%.2X, 0x%.2X, 0x%.2X%.2X, 0x%.2X%.2X, 0x%.2X%.2X] \"%s\"\r\n", 
+            println("TXing [%d]+%d bytes: [0x%.2X%.2X, 0x%.2X, 0x%.2X%.2X, 0x%.2X%.2X, 0x%.2X%.2X] \"%s\"", 
                     mhrLength, payloadLength,
                     frame[0], frame[1], 
                     frame[frameCtrlLength], 
@@ -135,9 +145,15 @@ int main(void) {
             seqNum++;
             payloadString[4] = '0' + (seqNum / 100) % 10;
             payloadString[5] = '0' + (seqNum / 10) % 10;
-            payloadString[6] = '0' + seqNum % 10;       
+            payloadString[6] = '0' + seqNum % 10;    
+                        
+            delay_ms(2500);
             
-            delay_ms(5000);            
+            if (checkAndClear(&ifs.tx)) {
+                mrf24f40_check_txstat();
+            }
+            
+            delay_ms(2500);
         }
     }
     
@@ -151,65 +167,11 @@ void __attribute__ ( ( interrupt, no_auto_psv ) ) _INT1Interrupt(void)
     
     uint8_t intstat = mrf24j40_read_short_ctrl_reg(INTSTAT);
     
-    printf("INTSTAT = 0x%.2X\r\n", intstat);
+    println("INTSTAT = 0x%.2X", intstat);
     
-    if (intstat) { // check there is some status
-        if (intstat & RXIF) {                    
-            //mrf24j40_write_short_ctrl_reg(BBREG1, mrf24j40_read_short_ctrl_reg(BBREG1) | RXDECINV); // disable receiving packets off air.
-
-            uint8_t frameLength = mrf24j40_read_long_ctrl_reg(RXFIFO);
-
-            uint16_t const fifoStart = RXFIFO + 1;
-            uint16_t const fifoEnd = fifoStart + frameLength;
-            uint16_t fifoIndex = fifoStart;
-            uint16_t bufferIndex = 0;
-            while (fifoIndex < fifoEnd) {
-                rxBuffer[bufferIndex++] = mrf24j40_read_long_ctrl_reg(fifoIndex++);
-            }
-
-            uint8_t const fcsL = mrf24j40_read_long_ctrl_reg(fifoIndex++);
-            uint8_t const fcsH = mrf24j40_read_long_ctrl_reg(fifoIndex++);
-            uint8_t const lqi = mrf24j40_read_long_ctrl_reg(fifoIndex++);
-            uint8_t const rssi = mrf24j40_read_long_ctrl_reg(fifoIndex++);
-
-            //mrf24j40_write_short_ctrl_reg(BBREG1, mrf24j40_read_short_ctrl_reg(BBREG1) | ~(RXDECINV)); // enable receiving packets off air.
-
-            printf("RX payload: [");
-            uint16_t const payloadLength = frameLength - 2;
-            bufferIndex = 0;
-            while (bufferIndex < payloadLength) {
-                if (bufferIndex < mhrLength - 1) {
-                    printf("0x%.2X, ", rxBuffer[bufferIndex++]);
-                } else if (bufferIndex == mhrLength - 1) {
-                    printf("0x%.2X] \"", rxBuffer[bufferIndex++]);
-                } else {
-                    printf("%c", rxBuffer[bufferIndex++]);
-                }
-            }
-            printf("\"\r\n");
-
-            printf("FCSH = 0x%.2X\r\n", fcsH);
-            printf("FCSL = 0x%.2X\r\n", fcsL);
-            printf("LQI = %d\r\n", lqi);
-            printf("RSSI = %d\r\n", rssi);
-        }
-        
-        if (intstat & TXNIF) {
-            uint8_t txstat = mrf24j40_read_short_ctrl_reg(TXSTAT);
-
-            if (~txstat & TXNSTAT) { // TXNSTAT == 0 shows a successful transmission
-                printf("TX successful, TXSTAT = 0x%.2X\r\n", txstat);
-            } else {
-                printf("TX failed, TXSTAT = 0x%.2X\r\n", txstat);
-            }
-        }
-        
-        if (intstat & WAKEIF) {
-            printf("Sleep over\r\n");
-        }
-    }
-    
-    mrf24j40_write_short_ctrl_reg(RXFLUSH, mrf24j40_read_short_ctrl_reg(RXFLUSH) | _RXFLUSH); // reset the RXFIFO pointer
+    ifs.rx = (intstat & RXIF) != 0;
+    ifs.tx = (intstat & TXNIF) != 0;
+    ifs.wake = (intstat & WAKEIF) != 0;
     
     EX_INT1_InterruptFlagClear();
     

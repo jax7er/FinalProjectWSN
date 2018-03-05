@@ -20,6 +20,7 @@
       <itemPath>C:/jmm546MPLABXProjects/MRF24J40_test.X/SPI_functions.h</itemPath>
       <itemPath>C:/jmm546MPLABXProjects/MRF24J40_test.X/delay.h</itemPath>
       <itemPath>C:/jmm546MPLABXProjects/MRF24J40_test.X/utils.h</itemPath>
+      <itemPath>C:/jmm546MPLABXProjects/MRF24J40_test.X/tests.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -44,6 +45,7 @@
       <itemPath>C:/jmm546MPLABXProjects/MRF24J40_test.X/SPI_functions.c</itemPath>
       <itemPath>C:/jmm546MPLABXProjects/MRF24J40_test.X/utils.c</itemPath>
       <itemPath>C:/jmm546MPLABXProjects/MRF24J40_test.X/delay.c</itemPath>
+      <itemPath>C:/jmm546MPLABXProjects/MRF24J40_test.X/tests.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"

@@ -11,6 +11,15 @@
 #include "mcc_generated_files/uart1.h"
 #include "MRF24J40.h"
 
+uint8_t checkAndClear(uint8_t * flag_p) {
+    if (*flag_p) {
+        *flag_p = 0;
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
 void mrf24j40PrintAllRegisters(void) {
     // print out the values of all the registers on the MRF24J40
     uint16_t addr;

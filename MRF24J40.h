@@ -226,8 +226,9 @@
 #define SECKFIFO	0x280 /* - 0x2BF, 64 bytes */
 #define SECKTXNFIFO	0x280 /* - 0x28F, 16 bytes */
 #define SECKRXFIFO	0x2B0 /* - 0x2BF, 16 bytes */
-#define RXFIFO		0x300 /* - 0x38F, 128 bytes */
-
+#define RXFIFO		0x300 /* - 0x38F, 144 bytes */
+#define TXNFIFO_SIZE 128
+#define RXFIFO_SIZE  144
 
 /* RXMCR */
 #define NOACKRSP	(1<<5)
@@ -391,6 +392,29 @@
 #define mrf24j40_spi_preamble() volatile uint8_t tmpIE = mrf24j40_get_ie(); mrf24j40_set_ie(0); mrf24j40_cs_pin(0);
 #define mrf24j40_spi_postamble() mrf24j40_cs_pin(1); mrf24j40_set_ie(tmpIE);
 
+// frame control | sequence number | address fields (dest PAN ID, dest addr, src addr)
+// 2 bytes       | 1 byte          | 6 bytes
+enum {
+    frameCtrlLength = 2,
+    seqNumLength = 1,
+    addrFieldsLength = 6,
+    mhrLength = frameCtrlLength + seqNumLength + addrFieldsLength,
+    srcAddrH = 0x55,
+    srcAddrL = 0xAA
+};
+
+typedef struct mrf24j40_interrupt_flags {
+    volatile uint8_t rx;
+    volatile uint8_t tx;
+    volatile uint8_t wake;
+} radio_if_t;
+
+extern radio_if_t ifs;
+extern uint8_t volatile rxBuffer[RXFIFO_SIZE];
+extern uint8_t volatile txBuffer[TXNFIFO_SIZE];
+
+void mrf24j40_read_rx(void);
+void mrf24f40_check_txstat(void);
 uint8_t mrf24j40_read_long_ctrl_reg(uint16_t addr);
 uint8_t mrf24j40_read_short_ctrl_reg(uint8_t addr);
 void mrf24j40_write_long_ctrl_reg(uint16_t addr, uint8_t value);

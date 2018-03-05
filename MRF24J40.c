@@ -35,8 +35,67 @@
 #include "config.h"
 #include "MRF24J40.h"
 #include "SPI_functions.h"
+#include "utils.h"
+#include "stdio.h"
 
 #include <stdlib.h>
+
+radio_if_t ifs = {.rx = 0, .tx = 0, .wake = 0};
+uint8_t volatile rxBuffer[RXFIFO_SIZE] = {0};
+uint8_t volatile txBuffer[TXNFIFO_SIZE] = {0};
+
+void mrf24j40_read_rx(void) {
+    //uint8_t bbreg1 = mrf24j40_read_short_ctrl_reg(BBREG1);
+    //mrf24j40_write_short_ctrl_reg(BBREG1, bbreg1 | RXDECINV); // disable receiving packets off air.
+
+    uint8_t frameLength = mrf24j40_read_long_ctrl_reg(RXFIFO);
+
+    uint16_t const fifoStart = RXFIFO + 1;
+    uint16_t const fifoEnd = fifoStart + frameLength;
+    uint16_t fifoIndex = fifoStart;
+    uint16_t bufferIndex = 0;
+    while (fifoIndex < fifoEnd) {
+        rxBuffer[bufferIndex++] = mrf24j40_read_long_ctrl_reg(fifoIndex++);
+    }
+
+    uint8_t const fcsL = mrf24j40_read_long_ctrl_reg(fifoIndex++);
+    uint8_t const fcsH = mrf24j40_read_long_ctrl_reg(fifoIndex++);
+    uint8_t const lqi = mrf24j40_read_long_ctrl_reg(fifoIndex++);
+    uint8_t const rssi = mrf24j40_read_long_ctrl_reg(fifoIndex++);
+    
+    mrf24j40_write_short_ctrl_reg(RXFLUSH, mrf24j40_read_short_ctrl_reg(RXFLUSH) | _RXFLUSH); // reset the RXFIFO pointer
+
+    //mrf24j40_write_short_ctrl_reg(BBREG1, bbreg1 | ~(RXDECINV)); // enable receiving packets off air.
+
+    printf("RX payload: [");
+    uint16_t const payloadLength = frameLength - 2;
+    bufferIndex = 0;
+    while (bufferIndex < payloadLength) {
+        if (bufferIndex < mhrLength - 1) {
+            printf("0x%.2X, ", rxBuffer[bufferIndex++]);
+        } else if (bufferIndex == mhrLength - 1) {
+            printf("0x%.2X] \"", rxBuffer[bufferIndex++]);
+        } else {
+            printf("%c", rxBuffer[bufferIndex++]);
+        }
+    }
+    println("\"");
+
+    println("FCSH = 0x%.2X", fcsH);
+    println("FCSL = 0x%.2X", fcsL);
+    println("LQI = %d", lqi);
+    println("RSSI = %d", rssi);
+}
+
+void mrf24f40_check_txstat(void) {
+    uint8_t txstat = mrf24j40_read_short_ctrl_reg(TXSTAT);
+
+    if (~txstat & TXNSTAT) { // TXNSTAT == 0 shows a successful transmission
+        println("TX successful, TXSTAT = 0x%.2X", txstat);
+    } else {
+        println("TX failed, TXSTAT = 0x%.2X", txstat);
+    }
+}
 
 uint8_t mrf24j40_read_long_ctrl_reg(uint16_t addr) {
   mrf24j40_spi_preamble();

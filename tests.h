@@ -28,14 +28,24 @@
 
 // This is a guard condition so that contents of this file are not included
 // more than once.  
-#ifndef UTILS_H
-#define	UTILS_H
+#ifndef TESTS_H
+#define	TESTS_H
 
-#define println(...) printf(__VA_ARGS__); printf("\r\n");
+typedef enum {
+    SOFTWARE_TEST_ID_SERIAL,
+    SOFTWARE_TEST_ID_PROCESSING,
+    SOFTWARE_TEST_ID_SLEEP,
+    SYSTEM_TEST_ID_RADIO_READ,
+    SYSTEM_TEST_ID_RADIO_SLEEP,
+    SYSTEM_TEST_ID_INTERRUPT,
+    SYSTEM_TEST_ID_TX_RX,
+    NUM_TESTS
+} testId_e;
 
-uint8_t checkAndClear(uint8_t * flag_p);
-void mrf24j40PrintAllRegisters(void);
-void uart1Print(char const * const str);
+#include <stdint.h>
 
-#endif	/* UTILS_H */
+uint8_t runAllTests(void);
+uint8_t runTest(testId_e id);
+
+#endif	/* TESTS_H */
 

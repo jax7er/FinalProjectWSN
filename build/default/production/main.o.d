@@ -13,4 +13,5 @@ mcc_generated_files/interrupt_manager.h  \
  mcc_generated_files/uart1.h  \
 mcc_generated_files/ext_int.h  \
  mcc_generated_files/spi1.h  \
-SPI_functions.h 
+SPI_functions.h  \
+tests.h 

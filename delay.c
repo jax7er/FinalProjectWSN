@@ -7,6 +7,7 @@
 
 #include "xc.h"
 #include "delay.h"
+#include "MRF24J40.h"
 
 void delay_us(uint16_t us) {
     PR3 = us * 4; // each clock tick takes 0.25us
@@ -14,7 +15,7 @@ void delay_us(uint16_t us) {
     _T3IF = 0; // reset interrupt flag
     
     T3CONbits.TON = 1; // enable timer
-    while (!_T3IF); // wait for interrupt flag to be set
+    while (!_T3IF); // wait for interrupt flag to be set 
     T3CONbits.TON = 0; // disable timer
     
     _T3IF = 0; // reset interrupt flag
