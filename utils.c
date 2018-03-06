@@ -11,7 +11,7 @@
 #include "mcc_generated_files/uart1.h"
 #include "MRF24J40.h"
 
-uint8_t checkAndClear(uint8_t * flag_p) {
+uint8_t checkAndClear(uint8_t volatile * flag_p) {
     if (*flag_p) {
         *flag_p = 0;
         return 1;

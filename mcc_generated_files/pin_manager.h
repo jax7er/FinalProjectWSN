@@ -785,6 +785,152 @@
 #define MRF24J40_WAKE_SetDigitalOutput() _TRISB12 = 0
 /**
   @Summary
+    Sets the GPIO pin, RB14, high using LATB14.
+
+  @Description
+    Sets the GPIO pin, RB14, high using LATB14.
+
+  @Preconditions
+    The RB14 must be set to an output.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Set RB14 high (1)
+    channel_AN6_SetHigh();
+    </code>
+
+*/
+#define channel_AN6_SetHigh()          _LATB14 = 1
+/**
+  @Summary
+    Sets the GPIO pin, RB14, low using LATB14.
+
+  @Description
+    Sets the GPIO pin, RB14, low using LATB14.
+
+  @Preconditions
+    The RB14 must be set to an output.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Set RB14 low (0)
+    channel_AN6_SetLow();
+    </code>
+
+*/
+#define channel_AN6_SetLow()           _LATB14 = 0
+/**
+  @Summary
+    Toggles the GPIO pin, RB14, using LATB14.
+
+  @Description
+    Toggles the GPIO pin, RB14, using LATB14.
+
+  @Preconditions
+    The RB14 must be set to an output.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Toggle RB14
+    channel_AN6_Toggle();
+    </code>
+
+*/
+#define channel_AN6_Toggle()           _LATB14 ^= 1
+/**
+  @Summary
+    Reads the value of the GPIO pin, RB14.
+
+  @Description
+    Reads the value of the GPIO pin, RB14.
+
+  @Preconditions
+    None.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    uint16_t portValue;
+
+    // Read RB14
+    postValue = channel_AN6_GetValue();
+    </code>
+
+*/
+#define channel_AN6_GetValue()         _RB14
+/**
+  @Summary
+    Configures the GPIO pin, RB14, as an input.
+
+  @Description
+    Configures the GPIO pin, RB14, as an input.
+
+  @Preconditions
+    None.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Sets the RB14 as an input
+    channel_AN6_SetDigitalInput();
+    </code>
+
+*/
+#define channel_AN6_SetDigitalInput()  _TRISB14 = 1
+/**
+  @Summary
+    Configures the GPIO pin, RB14, as an output.
+
+  @Description
+    Configures the GPIO pin, RB14, as an output.
+
+  @Preconditions
+    None.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Sets the RB14 as an output
+    channel_AN6_SetDigitalOutput();
+    </code>
+
+*/
+#define channel_AN6_SetDigitalOutput() _TRISB14 = 0
+/**
+  @Summary
     Sets the GPIO pin, RB7, high using LATB7.
 
   @Description

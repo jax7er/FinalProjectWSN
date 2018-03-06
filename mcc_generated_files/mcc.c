@@ -94,7 +94,9 @@ void SYSTEM_Initialize(void)
     OSCILLATOR_Initialize();
     SPI1_Initialize();
     UART1_Initialize();
+    ADC1_Initialize();
     TMR3_Initialize();
+    I2C2_Initialize();
     EXT_INT_Initialize();
 }
 

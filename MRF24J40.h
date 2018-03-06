@@ -394,13 +394,11 @@
 
 // frame control | sequence number | address fields (dest PAN ID, dest addr, src addr)
 // 2 bytes       | 1 byte          | 6 bytes
-enum {
+enum mhrElementLengths {
     frameCtrlLength = 2,
     seqNumLength = 1,
     addrFieldsLength = 6,
-    mhrLength = frameCtrlLength + seqNumLength + addrFieldsLength,
-    srcAddrH = 0x55,
-    srcAddrL = 0xAA
+    mhrLength = frameCtrlLength + seqNumLength + addrFieldsLength
 };
 
 typedef struct mrf24j40_interrupt_flags {
@@ -412,6 +410,8 @@ typedef struct mrf24j40_interrupt_flags {
 extern radio_if_t ifs;
 extern uint8_t volatile rxBuffer[RXFIFO_SIZE];
 extern uint8_t volatile txBuffer[TXNFIFO_SIZE];
+extern uint8_t srcAddrH;
+extern uint8_t srcAddrL;
 
 void mrf24j40_read_rx(void);
 void mrf24f40_check_txstat(void);

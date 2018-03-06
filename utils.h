@@ -31,9 +31,8 @@
 #ifndef UTILS_H
 #define	UTILS_H
 
-#define println(...) printf(__VA_ARGS__); printf("\r\n");
+#define println(...) do { printf(__VA_ARGS__); printf("\r\n"); } while (0)
 
-uint8_t checkAndClear(uint8_t * flag_p);
 void mrf24j40PrintAllRegisters(void);
 void uart1Print(char const * const str);
 

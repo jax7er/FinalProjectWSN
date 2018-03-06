@@ -43,6 +43,8 @@
 radio_if_t ifs = {.rx = 0, .tx = 0, .wake = 0};
 uint8_t volatile rxBuffer[RXFIFO_SIZE] = {0};
 uint8_t volatile txBuffer[TXNFIFO_SIZE] = {0};
+uint8_t srcAddrH = 0xAA; // default address = 0xAA54
+uint8_t srcAddrL = 0x54;
 
 void mrf24j40_read_rx(void) {
     //uint8_t bbreg1 = mrf24j40_read_short_ctrl_reg(BBREG1);
