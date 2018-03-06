@@ -31,9 +31,15 @@
 #ifndef UTILS_H
 #define	UTILS_H
 
+#include <stdio.h>
+#include <stdint.h>
+
 #define println(...) do { printf(__VA_ARGS__); printf("\r\n"); } while (0)
+#define printlnBefore(statement, ...) do { println(__VA_ARGS__); statement; } while (0)
+#define printlnAfter(statement, ...) do { statement; println(__VA_ARGS__); } while (0)
 
 void mrf24j40PrintAllRegisters(void);
+void mrf24j40PrintTxFifo(uint16_t totalLength);
 void uart1Print(char const * const str);
 
 #endif	/* UTILS_H */

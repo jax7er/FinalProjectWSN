@@ -37,6 +37,7 @@
 #include "SPI_functions.h"
 #include "utils.h"
 #include "stdio.h"
+#include "payload.h"
 
 #include <stdlib.h>
 
@@ -45,6 +46,49 @@ uint8_t volatile rxBuffer[RXFIFO_SIZE] = {0};
 uint8_t volatile txBuffer[TXNFIFO_SIZE] = {0};
 uint8_t srcAddrH = 0xAA; // default address = 0xAA54
 uint8_t srcAddrL = 0x54;
+uint8_t mhr[mhrLength];
+
+void mrf24j40_trigger_tx(void) {
+    mrf24j40_write_short_ctrl_reg(TXNCON, mrf24j40_read_short_ctrl_reg(TXNCON) | TXNTRIG); 
+}
+
+// creates and writes the MAC header (MHR) to the TXNFIFO on the MRF24J40
+void mrf24f40_mhr_write(uint16_t * fifo_i_p, uint16_t totalLength) {
+    uint8_t mhr_i = 0;
+            
+    //TODO use destination address of other mote rather than just broadcast
+
+    // frame control
+    mhr[mhr_i++] = 0x41; // pan ID compression, data frame
+    mhr[mhr_i++] = 0x88; // 16 bit addresses, 2003 frame version
+    // sequence number
+    mhr[mhr_i++] = seqNum;
+    // address fields
+    mhr[mhr_i++] = 0xFF; // destination PAN ID LSByte (0xFFFF broadcast)
+    mhr[mhr_i++] = 0xFF; // MSByte
+    mhr[mhr_i++] = 0xFF; // destination address LSByte (0xFFFF broadcast)
+    mhr[mhr_i++] = 0xFF; // MSByte
+    mhr[mhr_i++] = srcAddrL; // source address LSByte
+    mhr[mhr_i++] = srcAddrH; // MSByte
+    //memcpy(&(frame[mhrIndex]), sequenceNumberString, sequenceNumberLength); // payload
+
+//            println("TXing [%d]+%d bytes: [0x%.2X%.2X, 0x%.2X, 0x%.2X%.2X, 0x%.2X%.2X, 0x%.2X%.2X] \"%s\"", 
+//                    mhrLength, sequenceNumberLength,
+//                    frame[0], frame[1], 
+//                    frame[frameCtrlLength], 
+//                    frame[frameCtrlLength + seqNumLength], frame[frameCtrlLength + seqNumLength + 1], frame[frameCtrlLength + seqNumLength + 2], frame[frameCtrlLength + seqNumLength + 3], frame[frameCtrlLength + seqNumLength + 4], frame[frameCtrlLength + seqNumLength + 5], 
+//                    &(frame[mhrLength]));
+//            
+//            delay_ms(250);
+
+    // write to TXNFIFO
+    mrf24j40_write_long_ctrl_reg((*fifo_i_p)++, mhrLength);
+    mrf24j40_write_long_ctrl_reg((*fifo_i_p)++, totalLength);
+    mhr_i = 0;
+    while (mhr_i < mhrLength) {
+        mrf24j40_write_long_ctrl_reg((*fifo_i_p)++, mhr[mhr_i++]);
+    }
+}
 
 void mrf24j40_read_rx(void) {
     //uint8_t bbreg1 = mrf24j40_read_short_ctrl_reg(BBREG1);
@@ -71,18 +115,25 @@ void mrf24j40_read_rx(void) {
 
     printf("RX payload: [");
     uint16_t const payloadLength = frameLength - 2;
+    uint8_t value;
     bufferIndex = 0;
     while (bufferIndex < payloadLength) {
+        value = rxBuffer[bufferIndex];
         if (bufferIndex < mhrLength - 1) {
-            printf("0x%.2X, ", rxBuffer[bufferIndex++]);
+            printf("0x%.2X, ", value);
         } else if (bufferIndex == mhrLength - 1) {
-            printf("0x%.2X] \"", rxBuffer[bufferIndex++]);
+            printf("0x%.2X] \"", value);
         } else {
-            printf("%c", rxBuffer[bufferIndex++]);
+            if (isValidPayloadChar(value)) {
+                printf("%c", value);
+            } else {
+                printf("<%.2X>", value);
+            }
         }
+        bufferIndex++;
     }
     println("\"");
-
+    
     println("FCSH = 0x%.2X", fcsH);
     println("FCSL = 0x%.2X", fcsL);
     println("LQI = %d", lqi);

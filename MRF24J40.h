@@ -412,7 +412,10 @@ extern uint8_t volatile rxBuffer[RXFIFO_SIZE];
 extern uint8_t volatile txBuffer[TXNFIFO_SIZE];
 extern uint8_t srcAddrH;
 extern uint8_t srcAddrL;
+extern uint8_t mhr[]; 
 
+void mrf24j40_trigger_tx(void);
+void mrf24f40_mhr_write(uint16_t * fifo_i_p, uint16_t totalLength);
 void mrf24j40_read_rx(void);
 void mrf24f40_check_txstat(void);
 uint8_t mrf24j40_read_long_ctrl_reg(uint16_t addr);

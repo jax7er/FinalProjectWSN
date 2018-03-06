@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include "mcc_generated_files/uart1.h"
 #include "MRF24J40.h"
+#include "payload.h"
 
 uint8_t checkAndClear(uint8_t volatile * flag_p) {
     if (*flag_p) {
@@ -18,6 +19,21 @@ uint8_t checkAndClear(uint8_t volatile * flag_p) {
     } else {
         return 0;
     }
+}
+
+void mrf24j40PrintTxFifo(uint16_t totalLength) {
+    printf("TXNFIFO = \"");
+    uint8_t value;
+    uint16_t fifo_i;
+    for (fifo_i = 0; fifo_i < 6 + totalLength; fifo_i++) {
+        value = mrf24j40_read_long_ctrl_reg(fifo_i);    
+        if (isValidPayloadChar(value)) {
+            printf("%c", value);
+        } else {
+            printf("<%.2X>", value);
+        }
+    }
+    println("\"");
 }
 
 void mrf24j40PrintAllRegisters(void) {
