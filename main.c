@@ -27,7 +27,7 @@ int main(void) {
     
     delay_ms(1000);
     
-    if (RX_TX_SELECT_GetValue()) { // select which mote this one is
+    if (BUTTON_GetValue()) { // select which mote this one is
         // mote 1 has address 0xAA54 and id 1
         println("Set mote 1, ID = 1, address = 0xAA54"); 
     } else {
@@ -41,16 +41,13 @@ int main(void) {
     
     delay_ms(1000);
     
-    if (RX_TX_SELECT_GetValue()) { // perform tests by default
+    if (BUTTON_GetValue()) { // perform tests by default
         if (runAllTests()) {
             println("Testing complete");
         } else { 
             println("Testing failed");
 
-            while (1) { // do not continue if a test fails
-                RX_TX_SELECT_Toggle();
-                delay_ms(250);
-            }; 
+            toggleLedForever();
         }
     } else {
         println("Testing cancelled");
@@ -58,12 +55,12 @@ int main(void) {
     
     delay_ms(1000);
         
-    rxMode = RX_TX_SELECT_GetValue(); // rx mode if the pin is high
+    rxMode = BUTTON_GetValue(); // rx mode if the button is not pressed (pulled up), tx mode if it is
         
     if (rxMode) {
         printlnBefore(mrf24j40_set_promiscuous(0), "RX mode"); // accept all packets, good or bad CRC
     } else {
-        printlnBefore(TX_MODE_LED_SetHigh(), "TX mode");
+        printlnBefore(LED_SetHigh(), "TX mode");
         
         uint16_t payloadLengthBits = 0;
         uint16_t payloadElementHeaderBits = payloadElementIdBits + payloadElementSizeBits + payloadElementLengthBits;
@@ -76,6 +73,12 @@ int main(void) {
         println("mhr length = %d", mhrLength);
         println("payload length bits (bytes) = %d (%d)", payloadLengthBits, payloadLengthBits / 8);
         println("total length = %d", totalLength);
+        
+        if (totalLength > (TXNFIFO_SIZE - 2)) {
+            println("Total length too big! Maximum is %d", TXNFIFO_SIZE - 2);
+            
+            toggleLedForever();
+        }
     } 
     
     while (1) {
@@ -83,14 +86,12 @@ int main(void) {
             printlnBefore(Sleep(), "Sleeping...");
             
             if (ifs.rx) {   
-                ifs.rx = 0;
+                printlnAfter(ifs.rx = 0, "Message received");
                 
                 mrf24j40_read_rx();
             }
             if (ifs.wake) {
-                ifs.wake = 0;
-                
-                println("Radio wake up");
+                printlnAfter(ifs.wake = 0, "Radio woke up");
             }
         } else {
             uint16_t fifo_i = TXNFIFO;

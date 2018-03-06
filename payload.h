@@ -73,8 +73,8 @@ typedef enum payloadElementIndex {
 extern payloadElement_t payload[];
 
 extern uint8_t seqNum;
-extern char sequenceNumberString[];
-extern char pressureSensorString[];
+extern uint8_t sequenceNumberString[];
+extern uint8_t pressureSensorString[];
 extern uint32_t data32Bit[];
 
 void payload_write(uint16_t * fifo_i_p);

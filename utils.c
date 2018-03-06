@@ -11,6 +11,7 @@
 #include "mcc_generated_files/uart1.h"
 #include "MRF24J40.h"
 #include "payload.h"
+#include "delay.h"
 
 uint8_t checkAndClear(uint8_t volatile * flag_p) {
     if (*flag_p) {
@@ -54,4 +55,11 @@ void uart1Print(char const * const str) {
             UART1_Write((uint8_t)str[i++]);
         }    
     }
+}
+
+void toggleLedForever(void) {
+    while (1) { // do not continue if a test fails
+        LED_Toggle();
+        delay_ms(250);
+    }; 
 }

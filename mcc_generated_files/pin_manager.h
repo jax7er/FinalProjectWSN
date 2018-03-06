@@ -72,11 +72,11 @@
   @Example
     <code>
     // Set RA2 high (1)
-    TX_MODE_LED_SetHigh();
+    LED_SetHigh();
     </code>
 
 */
-#define TX_MODE_LED_SetHigh()          _LATA2 = 1
+#define LED_SetHigh()          _LATA2 = 1
 /**
   @Summary
     Sets the GPIO pin, RA2, low using LATA2.
@@ -96,11 +96,11 @@
   @Example
     <code>
     // Set RA2 low (0)
-    TX_MODE_LED_SetLow();
+    LED_SetLow();
     </code>
 
 */
-#define TX_MODE_LED_SetLow()           _LATA2 = 0
+#define LED_SetLow()           _LATA2 = 0
 /**
   @Summary
     Toggles the GPIO pin, RA2, using LATA2.
@@ -120,11 +120,11 @@
   @Example
     <code>
     // Toggle RA2
-    TX_MODE_LED_Toggle();
+    LED_Toggle();
     </code>
 
 */
-#define TX_MODE_LED_Toggle()           _LATA2 ^= 1
+#define LED_Toggle()           _LATA2 ^= 1
 /**
   @Summary
     Reads the value of the GPIO pin, RA2.
@@ -146,11 +146,11 @@
     uint16_t portValue;
 
     // Read RA2
-    postValue = TX_MODE_LED_GetValue();
+    postValue = LED_GetValue();
     </code>
 
 */
-#define TX_MODE_LED_GetValue()         _RA2
+#define LED_GetValue()         _RA2
 /**
   @Summary
     Configures the GPIO pin, RA2, as an input.
@@ -170,11 +170,11 @@
   @Example
     <code>
     // Sets the RA2 as an input
-    TX_MODE_LED_SetDigitalInput();
+    LED_SetDigitalInput();
     </code>
 
 */
-#define TX_MODE_LED_SetDigitalInput()  _TRISA2 = 1
+#define LED_SetDigitalInput()  _TRISA2 = 1
 /**
   @Summary
     Configures the GPIO pin, RA2, as an output.
@@ -194,11 +194,11 @@
   @Example
     <code>
     // Sets the RA2 as an output
-    TX_MODE_LED_SetDigitalOutput();
+    LED_SetDigitalOutput();
     </code>
 
 */
-#define TX_MODE_LED_SetDigitalOutput() _TRISA2 = 0
+#define LED_SetDigitalOutput() _TRISA2 = 0
 /**
   @Summary
     Sets the GPIO pin, RA3, high using LATA3.
@@ -218,11 +218,11 @@
   @Example
     <code>
     // Set RA3 high (1)
-    RX_TX_SELECT_SetHigh();
+    BUTTON_SetHigh();
     </code>
 
 */
-#define RX_TX_SELECT_SetHigh()          _LATA3 = 1
+#define BUTTON_SetHigh()          _LATA3 = 1
 /**
   @Summary
     Sets the GPIO pin, RA3, low using LATA3.
@@ -242,11 +242,11 @@
   @Example
     <code>
     // Set RA3 low (0)
-    RX_TX_SELECT_SetLow();
+    BUTTON_SetLow();
     </code>
 
 */
-#define RX_TX_SELECT_SetLow()           _LATA3 = 0
+#define BUTTON_SetLow()           _LATA3 = 0
 /**
   @Summary
     Toggles the GPIO pin, RA3, using LATA3.
@@ -266,11 +266,11 @@
   @Example
     <code>
     // Toggle RA3
-    RX_TX_SELECT_Toggle();
+    BUTTON_Toggle();
     </code>
 
 */
-#define RX_TX_SELECT_Toggle()           _LATA3 ^= 1
+#define BUTTON_Toggle()           _LATA3 ^= 1
 /**
   @Summary
     Reads the value of the GPIO pin, RA3.
@@ -292,11 +292,11 @@
     uint16_t portValue;
 
     // Read RA3
-    postValue = RX_TX_SELECT_GetValue();
+    postValue = BUTTON_GetValue();
     </code>
 
 */
-#define RX_TX_SELECT_GetValue()         _RA3
+#define BUTTON_GetValue()         _RA3
 /**
   @Summary
     Configures the GPIO pin, RA3, as an input.
@@ -316,11 +316,11 @@
   @Example
     <code>
     // Sets the RA3 as an input
-    RX_TX_SELECT_SetDigitalInput();
+    BUTTON_SetDigitalInput();
     </code>
 
 */
-#define RX_TX_SELECT_SetDigitalInput()  _TRISA3 = 1
+#define BUTTON_SetDigitalInput()  _TRISA3 = 1
 /**
   @Summary
     Configures the GPIO pin, RA3, as an output.
@@ -340,11 +340,11 @@
   @Example
     <code>
     // Sets the RA3 as an output
-    RX_TX_SELECT_SetDigitalOutput();
+    BUTTON_SetDigitalOutput();
     </code>
 
 */
-#define RX_TX_SELECT_SetDigitalOutput() _TRISA3 = 0
+#define BUTTON_SetDigitalOutput() _TRISA3 = 0
 /**
   @Summary
     Sets the GPIO pin, RB10, high using LATB10.

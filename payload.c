@@ -11,16 +11,16 @@
 #include "MRF24J40.h"
 
 uint8_t seqNum = 0;
-char sequenceNumberString[] = "SN 000 this is a test message";
-char pressureSensorString[] = "Pressure data goes here";
-extern uint32_t data32Bit[] = {
+uint8_t sequenceNumberString[] = "SN 000 this is a test message";
+uint8_t pressureSensorString[] = "Pressure data goes here";
+uint32_t data32Bit[] = {
     0x12345678,
     0x23456781,
     0x34567812,
-    0x45678123,    
-    0x56781234,   
-    0x67812345,   
-    0x78123456,   
+    0x45678123,
+    0x56781234,
+    0x67812345,
+    0x78123456,
     0x81234567
 };
 
@@ -28,19 +28,19 @@ payloadElement_t payload[NUM_ELEMENTS] = {
     (payloadElement_t){
         .id = SEQUENCE_NUM_ID, 
         .size = BITS_8, 
-        .length = 29, 
+        .length = sizeof(sequenceNumberString) / sizeof(uint8_t), //29, 
         .data = sequenceNumberString
     },
     (payloadElement_t){
         .id = PRESSURE_SENSOR_ID, 
         .size = BITS_8,
-        .length = 23, 
+        .length = sizeof(pressureSensorString) / sizeof(uint8_t), //23, 
         .data = pressureSensorString
     },
     (payloadElement_t){
         .id = DATA_32_BIT_ID, 
         .size = BITS_32,
-        .length = 8, 
+        .length = sizeof(data32Bit) / sizeof(uint32_t), //8, 
         .data = data32Bit
     }
 };
@@ -48,7 +48,7 @@ payloadElement_t payload[NUM_ELEMENTS] = {
 void payload_write(uint16_t * fifo_i_p) {
     uint16_t element_i = 0;
     while (element_i < NUM_ELEMENTS) {
-        println("payload[%d]: num words = %d, size = %d", element_i, payload[element_i].length + 1, payload[element_i].size);
+        println("payload[%d]: num words = %d, word length = %d bits", element_i, payload[element_i].length + 1, 1 << (payload[element_i].size + 3));
 
         // write the element header (total 2 bytes)
         mrf24j40_write_long_ctrl_reg((*fifo_i_p)++, payload[element_i].id);
