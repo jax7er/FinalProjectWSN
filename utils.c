@@ -27,7 +27,7 @@ void mrf24j40PrintTxFifo(uint16_t totalLength) {
     uint8_t value;
     uint16_t fifo_i;
     for (fifo_i = 0; fifo_i < 6 + totalLength; fifo_i++) {
-        value = mrf24j40_read_long_ctrl_reg(fifo_i);    
+        value = radio_read_long_ctrl_reg(fifo_i);    
         if (isValidPayloadChar(value)) {
             printf("%c", value);
         } else {
@@ -41,10 +41,10 @@ void mrf24j40PrintAllRegisters(void) {
     // print out the values of all the registers on the MRF24J40
     uint16_t addr;
     for (addr = 0x00; addr <= 0x3F; addr++) {
-        printf("%x=%x\r\n", addr, mrf24j40_read_short_ctrl_reg(addr));
+        printf("%x=%x\r\n", addr, radio_read_short_ctrl_reg(addr));
     }
     for (addr = 0x200; addr <= 0x24C; addr++) {
-        printf("%x=%x\r\n", addr, mrf24j40_read_long_ctrl_reg(addr));
+        printf("%x=%x\r\n", addr, radio_read_long_ctrl_reg(addr));
     }
 }
 

@@ -22,8 +22,11 @@ uint8_t moteId = 1; // default to mote 1
 uint16_t totalLength = 0;
     
 int main(void) {
-    printlnAfter(SYSTEM_Initialize(), "board init done");            
-    printlnAfter(mrf24j40_initialize(), "radio init done");
+    SYSTEM_Initialize();
+    println("board init done");       
+    
+    radio_initialize();
+    println("radio init done");
     
     delay_ms(1000);
     
@@ -36,8 +39,8 @@ int main(void) {
         println("Set mote 2, ID = 2, address = 0xAA55");
     }
         
-    mrf24j40_write_short_ctrl_reg(SADRH, srcAddrH); // set source address
-    mrf24j40_write_short_ctrl_reg(SADRL, srcAddrL);
+    radio_write_short_ctrl_reg(SADRH, srcAddrH); // set source address
+    radio_write_short_ctrl_reg(SADRL, srcAddrL);
     
     delay_ms(1000);
     
@@ -58,9 +61,13 @@ int main(void) {
     rxMode = BUTTON_GetValue(); // rx mode if the button is not pressed (pulled up), tx mode if it is
         
     if (rxMode) {
-        printlnBefore(mrf24j40_set_promiscuous(0), "RX mode"); // accept all packets, good or bad CRC
+        println("RX mode");
+        
+        radio_set_promiscuous(0); // accept all packets, good or bad CRC
     } else {
-        printlnBefore(LED_SetHigh(), "TX mode");
+        println("TX mode");
+        
+        LED_SetHigh();
         
         uint16_t payloadLengthBits = 0;
         uint16_t payloadElementHeaderBits = payloadElementIdBits + payloadElementSizeBits + payloadElementLengthBits;
@@ -83,15 +90,18 @@ int main(void) {
     
     while (1) {
         if (rxMode) {
-            printlnBefore(Sleep(), "Sleeping...");
+            println("Sleeping...");
+            Sleep();
             
-            if (ifs.rx) {   
-                printlnAfter(ifs.rx = 0, "Message received");
+            if (ifs.rx) {
+                ifs.rx = 0;
+                println("Message received");
                 
-                mrf24j40_read_rx();
+                radio_read_rx();
             }
             if (ifs.wake) {
-                printlnAfter(ifs.wake = 0, "Radio woke up");
+                ifs.wake = 0;
+                println("Radio woke up");
             }
         } else {
             uint16_t fifo_i = TXNFIFO;
@@ -103,7 +113,7 @@ int main(void) {
             delay_ms(100); // allow printing to finish
             
             // trigger transmit
-            mrf24j40_trigger_tx();
+            radio_trigger_tx();
             
             seqNum++;
             sequenceNumberString[3] = '0' + (seqNum / 100) % 10;
@@ -127,7 +137,7 @@ void __attribute__ ( ( interrupt, no_auto_psv ) ) _INT1Interrupt(void)
 {
     EX_INT1_InterruptDisable();
     
-    uint8_t intstat = mrf24j40_read_short_ctrl_reg(INTSTAT);
+    uint8_t intstat = radio_read_short_ctrl_reg(INTSTAT);
     
     println("INTSTAT = 0x%.2X", intstat);
     

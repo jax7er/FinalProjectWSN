@@ -48,8 +48,8 @@ uint8_t srcAddrH = 0xAA; // default address = 0xAA54
 uint8_t srcAddrL = 0x54;
 uint8_t mhr[mhrLength];
 
-void mrf24j40_trigger_tx(void) {
-    mrf24j40_write_short_ctrl_reg(TXNCON, mrf24j40_read_short_ctrl_reg(TXNCON) | TXNTRIG); 
+void radio_trigger_tx(void) {
+    radio_write_short_ctrl_reg(TXNCON, radio_read_short_ctrl_reg(TXNCON) | TXNTRIG); 
 }
 
 // creates and writes the MAC header (MHR) to the TXNFIFO on the MRF24J40
@@ -82,36 +82,36 @@ void mrf24f40_mhr_write(uint16_t * fifo_i_p, uint16_t totalLength) {
 //            delay_ms(250);
 
     // write to TXNFIFO
-    mrf24j40_write_long_ctrl_reg((*fifo_i_p)++, mhrLength);
-    mrf24j40_write_long_ctrl_reg((*fifo_i_p)++, totalLength);
+    radio_write_long_ctrl_reg((*fifo_i_p)++, mhrLength);
+    radio_write_long_ctrl_reg((*fifo_i_p)++, totalLength);
     mhr_i = 0;
     while (mhr_i < mhrLength) {
-        mrf24j40_write_long_ctrl_reg((*fifo_i_p)++, mhr[mhr_i++]);
+        radio_write_long_ctrl_reg((*fifo_i_p)++, mhr[mhr_i++]);
     }
 }
 
-void mrf24j40_read_rx(void) {
-    //uint8_t bbreg1 = mrf24j40_read_short_ctrl_reg(BBREG1);
-    //mrf24j40_write_short_ctrl_reg(BBREG1, bbreg1 | RXDECINV); // disable receiving packets off air.
+void radio_read_rx(void) {
+    //uint8_t bbreg1 = radio_read_short_ctrl_reg(BBREG1);
+    //radio_write_short_ctrl_reg(BBREG1, bbreg1 | RXDECINV); // disable receiving packets off air.
 
-    uint8_t frameLength = mrf24j40_read_long_ctrl_reg(RXFIFO);
+    uint8_t frameLength = radio_read_long_ctrl_reg(RXFIFO);
 
     uint16_t const fifoStart = RXFIFO + 1;
     uint16_t const fifoEnd = fifoStart + frameLength;
     uint16_t fifoIndex = fifoStart;
     uint16_t bufferIndex = 0;
     while (fifoIndex < fifoEnd) {
-        rxBuffer[bufferIndex++] = mrf24j40_read_long_ctrl_reg(fifoIndex++);
+        rxBuffer[bufferIndex++] = radio_read_long_ctrl_reg(fifoIndex++);
     }
 
-    uint8_t const fcsL = mrf24j40_read_long_ctrl_reg(fifoIndex++);
-    uint8_t const fcsH = mrf24j40_read_long_ctrl_reg(fifoIndex++);
-    uint8_t const lqi = mrf24j40_read_long_ctrl_reg(fifoIndex++);
-    uint8_t const rssi = mrf24j40_read_long_ctrl_reg(fifoIndex++);
+    uint8_t const fcsL = radio_read_long_ctrl_reg(fifoIndex++);
+    uint8_t const fcsH = radio_read_long_ctrl_reg(fifoIndex++);
+    uint8_t const lqi = radio_read_long_ctrl_reg(fifoIndex++);
+    uint8_t const rssi = radio_read_long_ctrl_reg(fifoIndex++);
     
-    mrf24j40_write_short_ctrl_reg(RXFLUSH, mrf24j40_read_short_ctrl_reg(RXFLUSH) | _RXFLUSH); // reset the RXFIFO pointer
+    radio_write_short_ctrl_reg(RXFLUSH, radio_read_short_ctrl_reg(RXFLUSH) | _RXFLUSH); // reset the RXFIFO pointer
 
-    //mrf24j40_write_short_ctrl_reg(BBREG1, bbreg1 | ~(RXDECINV)); // enable receiving packets off air.
+    //radio_write_short_ctrl_reg(BBREG1, bbreg1 | ~(RXDECINV)); // enable receiving packets off air.
 
     printf("RX payload: [");
     uint16_t const payloadLength = frameLength - 2;
@@ -141,7 +141,7 @@ void mrf24j40_read_rx(void) {
 }
 
 void mrf24f40_check_txstat(void) {
-    uint8_t txstat = mrf24j40_read_short_ctrl_reg(TXSTAT);
+    uint8_t txstat = radio_read_short_ctrl_reg(TXSTAT);
 
     if (~txstat & TXNSTAT) { // TXNSTAT == 0 shows a successful transmission
         println("TX successful, TXSTAT = 0x%.2X", txstat);
@@ -150,72 +150,72 @@ void mrf24f40_check_txstat(void) {
     }
 }
 
-uint8_t mrf24j40_read_long_ctrl_reg(uint16_t addr) {
-  mrf24j40_spi_preamble();
+uint8_t radio_read_long_ctrl_reg(uint16_t addr) {
+  radio_spi_preamble();
   uint8_t value = spi_read_long(addr);
-  mrf24j40_spi_postamble();
+  radio_spi_postamble();
 
   return value;
 }
 
-uint8_t mrf24j40_read_short_ctrl_reg(uint8_t addr) {
-  mrf24j40_spi_preamble();
+uint8_t radio_read_short_ctrl_reg(uint8_t addr) {
+  radio_spi_preamble();
   uint8_t value = spi_read_short(addr);
-  mrf24j40_spi_postamble();
+  radio_spi_postamble();
   
   return value;
 }
 
-void mrf24j40_write_long_ctrl_reg(uint16_t addr, uint8_t value) {
-  mrf24j40_spi_preamble();
+void radio_write_long_ctrl_reg(uint16_t addr, uint8_t value) {
+  radio_spi_preamble();
   spi_write_long(addr, value);
-  mrf24j40_spi_postamble();
+  radio_spi_postamble();
 }
 
-void mrf24j40_write_short_ctrl_reg(uint8_t addr, uint8_t value) {
-  mrf24j40_spi_preamble();
+void radio_write_short_ctrl_reg(uint8_t addr, uint8_t value) {
+  radio_spi_preamble();
   spi_write_short(addr, value);
-  mrf24j40_spi_postamble();
+  radio_spi_postamble();
 }
 
-void mrf24j40_ie(void) {
-  mrf24j40_write_short_ctrl_reg(MRF24J40_INTCON, ~(TXNIE | RXIE | SECIE));
+void radio_ie(void) {
+  radio_write_short_ctrl_reg(MRF24J40_INTCON, ~(TXNIE | RXIE | SECIE));
 }
 
-void mrf24j40_pwr_reset(void) {
-  mrf24j40_write_short_ctrl_reg(SOFTRST, RSTPWR);
+void radio_pwr_reset(void) {
+  radio_write_short_ctrl_reg(SOFTRST, RSTPWR);
 }
 
-void mrf24j40_bb_reset(void) {
-  mrf24j40_write_short_ctrl_reg(SOFTRST, RSTBB);
+void radio_bb_reset(void) {
+  radio_write_short_ctrl_reg(SOFTRST, RSTBB);
 }
 
-void mrf24j40_mac_reset(void) {
-  mrf24j40_write_short_ctrl_reg(SOFTRST, RSTMAC);
+void radio_mac_reset(void) {
+  radio_write_short_ctrl_reg(SOFTRST, RSTMAC);
 }
 
-void mrf24j40_rf_reset(void) {
-  uint8_t old = mrf24j40_read_short_ctrl_reg(RFCTL);
+void radio_rf_reset(void) {
+  uint8_t old = radio_read_short_ctrl_reg(RFCTL);
 
-  mrf24j40_write_short_ctrl_reg(RFCTL, old | RFRST);
-  mrf24j40_write_short_ctrl_reg(RFCTL, old & ~RFRST);
-  mrf24j40_delay_ms(2);
+  radio_write_short_ctrl_reg(RFCTL, old | RFRST);
+  radio_write_short_ctrl_reg(RFCTL, old & ~RFRST);
+  radio_delay_ms(2);
 }
 
-uint8_t mrf24j40_get_pending_frame(void) {
-  return (mrf24j40_read_short_ctrl_reg(TXNCON) >> 4) & 0x01;
+uint8_t radio_get_pending_frame(void) {
+  return (radio_read_short_ctrl_reg(TXNCON) >> 4) & 0x01;
 }
 
-void mrf24j40_rxfifo_flush(void) {
-  mrf24j40_write_short_ctrl_reg(RXFLUSH, (mrf24j40_read_short_ctrl_reg(RXFLUSH) | _RXFLUSH));
+void radio_rxfifo_flush(void) {
+  radio_write_short_ctrl_reg(RXFLUSH, (radio_read_short_ctrl_reg(RXFLUSH) | _RXFLUSH));
 }
 
-void mrf24j40_set_channel(int16_t ch) {
-  mrf24j40_write_long_ctrl_reg(RFCON0, CHANNEL(ch) | RFOPT(0x03));
-  mrf24j40_rf_reset();
+void radio_set_channel(int16_t ch) {
+  radio_write_long_ctrl_reg(RFCON0, CHANNEL(ch) | RFOPT(0x03));
+  radio_rf_reset();
 }
 
-void mrf24j40_set_promiscuous(bool crc_check) {
+void radio_set_promiscuous(bool crc_check) {
   uint8_t w = NOACKRSP;
   if (!crc_check) {
     w |= ERRPKT;
@@ -223,56 +223,56 @@ void mrf24j40_set_promiscuous(bool crc_check) {
     w |= PROMI;
   }
 
-  mrf24j40_write_short_ctrl_reg(RXMCR, w);
+  radio_write_short_ctrl_reg(RXMCR, w);
 }
 
-void mrf24j40_set_coordinator(void) {
-  mrf24j40_write_short_ctrl_reg(RXMCR, mrf24j40_read_short_ctrl_reg(RXMCR) | PANCOORD);
+void radio_set_coordinator(void) {
+  radio_write_short_ctrl_reg(RXMCR, radio_read_short_ctrl_reg(RXMCR) | PANCOORD);
 }
 
-void mrf24j40_clear_coordinator(void) {
-  mrf24j40_write_short_ctrl_reg(RXMCR, mrf24j40_read_short_ctrl_reg(RXMCR) & ~PANCOORD);
+void radio_clear_coordinator(void) {
+  radio_write_short_ctrl_reg(RXMCR, radio_read_short_ctrl_reg(RXMCR) & ~PANCOORD);
 }
 
-void mrf24j40_set_pan(uint8_t *pan) {
-  mrf24j40_write_short_ctrl_reg(PANIDL, pan[0]);
-  mrf24j40_write_short_ctrl_reg(PANIDH, pan[1]);
+void radio_set_pan(uint8_t *pan) {
+  radio_write_short_ctrl_reg(PANIDL, pan[0]);
+  radio_write_short_ctrl_reg(PANIDH, pan[1]);
 }
 
-void mrf24j40_set_short_addr(uint8_t *addr) {
-  mrf24j40_write_short_ctrl_reg(SADRL, addr[0]);
-  mrf24j40_write_short_ctrl_reg(SADRH, addr[1]);
+void radio_set_short_addr(uint8_t *addr) {
+  radio_write_short_ctrl_reg(SADRL, addr[0]);
+  radio_write_short_ctrl_reg(SADRH, addr[1]);
 }
 
-void mrf24j40_set_eui(uint8_t *eui) {
-  mrf24j40_write_short_ctrl_reg(EADR0, eui[0]);
-  mrf24j40_write_short_ctrl_reg(EADR1, eui[1]);
-  mrf24j40_write_short_ctrl_reg(EADR2, eui[2]);
-  mrf24j40_write_short_ctrl_reg(EADR3, eui[3]);
-  mrf24j40_write_short_ctrl_reg(EADR4, eui[4]);
-  mrf24j40_write_short_ctrl_reg(EADR5, eui[5]);
-  mrf24j40_write_short_ctrl_reg(EADR6, eui[6]);
-  mrf24j40_write_short_ctrl_reg(EADR7, eui[7]);
+void radio_set_eui(uint8_t *eui) {
+  radio_write_short_ctrl_reg(EADR0, eui[0]);
+  radio_write_short_ctrl_reg(EADR1, eui[1]);
+  radio_write_short_ctrl_reg(EADR2, eui[2]);
+  radio_write_short_ctrl_reg(EADR3, eui[3]);
+  radio_write_short_ctrl_reg(EADR4, eui[4]);
+  radio_write_short_ctrl_reg(EADR5, eui[5]);
+  radio_write_short_ctrl_reg(EADR6, eui[6]);
+  radio_write_short_ctrl_reg(EADR7, eui[7]);
 }
 
-void mrf24j40_set_coordinator_short_addr(uint8_t *addr) {
-  mrf24j40_write_long_ctrl_reg(ASSOSADR0, addr[0]);
-  mrf24j40_write_long_ctrl_reg(ASSOSADR1, addr[1]);
+void radio_set_coordinator_short_addr(uint8_t *addr) {
+  radio_write_long_ctrl_reg(ASSOSADR0, addr[0]);
+  radio_write_long_ctrl_reg(ASSOSADR1, addr[1]);
 }
 
-void mrf24j40_set_coordinator_eui(uint8_t *eui) {
-  mrf24j40_write_long_ctrl_reg(ASSOEADR0, eui[0]);
-  mrf24j40_write_long_ctrl_reg(ASSOEADR1, eui[1]);
-  mrf24j40_write_long_ctrl_reg(ASSOEADR2, eui[2]);
-  mrf24j40_write_long_ctrl_reg(ASSOEADR3, eui[3]);
-  mrf24j40_write_long_ctrl_reg(ASSOEADR4, eui[4]);
-  mrf24j40_write_long_ctrl_reg(ASSOEADR5, eui[5]);
-  mrf24j40_write_long_ctrl_reg(ASSOEADR6, eui[6]);
-  mrf24j40_write_long_ctrl_reg(ASSOEADR7, eui[7]);
+void radio_set_coordinator_eui(uint8_t *eui) {
+  radio_write_long_ctrl_reg(ASSOEADR0, eui[0]);
+  radio_write_long_ctrl_reg(ASSOEADR1, eui[1]);
+  radio_write_long_ctrl_reg(ASSOEADR2, eui[2]);
+  radio_write_long_ctrl_reg(ASSOEADR3, eui[3]);
+  radio_write_long_ctrl_reg(ASSOEADR4, eui[4]);
+  radio_write_long_ctrl_reg(ASSOEADR5, eui[5]);
+  radio_write_long_ctrl_reg(ASSOEADR6, eui[6]);
+  radio_write_long_ctrl_reg(ASSOEADR7, eui[7]);
 }
 
-void mrf24j40_set_key(uint16_t address, uint8_t *key) {
-  mrf24j40_spi_preamble();
+void radio_set_key(uint16_t address, uint8_t *key) {
+  radio_spi_preamble();
   spi_write_long(address, 1);
   
   int16_t i;
@@ -280,94 +280,97 @@ void mrf24j40_set_key(uint16_t address, uint8_t *key) {
     spi_write(key[i]);
   }
 
-  mrf24j40_spi_postamble();
+  radio_spi_postamble();
 }
 
-void mrf24j40_hard_reset(void) {
-  mrf24j40_reset_pin(0);
-  mrf24j40_delay_ms(500); // wait at least 2ms
-  mrf24j40_reset_pin(1);
-  mrf24j40_delay_ms(500); // wait at least 2ms
+void radio_hard_reset(void) {
+  radio_reset_pin(0);
+  radio_delay_ms(500); // wait at least 2ms
+  radio_reset_pin(1);
+  radio_delay_ms(500); // wait at least 2ms
 }
 
-void mrf24j40_initialize(void) {        
-  mrf24j40_cs_pin(1);
-  mrf24j40_wake_pin(1);
+void radio_initialize(void) {        
+  radio_cs_pin(1);
+  radio_wake_pin(1);
   
-  mrf24j40_hard_reset();
+  radio_hard_reset();
   
-  //mrf24j40_write_short_ctrl_reg(SOFTRST, 0x07); // Perform a software Reset. The bits will be automatically cleared to ?0? by hardware.
+  //radio_write_short_ctrl_reg(SOFTRST, 0x07); // Perform a software Reset. The bits will be automatically cleared to ?0? by hardware.
  
-  mrf24j40_write_short_ctrl_reg(PACON2, 0x98); // Initialize FIFOEN = 1 and TXONTS = 0x6.
-  mrf24j40_write_short_ctrl_reg(TXSTBL, 0x95); // Initialize RFSTBL = 0x9.
+  radio_write_short_ctrl_reg(PACON2, 0x98); // Initialize FIFOEN = 1 and TXONTS = 0x6.
+  radio_write_short_ctrl_reg(TXSTBL, 0x95); // Initialize RFSTBL = 0x9.
   
-  mrf24j40_write_long_ctrl_reg(RFCON0, 0x03); // Initialize RFOPT = 0x03, Channel 11 (2.405GHz)
-  mrf24j40_write_long_ctrl_reg(RFCON1, 0x01); // Initialize VCOOPT = 0x02.
-  mrf24j40_write_long_ctrl_reg(RFCON2, 0x80); // Enable PLL (PLLEN = 1).
-  mrf24j40_write_long_ctrl_reg(RFCON6, 0x90); // Initialize TXFIL = 1 and 20MRECVR = 1.
-  mrf24j40_write_long_ctrl_reg(RFCON7, 0x80); // Initialize SLPCLKSEL = 0x2 (100 kHz Internal oscillator).
-  mrf24j40_write_long_ctrl_reg(RFCON8, 0x10); // Initialize RFVCO = 1.
-  mrf24j40_write_long_ctrl_reg(SLPCON1, 0x21); // Initialize CLKOUTEN = 1 and SLPCLKDIV = 0x01.
+  radio_write_long_ctrl_reg(RFCON0, 0x03); // Initialize RFOPT = 0x03, Channel 11 (2.405GHz)
+  radio_write_long_ctrl_reg(RFCON1, 0x01); // Initialize VCOOPT = 0x02.
+  radio_write_long_ctrl_reg(RFCON2, 0x80); // Enable PLL (PLLEN = 1).
+  radio_write_long_ctrl_reg(RFCON6, 0x90); // Initialize TXFIL = 1 and 20MRECVR = 1.
+  radio_write_long_ctrl_reg(RFCON7, 0x80); // Initialize SLPCLKSEL = 0x2 (100 kHz Internal oscillator).
+  radio_write_long_ctrl_reg(RFCON8, 0x10); // Initialize RFVCO = 1.
+  radio_write_long_ctrl_reg(SLPCON1, 0x21); // Initialize CLKOUTEN = 1 and SLPCLKDIV = 0x01.
 
-  mrf24j40_write_short_ctrl_reg(BBREG2, 0x80); // Set CCA mode to ED.
-  mrf24j40_write_short_ctrl_reg(CCAEDTH, 0x60); // Set CCA ED threshold.
-  mrf24j40_write_short_ctrl_reg(BBREG6, 0x40); // Set appended RSSI value to RXFIFO.
+  radio_write_short_ctrl_reg(BBREG2, 0x80); // Set CCA mode to ED.
+  radio_write_short_ctrl_reg(CCAEDTH, 0x60); // Set CCA ED threshold.
+  radio_write_short_ctrl_reg(BBREG6, 0x40); // Set appended RSSI value to RXFIFO.
+  
+  radio_write_bits_reg(ORDER, 0b11110000, 0xF0); // set BO = 15
+  radio_clear_bit_reg(TXMCR, 5); // set slotted = 0
 
-  mrf24j40_write_short_ctrl_reg(MRF24J40_INTCON, 0xB6); // Enable wake, RX and TX normal interrupts.
+  radio_write_short_ctrl_reg(MRF24J40_INTCON, 0b10110110); // Enable wake, RX and TX normal interrupts, active low
   // tx power set to 0dBm at reset
   
-  mrf24j40_write_short_ctrl_reg(RFCTL, 0x04); // Reset RF state machine.
-  mrf24j40_delay_us(200);
-  mrf24j40_write_short_ctrl_reg(RFCTL, 0x00);
-  mrf24j40_delay_us(200); // delay at least 192 ?s 
+  radio_write_short_ctrl_reg(RFCTL, 0x04); // Reset RF state machine.
+  radio_delay_us(200);
+  radio_write_short_ctrl_reg(RFCTL, 0x00);
+  radio_delay_us(200); // delay at least 192 ?s 
   
-//  mrf24j40_cs_pin(1);
-//  mrf24j40_wake_pin(1);
+//  radio_cs_pin(1);
+//  radio_wake_pin(1);
 //  
-//  mrf24j40_hard_reset();
+//  radio_hard_reset();
 //  
-//  mrf24j40_write_short_ctrl_reg(SOFTRST, (RSTPWR | RSTBB | RSTMAC));
+//  radio_write_short_ctrl_reg(SOFTRST, (RSTPWR | RSTBB | RSTMAC));
 //
-//  mrf24j40_delay_us(192);
+//  radio_delay_us(192);
 // 
-//  mrf24j40_write_short_ctrl_reg(PACON2, FIFOEN | TXONTS(0x18));
-//  mrf24j40_write_short_ctrl_reg(TXSTBL, RFSTBL(9) | MSIFS(5));
-//  mrf24j40_write_long_ctrl_reg(RFCON1, VCOOPT(0x01));
-//  mrf24j40_write_long_ctrl_reg(RFCON2, PLLEN);
-//  mrf24j40_write_long_ctrl_reg(RFCON6, _20MRECVR);
-//  mrf24j40_write_long_ctrl_reg(RFCON7, SLPCLKSEL(0x02));
-//  mrf24j40_write_long_ctrl_reg(RFCON8, RFVCO);
-//  mrf24j40_write_long_ctrl_reg(SLPCON1, SLPCLKDIV(1) | CLKOUTDIS);
-//  mrf24j40_write_short_ctrl_reg(RXFLUSH, (WAKEPAD | WAKEPOL));
+//  radio_write_short_ctrl_reg(PACON2, FIFOEN | TXONTS(0x18));
+//  radio_write_short_ctrl_reg(TXSTBL, RFSTBL(9) | MSIFS(5));
+//  radio_write_long_ctrl_reg(RFCON1, VCOOPT(0x01));
+//  radio_write_long_ctrl_reg(RFCON2, PLLEN);
+//  radio_write_long_ctrl_reg(RFCON6, _20MRECVR);
+//  radio_write_long_ctrl_reg(RFCON7, SLPCLKSEL(0x02));
+//  radio_write_long_ctrl_reg(RFCON8, RFVCO);
+//  radio_write_long_ctrl_reg(SLPCON1, SLPCLKDIV(1) | CLKOUTDIS);
+//  radio_write_short_ctrl_reg(RXFLUSH, (WAKEPAD | WAKEPOL));
 //
-//  mrf24j40_write_short_ctrl_reg(BBREG2, CCAMODE(0x02) | CCASTH(0x00));
-//  mrf24j40_write_short_ctrl_reg(CCAEDTH, 0x60);
-//  mrf24j40_write_short_ctrl_reg(BBREG6, RSSIMODE2);
+//  radio_write_short_ctrl_reg(BBREG2, CCAMODE(0x02) | CCASTH(0x00));
+//  radio_write_short_ctrl_reg(CCAEDTH, 0x60);
+//  radio_write_short_ctrl_reg(BBREG6, RSSIMODE2);
 //
-//  mrf24j40_rxfifo_flush();
+//  radio_rxfifo_flush();
 //  
-//  mrf24j40_ie();
+//  radio_ie();
 }
 
-void mrf24j40_sleep(void) {
-  mrf24j40_write_short_ctrl_reg(WAKECON, IMMWAKE);
+void radio_sleep(void) {
+  radio_write_short_ctrl_reg(WAKECON, IMMWAKE);
 
-  uint8_t r = mrf24j40_read_short_ctrl_reg(SLPACK);
-  mrf24j40_wake_pin(0);
+  uint8_t r = radio_read_short_ctrl_reg(SLPACK);
+  radio_wake_pin(0);
 
-  mrf24j40_pwr_reset();
-  mrf24j40_write_short_ctrl_reg(SLPACK, r | _SLPACK);
+  radio_pwr_reset();
+  radio_write_short_ctrl_reg(SLPACK, r | _SLPACK);
 }
 
-void mrf24j40_wakeup(void) {
-  mrf24j40_wake_pin(1);
-  mrf24j40_rf_reset();
+void radio_wakeup(void) {
+  radio_wake_pin(1);
+  radio_rf_reset();
 }
 
-void mrf24j40_txpkt(uint8_t *frame, int16_t hdr_len, int16_t sec_hdr_len, int16_t payload_len) {
+void radio_txpkt(uint8_t *frame, int16_t hdr_len, int16_t sec_hdr_len, int16_t payload_len) {
   int16_t frame_len = hdr_len + sec_hdr_len + payload_len;
 
-  uint8_t w = mrf24j40_read_short_ctrl_reg(TXNCON);
+  uint8_t w = radio_read_short_ctrl_reg(TXNCON);
   w &= ~(TXNSECEN);
   w &= ~(TXNACKREQ);
 
@@ -379,7 +382,7 @@ void mrf24j40_txpkt(uint8_t *frame, int16_t hdr_len, int16_t sec_hdr_len, int16_
     w |= TXNACKREQ;
   }
 
-  mrf24j40_spi_preamble();
+  radio_spi_preamble();
   
   spi_write_long(TXNFIFO, hdr_len);
   spi_write(frame_len);
@@ -388,30 +391,30 @@ void mrf24j40_txpkt(uint8_t *frame, int16_t hdr_len, int16_t sec_hdr_len, int16_
     spi_write(*frame++);
   }
   
-  mrf24j40_spi_postamble();
+  radio_spi_postamble();
 
-  //mrf24j40_write_short_ctrl_reg(TXNCON, w | TXNTRIG);
+  //radio_write_short_ctrl_reg(TXNCON, w | TXNTRIG);
 }
 
-void mrf24j40_set_cipher(uint8_t rxcipher, uint8_t txcipher) {
-  mrf24j40_write_short_ctrl_reg(SECCON0, RXCIPHER(rxcipher) | TXNCIPHER(txcipher));
+void radio_set_cipher(uint8_t rxcipher, uint8_t txcipher) {
+  radio_write_short_ctrl_reg(SECCON0, RXCIPHER(rxcipher) | TXNCIPHER(txcipher));
 }
 
-bool mrf24j40_rx_sec_fail(void) {
-  bool rx_sec_fail = (mrf24j40_read_short_ctrl_reg(RXSR) >> 2) & 0x01;
-  mrf24j40_write_short_ctrl_reg(RXSR, 0x00);
+bool radio_rx_sec_fail(void) {
+  bool rx_sec_fail = (radio_read_short_ctrl_reg(RXSR) >> 2) & 0x01;
+  radio_write_short_ctrl_reg(RXSR, 0x00);
   return rx_sec_fail;
 }
 
-void mrf24j40_sec_intcb(bool accept) {
-  uint8_t w = mrf24j40_read_short_ctrl_reg(SECCON0);
+void radio_sec_intcb(bool accept) {
+  uint8_t w = radio_read_short_ctrl_reg(SECCON0);
 
   w |= accept ? SECSTART : SECIGNORE;
-  mrf24j40_write_short_ctrl_reg(SECCON0, w);
+  radio_write_short_ctrl_reg(SECCON0, w);
 }
 
-int16_t mrf24j40_txpkt_intcb(void) {
-  uint8_t stat = mrf24j40_read_short_ctrl_reg(TXSTAT);
+int16_t radio_txpkt_intcb(void) {
+  uint8_t stat = radio_read_short_ctrl_reg(TXSTAT);
   if (stat & TXNSTAT) {
     if (stat & CCAFAIL) {
       return EBUSY;
@@ -423,10 +426,10 @@ int16_t mrf24j40_txpkt_intcb(void) {
   }
 }
 
-int16_t mrf24j40_rxpkt_intcb(uint8_t *buf, uint8_t *plqi, uint8_t *prssi) {
-  mrf24j40_write_short_ctrl_reg(BBREG1, mrf24j40_read_short_ctrl_reg(BBREG1) | RXDECINV);
+int16_t radio_rxpkt_intcb(uint8_t *buf, uint8_t *plqi, uint8_t *prssi) {
+  radio_write_short_ctrl_reg(BBREG1, radio_read_short_ctrl_reg(BBREG1) | RXDECINV);
 
-  mrf24j40_spi_preamble();
+  radio_spi_preamble();
   uint16_t flen = spi_read_long(RXFIFO);
   
   uint16_t i;
@@ -445,18 +448,18 @@ int16_t mrf24j40_rxpkt_intcb(uint8_t *buf, uint8_t *plqi, uint8_t *prssi) {
     *prssi = rssi;
   }
 
-  mrf24j40_spi_postamble();
+  radio_spi_postamble();
 
-  mrf24j40_rxfifo_flush();
-  mrf24j40_write_short_ctrl_reg(BBREG1, mrf24j40_read_short_ctrl_reg(BBREG1) & ~RXDECINV);
+  radio_rxfifo_flush();
+  radio_write_short_ctrl_reg(BBREG1, radio_read_short_ctrl_reg(BBREG1) & ~RXDECINV);
   
   return flen;
 }
 
-int16_t mrf24j40_int_tasks(void) {
+int16_t radio_int_tasks(void) {
   int16_t ret = 0;
 
-  uint8_t stat = mrf24j40_read_short_ctrl_reg(INTSTAT);
+  uint8_t stat = radio_read_short_ctrl_reg(INTSTAT);
 
   if (stat & RXIF) {
     ret |= MRF24J40_INT_RX;

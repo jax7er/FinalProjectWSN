@@ -51,8 +51,8 @@ void payload_write(uint16_t * fifo_i_p) {
         println("payload[%d]: num words = %d, word length = %d bits", element_i, payload[element_i].length + 1, 1 << (payload[element_i].size + 3));
 
         // write the element header (total 2 bytes)
-        mrf24j40_write_long_ctrl_reg((*fifo_i_p)++, payload[element_i].id);
-        mrf24j40_write_long_ctrl_reg((*fifo_i_p)++, (((uint8_t)(payload[element_i].size)) << 6) | payload[element_i].length);
+        radio_write_long_ctrl_reg((*fifo_i_p)++, payload[element_i].id);
+        radio_write_long_ctrl_reg((*fifo_i_p)++, (((uint8_t)(payload[element_i].size)) << 6) | payload[element_i].length);
 
         // write the element payload (total ((length + 1) * 2^(size + 3) / 8) bytes)
         uint16_t const numWords = payload[element_i].length + 1;
@@ -60,20 +60,20 @@ void payload_write(uint16_t * fifo_i_p) {
         while (word_i < numWords) {
             switch (payload[element_i].size) { // allow fallthrough to save lines of code
                 case BITS_64: { // 8 writes are required 
-                    mrf24j40_write_long_ctrl_reg((*fifo_i_p)++, ((uint8_t)(((uint64_t *)(payload[element_i].data))[word_i] >> 56)));
-                    mrf24j40_write_long_ctrl_reg((*fifo_i_p)++, ((uint8_t)(((uint64_t *)(payload[element_i].data))[word_i] >> 48)));
-                    mrf24j40_write_long_ctrl_reg((*fifo_i_p)++, ((uint8_t)(((uint64_t *)(payload[element_i].data))[word_i] >> 40)));
-                    mrf24j40_write_long_ctrl_reg((*fifo_i_p)++, ((uint8_t)(((uint64_t *)(payload[element_i].data))[word_i] >> 32)));
+                    radio_write_long_ctrl_reg((*fifo_i_p)++, ((uint8_t)(((uint64_t *)(payload[element_i].data))[word_i] >> 56)));
+                    radio_write_long_ctrl_reg((*fifo_i_p)++, ((uint8_t)(((uint64_t *)(payload[element_i].data))[word_i] >> 48)));
+                    radio_write_long_ctrl_reg((*fifo_i_p)++, ((uint8_t)(((uint64_t *)(payload[element_i].data))[word_i] >> 40)));
+                    radio_write_long_ctrl_reg((*fifo_i_p)++, ((uint8_t)(((uint64_t *)(payload[element_i].data))[word_i] >> 32)));
                 }
                 case BITS_32: { // 4 writes are required 
-                    mrf24j40_write_long_ctrl_reg((*fifo_i_p)++, ((uint8_t)(((uint32_t *)(payload[element_i].data))[word_i] >> 24)));
-                    mrf24j40_write_long_ctrl_reg((*fifo_i_p)++, ((uint8_t)(((uint32_t *)(payload[element_i].data))[word_i] >> 16)));
+                    radio_write_long_ctrl_reg((*fifo_i_p)++, ((uint8_t)(((uint32_t *)(payload[element_i].data))[word_i] >> 24)));
+                    radio_write_long_ctrl_reg((*fifo_i_p)++, ((uint8_t)(((uint32_t *)(payload[element_i].data))[word_i] >> 16)));
                 }
                 case BITS_16: { // 2 writes are required 
-                    mrf24j40_write_long_ctrl_reg((*fifo_i_p)++, ((uint8_t)(((uint16_t *)(payload[element_i].data))[word_i] >> 8)));
+                    radio_write_long_ctrl_reg((*fifo_i_p)++, ((uint8_t)(((uint16_t *)(payload[element_i].data))[word_i] >> 8)));
                 }
                 case BITS_8: { // 1 write is required
-                    mrf24j40_write_long_ctrl_reg((*fifo_i_p)++, ((uint8_t *)(payload[element_i].data))[word_i]);
+                    radio_write_long_ctrl_reg((*fifo_i_p)++, ((uint8_t *)(payload[element_i].data))[word_i]);
                     break;
                 }
                 default:

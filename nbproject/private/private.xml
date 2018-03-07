@@ -3,14 +3,11 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
+            <file>file:/C:/jmm546MPLABXProjects/MRF24J40_test.X/payload.h</file>
             <file>file:/C:/jmm546MPLABXProjects/MRF24J40_test.X/utils.h</file>
-            <file>file:/C:/jmm546MPLABXProjects/MRF24J40_test.X/tests.h</file>
             <file>file:/C:/jmm546MPLABXProjects/MRF24J40_test.X/main.c</file>
-            <file>file:/C:/jmm546MPLABXProjects/MRF24J40_test.X/MRF24J40.c</file>
-            <file>file:/C:/jmm546MPLABXProjects/MRF24J40_test.X/SPI_functions.c</file>
+            <file>file:/C:/jmm546MPLABXProjects/MRF24J40_test.X/payload.c</file>
             <file>file:/C:/jmm546MPLABXProjects/MRF24J40_test.X/utils.c</file>
-            <file>file:/C:/jmm546MPLABXProjects/MRF24J40_test.X/MRF24J40.h</file>
-            <file>file:/C:/jmm546MPLABXProjects/MRF24J40_test.X/delay.c</file>
             <file>file:/C:/jmm546MPLABXProjects/MRF24J40_test.X/tests.c</file>
         </group>
     </open-files>

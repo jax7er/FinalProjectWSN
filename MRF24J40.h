@@ -178,6 +178,9 @@
 #define RFCON6		0x206
 #define RFCON7		0x207
 #define RFCON8		0x208
+#define SLPCAL0     0x209
+#define SLPCAL1     0x20A
+#define SLPCAL2     0x20B
 #define RFSTATE		0x20F
 
 #define RSSI		0x210
@@ -389,8 +392,18 @@
 #define CLKOUTDIS	(1 << 5)	/* CLKOUTEN' */
 #define SLPCLKDIV(x)	((x & 0x1F))	/* division ratio: 2^(SLPCLKDIV) */
 
-#define mrf24j40_spi_preamble() volatile uint8_t tmpIE = mrf24j40_get_ie(); mrf24j40_set_ie(0); mrf24j40_cs_pin(0);
-#define mrf24j40_spi_postamble() mrf24j40_cs_pin(1); mrf24j40_set_ie(tmpIE);
+#define radio_spi_preamble() volatile uint8_t tmpIE = radio_get_ie(); radio_set_ie(0); radio_cs_pin(0);
+#define radio_spi_postamble() radio_cs_pin(1); radio_set_ie(tmpIE);
+
+#define radio_is_short_addr(a)        (((uint16_t)(a)) <= 0x3F)
+#define radio_read_reg(r)             (radio_is_short_addr(r) ? radio_read_short_ctrl_reg(((uint8_t)(r))) : radio_read_long_ctrl_reg(((uint16_t)(r))))
+#define radio_read_bit_reg(r, b)      ((radio_read_reg(r) & (1 << (b))) != 0)
+#define radio_write_reg(r, d)         do { if (radio_is_short_addr(r)) radio_write_short_ctrl_reg(((uint8_t)(r)), d); else radio_write_long_ctrl_reg(((uint16_t)(r)), d); } while (0)
+#define radio_set_bit_reg(r, b)       radio_write_reg(r, radio_read_reg(r) | (1 << (b)))
+#define radio_set_bits_reg(r, m)      radio_write_reg(r, radio_read_reg(r) | (m))
+#define radio_clear_bit_reg(r, b)     radio_write_reg(r, radio_read_reg(r) & ~(1 << (b)))
+#define radio_clear_bits_reg(r, m)    radio_write_reg(r, radio_read_reg(r) & ~(m))
+#define radio_write_bits_reg(r, m, b) radio_write_reg(r, (radio_read_reg(r) & ~(m)) | (b));
 
 // frame control | sequence number | address fields (dest PAN ID, dest addr, src addr)
 // 2 bytes       | 1 byte          | 6 bytes
@@ -401,7 +414,7 @@ enum mhrElementLengths {
     mhrLength = frameCtrlLength + seqNumLength + addrFieldsLength
 };
 
-typedef struct mrf24j40_interrupt_flags {
+typedef struct radio_interrupt_flags {
     volatile uint8_t rx;
     volatile uint8_t tx;
     volatile uint8_t wake;
@@ -414,40 +427,40 @@ extern uint8_t srcAddrH;
 extern uint8_t srcAddrL;
 extern uint8_t mhr[]; 
 
-void mrf24j40_trigger_tx(void);
+void radio_trigger_tx(void);
 void mrf24f40_mhr_write(uint16_t * fifo_i_p, uint16_t totalLength);
-void mrf24j40_read_rx(void);
+void radio_read_rx(void);
 void mrf24f40_check_txstat(void);
-uint8_t mrf24j40_read_long_ctrl_reg(uint16_t addr);
-uint8_t mrf24j40_read_short_ctrl_reg(uint8_t addr);
-void mrf24j40_write_long_ctrl_reg(uint16_t addr, uint8_t value);
-void mrf24j40_write_short_ctrl_reg(uint8_t addr, uint8_t value);
-void mrf24j40_rxfifo_flush(void);
-uint8_t mrf24j40_get_pending_frame(void);
-void mrf24j40_hard_reset(void);
-void mrf24j40_initialize(void);
-void mrf24j40_sleep(void);
-void mrf24j40_wakeup(void);
-void mrf24j40_set_short_addr(uint8_t *addr);
-void mrf24j40_set_coordinator_short_addr(uint8_t *addr);
-void mrf24j40_set_coordinator_eui(uint8_t *eui);
-void mrf24j40_set_eui(uint8_t *eui);
-void mrf24j40_set_pan(uint8_t *pan);
-void mrf24j40_set_key(uint16_t address, uint8_t *key);
-#define mrf24j40_tx_key(key) mrf24j40_set_key(SECKTXNFIFO, key);
-#define mrf24j40_rx_key(key) mrf24j40_set_key(SECKRXFIFO, key);
-void mrf24j40_set_channel(int16_t ch);
-void mrf24j40_set_promiscuous(bool crc_check);
-void mrf24j40_set_coordinator(void);
-void mrf24j40_clear_coordinator(void);
-void mrf24j40_txpkt(uint8_t *frame, int16_t hdr_len, int16_t sec_hdr_len, int16_t payload_len);
-void mrf24j40_set_cipher(uint8_t rxcipher, uint8_t txcipher);
-bool mrf24j40_rx_sec_fail(void);
-uint8_t mrf24j40_get_channel(void);
-int16_t mrf24j40_int_tasks(void);
-int16_t mrf24j40_rxpkt_intcb(uint8_t *buf, uint8_t *plqi, uint8_t *prssi);
-int16_t mrf24j40_txpkt_intcb(void);
-void mrf24j40_sec_intcb(bool accept);
+uint8_t radio_read_long_ctrl_reg(uint16_t addr);
+uint8_t radio_read_short_ctrl_reg(uint8_t addr);
+void radio_write_long_ctrl_reg(uint16_t addr, uint8_t value);
+void radio_write_short_ctrl_reg(uint8_t addr, uint8_t value);
+void radio_rxfifo_flush(void);
+uint8_t radio_get_pending_frame(void);
+void radio_hard_reset(void);
+void radio_initialize(void);
+void radio_sleep(void);
+void radio_wakeup(void);
+void radio_set_short_addr(uint8_t *addr);
+void radio_set_coordinator_short_addr(uint8_t *addr);
+void radio_set_coordinator_eui(uint8_t *eui);
+void radio_set_eui(uint8_t *eui);
+void radio_set_pan(uint8_t *pan);
+void radio_set_key(uint16_t address, uint8_t *key);
+#define radio_tx_key(key) radio_set_key(SECKTXNFIFO, key);
+#define radio_rx_key(key) radio_set_key(SECKRXFIFO, key);
+void radio_set_channel(int16_t ch);
+void radio_set_promiscuous(bool crc_check);
+void radio_set_coordinator(void);
+void radio_clear_coordinator(void);
+void radio_txpkt(uint8_t *frame, int16_t hdr_len, int16_t sec_hdr_len, int16_t payload_len);
+void radio_set_cipher(uint8_t rxcipher, uint8_t txcipher);
+bool radio_rx_sec_fail(void);
+uint8_t radio_get_channel(void);
+int16_t radio_int_tasks(void);
+int16_t radio_rxpkt_intcb(uint8_t *buf, uint8_t *plqi, uint8_t *prssi);
+int16_t radio_txpkt_intcb(void);
+void radio_sec_intcb(bool accept);
 
 #endif /* MRF24J40_H */
 

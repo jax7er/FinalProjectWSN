@@ -75,17 +75,17 @@
 #define TX_FRAME_COUNTER 68
 
 // MRF24J40 HAL Configuration
-#define mrf24j40_set_ie(v) (IEC1bits.INT1IE = v)
-#define mrf24j40_get_ie() (IEC1bits.INT1IE)
+#define radio_set_ie(v) (IEC1bits.INT1IE = v)
+#define radio_get_ie() (IEC1bits.INT1IE)
 
-#define mrf24j40_wake_pin(v) (_LATB12 = v)
-#define mrf24j40_reset_pin(v) (_LATB11 = v)
-#define mrf24j40_cs_pin(v) (_LATB10 = v)
+#define radio_wake_pin(v) (_LATB12 = v)
+#define radio_reset_pin(v) (_LATB11 = v)
+#define radio_cs_pin(v) (_LATB10 = v)
 
-//#define mrf24j40_spi_read() spi_exchange8(0)
-//#define mrf24j40_spi_write(val) spi_exchange8(val)
-#define mrf24j40_delay_us(v) delay_us(v)
-#define mrf24j40_delay_ms(v) delay_ms(v)
+//#define radio_spi_read() spi_exchange8(0)
+//#define radio_spi_write(val) spi_exchange8(val)
+#define radio_delay_us(v) delay_us(v)
+#define radio_delay_ms(v) delay_ms(v)
 
 // Function prototypes
 //uint8_t spi_exchange8(uint8_t data);
