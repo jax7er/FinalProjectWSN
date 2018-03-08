@@ -41,11 +41,15 @@
 #define payloadElementIdBits     8
 #define payloadElementSizeBits   2
 #define payloadElementLengthBits 6
+#define payloadElementHeaderBits (payloadElementIdBits + payloadElementSizeBits + payloadElementLengthBits)
+
+#define payload_maxLength (TXNFIFO_SIZE - 3)
 
 typedef enum payloadId {
     SEQUENCE_NUM_ID = 'n',
     PRESSURE_SENSOR_ID = 'p',
-    DATA_32_BIT_ID = 'd'
+    DATA_32_BIT_ID = 'd',
+    LAST_ELEMENT_ID = 'l'
 } payloadId_e;
 
 typedef enum payloadElementDataSize {
@@ -67,17 +71,22 @@ typedef enum payloadElementIndex {
     SEQUENCE_NUM_INDEX = 0,
     PRESSURE_SENSOR_INDEX,
     DATA_32_BIT_INDEX,
+    LAST_ELEMENT_INDEX,
     NUM_ELEMENTS
 } payloadElementIndex_e;
 
-extern payloadElement_t payload[];
+extern payloadElement_t payload_elements[];
 
-extern uint8_t seqNum;
-extern uint8_t sequenceNumberString[];
-extern uint8_t pressureSensorString[];
-extern uint32_t data32Bit[];
+extern uint16_t payload_length_bits;
+extern uint16_t payload_totalLength;
+extern uint8_t payload_seqNum;
+extern uint8_t payload_seqNumString[];
+extern uint8_t payload_pressureSensorString[];
+extern uint32_t payload_data32Bit[];
+extern uint8_t payload_lastElementString[];
 
-void payload_write(uint16_t * fifo_i_p);
+void payload_init(void);
+void payload_write(void);
 
 #endif	/* PAYLOAD_H */
 

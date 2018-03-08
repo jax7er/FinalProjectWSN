@@ -395,24 +395,28 @@
 #define radio_spi_preamble() volatile uint8_t tmpIE = radio_get_ie(); radio_set_ie(0); radio_cs_pin(0);
 #define radio_spi_postamble() radio_cs_pin(1); radio_set_ie(tmpIE);
 
-#define radio_is_short_addr(a)        (((uint16_t)(a)) <= 0x3F)
-#define radio_read_reg(r)             (radio_is_short_addr(r) ? radio_read_short_ctrl_reg(((uint8_t)(r))) : radio_read_long_ctrl_reg(((uint16_t)(r))))
-#define radio_read_bit_reg(r, b)      ((radio_read_reg(r) & (1 << (b))) != 0)
-#define radio_write_reg(r, d)         do { if (radio_is_short_addr(r)) radio_write_short_ctrl_reg(((uint8_t)(r)), d); else radio_write_long_ctrl_reg(((uint16_t)(r)), d); } while (0)
-#define radio_set_bit_reg(r, b)       radio_write_reg(r, radio_read_reg(r) | (1 << (b)))
-#define radio_set_bits_reg(r, m)      radio_write_reg(r, radio_read_reg(r) | (m))
-#define radio_clear_bit_reg(r, b)     radio_write_reg(r, radio_read_reg(r) & ~(1 << (b)))
-#define radio_clear_bits_reg(r, m)    radio_write_reg(r, radio_read_reg(r) & ~(m))
-#define radio_write_bits_reg(r, m, b) radio_write_reg(r, (radio_read_reg(r) & ~(m)) | (b));
+#define radio_is_short_addr(a)    (((uint16_t)(a)) <= 0x3F)
+#define radio_read_short          radio_read_short_ctrl_reg
+#define radio_read_long           radio_read_long_ctrl_reg
+#define radio_read_fifo           radio_read_long_
+#define radio_read(r)             (radio_is_short_addr(r) ? radio_read_short(((uint8_t)(r))) : radio_read_long(((uint16_t)(r))))
+#define radio_read_bit(r, b)      ((radio_read(r) & (1 << (b))) != 0)
+#define radio_write_short         radio_write_short_ctrl_reg
+#define radio_write_long          radio_write_long_ctrl_reg
+#define radio_write_fifo          radio_write_long
+#define radio_write(r, d)         do { if (radio_is_short_addr(r)) radio_write_short(((uint8_t)(r)), d); else radio_write_long_ctrl_reg(((uint16_t)(r)), d); } while (0)
+#define radio_set_bit(r, b)       radio_write(r, radio_read(r) | (1 << (b)))
+#define radio_set_bits(r, m)      radio_write(r, radio_read(r) | (m))
+#define radio_clear_bit(r, b)     radio_write(r, radio_read(r) & ~(1 << (b)))
+#define radio_clear_bits(r, m)    radio_write(r, radio_read(r) & ~(m))
+#define radio_write_bits(r, m, b) radio_write(r, (radio_read(r) & ~(m)) | (b));
 
 // frame control | sequence number | address fields (dest PAN ID, dest addr, src addr)
 // 2 bytes       | 1 byte          | 6 bytes
-enum mhrElementLengths {
-    frameCtrlLength = 2,
-    seqNumLength = 1,
-    addrFieldsLength = 6,
-    mhrLength = frameCtrlLength + seqNumLength + addrFieldsLength
-};
+#define frameCtrlLength 2
+#define seqNumLength 1
+#define addrFieldsLength 6
+#define mhrLength (frameCtrlLength + seqNumLength + addrFieldsLength)
 
 typedef struct radio_interrupt_flags {
     volatile uint8_t rx;
@@ -427,8 +431,10 @@ extern uint8_t srcAddrH;
 extern uint8_t srcAddrL;
 extern uint8_t mhr[]; 
 
+void radio_sleep_timed_start(void);
+void radio_set_sleep_time(uint32_t ms);
 void radio_trigger_tx(void);
-void mrf24f40_mhr_write(uint16_t * fifo_i_p, uint16_t totalLength);
+void mrf24f40_mhr_write(uint16_t * fifo_i_p);
 void radio_read_rx(void);
 void mrf24f40_check_txstat(void);
 uint8_t radio_read_long_ctrl_reg(uint16_t addr);

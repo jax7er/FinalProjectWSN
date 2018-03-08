@@ -48,21 +48,44 @@ uint8_t srcAddrH = 0xAA; // default address = 0xAA54
 uint8_t srcAddrL = 0x54;
 uint8_t mhr[mhrLength];
 
+void radio_sleep_timed_start(void) {
+    radio_set_bit(MAINCNT3, 7); // start the radio sleeping
+}
+
+void radio_set_sleep_time(uint32_t ms) { // uint32_t with units of ms gives up to 49 days of sleep
+    radio_set_bit(SLPCAL2, 4); // start sleep clock calibration            
+    delay_us(1); // sleep calibration takes 800ns            
+    while (!radio_read_bit(SLPCAL2, 7)); // check sleep calibration is complete
+    uint32_t slpclkPeriod_ns = (((uint32_t) (radio_read(SLPCAL2) & 0x0F)) << 16) | (((uint32_t) (radio_read(SLPCAL1))) << 8) | ((uint32_t) (radio_read(SLPCAL0)));
+    slpclkPeriod_ns = (slpclkPeriod_ns * 50) / 16; // *50ns/16
+    println("Radio sleep clock calibration done, SLPCLK period = %luns", slpclkPeriod_ns);
+
+    uint32_t sleepClockCycles = ((uint32_t)((((uint64_t)(ms)) * 1000000) / ((uint64_t)(slpclkPeriod_ns)))) ; // calculate the number of clock cycles needed to wait for desired time
+    
+    println("sleepClockCycles = %lu", sleepClockCycles);
+    
+    radio_write_bits(MAINCNT3, 0b00000011, (sleepClockCycles >> 24) & 0b00000011);
+    radio_write(MAINCNT2, (sleepClockCycles >> 16) & 0xFF);
+    radio_write(MAINCNT1, (sleepClockCycles >> 8) & 0xFF);
+    radio_write(MAINCNT0, sleepClockCycles & 0xFF);
+}
+
 void radio_trigger_tx(void) {
-    radio_write_short_ctrl_reg(TXNCON, radio_read_short_ctrl_reg(TXNCON) | TXNTRIG); 
+    radio_set_bit(TXNCON, 0); // set the TXNTRIG bit
 }
 
 // creates and writes the MAC header (MHR) to the TXNFIFO on the MRF24J40
-void mrf24f40_mhr_write(uint16_t * fifo_i_p, uint16_t totalLength) {
+
+void mrf24f40_mhr_write(uint16_t * fifo_i_p) {
     uint8_t mhr_i = 0;
-            
+
     //TODO use destination address of other mote rather than just broadcast
 
     // frame control
     mhr[mhr_i++] = 0x41; // pan ID compression, data frame
     mhr[mhr_i++] = 0x88; // 16 bit addresses, 2003 frame version
     // sequence number
-    mhr[mhr_i++] = seqNum;
+    mhr[mhr_i++] = payload_seqNum;
     // address fields
     mhr[mhr_i++] = 0xFF; // destination PAN ID LSByte (0xFFFF broadcast)
     mhr[mhr_i++] = 0xFF; // MSByte
@@ -72,46 +95,46 @@ void mrf24f40_mhr_write(uint16_t * fifo_i_p, uint16_t totalLength) {
     mhr[mhr_i++] = srcAddrH; // MSByte
     //memcpy(&(frame[mhrIndex]), sequenceNumberString, sequenceNumberLength); // payload
 
-//            println("TXing [%d]+%d bytes: [0x%.2X%.2X, 0x%.2X, 0x%.2X%.2X, 0x%.2X%.2X, 0x%.2X%.2X] \"%s\"", 
-//                    mhrLength, sequenceNumberLength,
-//                    frame[0], frame[1], 
-//                    frame[frameCtrlLength], 
-//                    frame[frameCtrlLength + seqNumLength], frame[frameCtrlLength + seqNumLength + 1], frame[frameCtrlLength + seqNumLength + 2], frame[frameCtrlLength + seqNumLength + 3], frame[frameCtrlLength + seqNumLength + 4], frame[frameCtrlLength + seqNumLength + 5], 
-//                    &(frame[mhrLength]));
-//            
-//            delay_ms(250);
+//    println("TXing [%d]+%d bytes: [0x%.2X%.2X, 0x%.2X, 0x%.2X%.2X, 0x%.2X%.2X, 0x%.2X%.2X] \"%s\"", 
+//            mhrLength, sequenceNumberLength,
+//            frame[0], frame[1], 
+//            frame[frameCtrlLength], 
+//            frame[frameCtrlLength + seqNumLength], frame[frameCtrlLength + seqNumLength + 1], frame[frameCtrlLength + seqNumLength + 2], frame[frameCtrlLength + seqNumLength + 3], frame[frameCtrlLength + seqNumLength + 4], frame[frameCtrlLength + seqNumLength + 5], 
+//            &(frame[mhrLength]));
+//
+//    delay_ms(250);
 
     // write to TXNFIFO
-    radio_write_long_ctrl_reg((*fifo_i_p)++, mhrLength);
-    radio_write_long_ctrl_reg((*fifo_i_p)++, totalLength);
+    radio_write_fifo((*fifo_i_p)++, mhrLength);
+    radio_write_fifo((*fifo_i_p)++, payload_totalLength);
     mhr_i = 0;
     while (mhr_i < mhrLength) {
-        radio_write_long_ctrl_reg((*fifo_i_p)++, mhr[mhr_i++]);
+        radio_write_fifo((*fifo_i_p)++, mhr[mhr_i++]);
     }
 }
 
 void radio_read_rx(void) {
-    //uint8_t bbreg1 = radio_read_short_ctrl_reg(BBREG1);
-    //radio_write_short_ctrl_reg(BBREG1, bbreg1 | RXDECINV); // disable receiving packets off air.
+    //uint8_t bbreg1 = radio_read(BBREG1);
+    //radio_write(BBREG1, bbreg1 | RXDECINV); // disable receiving packets off air.
 
-    uint8_t frameLength = radio_read_long_ctrl_reg(RXFIFO);
+    uint8_t frameLength = radio_read(RXFIFO);
 
     uint16_t const fifoStart = RXFIFO + 1;
     uint16_t const fifoEnd = fifoStart + frameLength;
     uint16_t fifoIndex = fifoStart;
     uint16_t bufferIndex = 0;
     while (fifoIndex < fifoEnd) {
-        rxBuffer[bufferIndex++] = radio_read_long_ctrl_reg(fifoIndex++);
+        rxBuffer[bufferIndex++] = radio_read(fifoIndex++);
     }
 
-    uint8_t const fcsL = radio_read_long_ctrl_reg(fifoIndex++);
-    uint8_t const fcsH = radio_read_long_ctrl_reg(fifoIndex++);
-    uint8_t const lqi = radio_read_long_ctrl_reg(fifoIndex++);
-    uint8_t const rssi = radio_read_long_ctrl_reg(fifoIndex++);
-    
-    radio_write_short_ctrl_reg(RXFLUSH, radio_read_short_ctrl_reg(RXFLUSH) | _RXFLUSH); // reset the RXFIFO pointer
+    uint8_t const fcsL = radio_read(fifoIndex++);
+    uint8_t const fcsH = radio_read(fifoIndex++);
+    uint8_t const lqi = radio_read(fifoIndex++);
+    uint8_t const rssi = radio_read(fifoIndex++);
 
-    //radio_write_short_ctrl_reg(BBREG1, bbreg1 | ~(RXDECINV)); // enable receiving packets off air.
+    radio_write(RXFLUSH, radio_read(RXFLUSH) | _RXFLUSH); // reset the RXFIFO pointer
+
+    //radio_write(BBREG1, bbreg1 | ~(RXDECINV)); // enable receiving packets off air.
 
     printf("RX payload: [");
     uint16_t const payloadLength = frameLength - 2;
@@ -133,7 +156,7 @@ void radio_read_rx(void) {
         bufferIndex++;
     }
     println("\"");
-    
+
     println("FCSH = 0x%.2X", fcsH);
     println("FCSL = 0x%.2X", fcsL);
     println("LQI = %d", lqi);
@@ -141,337 +164,343 @@ void radio_read_rx(void) {
 }
 
 void mrf24f40_check_txstat(void) {
-    uint8_t txstat = radio_read_short_ctrl_reg(TXSTAT);
+    uint8_t txstat = radio_read(TXSTAT);
 
     if (~txstat & TXNSTAT) { // TXNSTAT == 0 shows a successful transmission
-        println("TX successful, TXSTAT = 0x%.2X", txstat);
+        println("TX successful, SN = %d, TXSTAT = 0x%.2X", payload_seqNum, txstat);
     } else {
-        println("TX failed, TXSTAT = 0x%.2X", txstat);
+        println("TX failed, SN = %d, TXSTAT = 0x%.2X", payload_seqNum, txstat);
     }
 }
 
 uint8_t radio_read_long_ctrl_reg(uint16_t addr) {
-  radio_spi_preamble();
-  uint8_t value = spi_read_long(addr);
-  radio_spi_postamble();
+    radio_spi_preamble();
+    uint8_t value = spi_read_long(addr);
+    radio_spi_postamble();
 
-  return value;
+    return value;
 }
 
 uint8_t radio_read_short_ctrl_reg(uint8_t addr) {
-  radio_spi_preamble();
-  uint8_t value = spi_read_short(addr);
-  radio_spi_postamble();
-  
-  return value;
+    radio_spi_preamble();
+    uint8_t value = spi_read_short(addr);
+    radio_spi_postamble();
+
+    return value;
 }
 
 void radio_write_long_ctrl_reg(uint16_t addr, uint8_t value) {
-  radio_spi_preamble();
-  spi_write_long(addr, value);
-  radio_spi_postamble();
+    radio_spi_preamble();
+    spi_write_long(addr, value);
+    radio_spi_postamble();
 }
 
 void radio_write_short_ctrl_reg(uint8_t addr, uint8_t value) {
-  radio_spi_preamble();
-  spi_write_short(addr, value);
-  radio_spi_postamble();
+    radio_spi_preamble();
+    spi_write_short(addr, value);
+    radio_spi_postamble();
 }
 
 void radio_ie(void) {
-  radio_write_short_ctrl_reg(MRF24J40_INTCON, ~(TXNIE | RXIE | SECIE));
+    radio_write(MRF24J40_INTCON, ~(TXNIE | RXIE | SECIE));
 }
 
 void radio_pwr_reset(void) {
-  radio_write_short_ctrl_reg(SOFTRST, RSTPWR);
+    radio_write(SOFTRST, RSTPWR);
 }
 
 void radio_bb_reset(void) {
-  radio_write_short_ctrl_reg(SOFTRST, RSTBB);
+    radio_write(SOFTRST, RSTBB);
 }
 
 void radio_mac_reset(void) {
-  radio_write_short_ctrl_reg(SOFTRST, RSTMAC);
+    radio_write(SOFTRST, RSTMAC);
 }
 
 void radio_rf_reset(void) {
-  uint8_t old = radio_read_short_ctrl_reg(RFCTL);
+    uint8_t old = radio_read(RFCTL);
 
-  radio_write_short_ctrl_reg(RFCTL, old | RFRST);
-  radio_write_short_ctrl_reg(RFCTL, old & ~RFRST);
-  radio_delay_ms(2);
+    radio_write(RFCTL, old | RFRST);
+    radio_write(RFCTL, old & ~RFRST);
+    radio_delay_ms(2);
 }
 
 uint8_t radio_get_pending_frame(void) {
-  return (radio_read_short_ctrl_reg(TXNCON) >> 4) & 0x01;
+    return (radio_read(TXNCON) >> 4) & 0x01;
 }
 
 void radio_rxfifo_flush(void) {
-  radio_write_short_ctrl_reg(RXFLUSH, (radio_read_short_ctrl_reg(RXFLUSH) | _RXFLUSH));
+    radio_write(RXFLUSH, (radio_read(RXFLUSH) | _RXFLUSH));
 }
 
 void radio_set_channel(int16_t ch) {
-  radio_write_long_ctrl_reg(RFCON0, CHANNEL(ch) | RFOPT(0x03));
-  radio_rf_reset();
+    radio_write(RFCON0, CHANNEL(ch) | RFOPT(0x03));
+    radio_rf_reset();
 }
 
 void radio_set_promiscuous(bool crc_check) {
-  uint8_t w = NOACKRSP;
-  if (!crc_check) {
-    w |= ERRPKT;
-  } else {
-    w |= PROMI;
-  }
+    uint8_t w = NOACKRSP;
+    if (!crc_check) {
+        w |= ERRPKT;
+    } else {
+        w |= PROMI;
+    }
 
-  radio_write_short_ctrl_reg(RXMCR, w);
+    radio_write(RXMCR, w);
 }
 
 void radio_set_coordinator(void) {
-  radio_write_short_ctrl_reg(RXMCR, radio_read_short_ctrl_reg(RXMCR) | PANCOORD);
+    radio_write(RXMCR, radio_read(RXMCR) | PANCOORD);
 }
 
 void radio_clear_coordinator(void) {
-  radio_write_short_ctrl_reg(RXMCR, radio_read_short_ctrl_reg(RXMCR) & ~PANCOORD);
+    radio_write(RXMCR, radio_read(RXMCR) & ~PANCOORD);
 }
 
 void radio_set_pan(uint8_t *pan) {
-  radio_write_short_ctrl_reg(PANIDL, pan[0]);
-  radio_write_short_ctrl_reg(PANIDH, pan[1]);
+    radio_write(PANIDL, pan[0]);
+    radio_write(PANIDH, pan[1]);
 }
 
 void radio_set_short_addr(uint8_t *addr) {
-  radio_write_short_ctrl_reg(SADRL, addr[0]);
-  radio_write_short_ctrl_reg(SADRH, addr[1]);
+    radio_write(SADRL, addr[0]);
+    radio_write(SADRH, addr[1]);
 }
 
 void radio_set_eui(uint8_t *eui) {
-  radio_write_short_ctrl_reg(EADR0, eui[0]);
-  radio_write_short_ctrl_reg(EADR1, eui[1]);
-  radio_write_short_ctrl_reg(EADR2, eui[2]);
-  radio_write_short_ctrl_reg(EADR3, eui[3]);
-  radio_write_short_ctrl_reg(EADR4, eui[4]);
-  radio_write_short_ctrl_reg(EADR5, eui[5]);
-  radio_write_short_ctrl_reg(EADR6, eui[6]);
-  radio_write_short_ctrl_reg(EADR7, eui[7]);
+    radio_write(EADR0, eui[0]);
+    radio_write(EADR1, eui[1]);
+    radio_write(EADR2, eui[2]);
+    radio_write(EADR3, eui[3]);
+    radio_write(EADR4, eui[4]);
+    radio_write(EADR5, eui[5]);
+    radio_write(EADR6, eui[6]);
+    radio_write(EADR7, eui[7]);
 }
 
 void radio_set_coordinator_short_addr(uint8_t *addr) {
-  radio_write_long_ctrl_reg(ASSOSADR0, addr[0]);
-  radio_write_long_ctrl_reg(ASSOSADR1, addr[1]);
+    radio_write(ASSOSADR0, addr[0]);
+    radio_write(ASSOSADR1, addr[1]);
 }
 
 void radio_set_coordinator_eui(uint8_t *eui) {
-  radio_write_long_ctrl_reg(ASSOEADR0, eui[0]);
-  radio_write_long_ctrl_reg(ASSOEADR1, eui[1]);
-  radio_write_long_ctrl_reg(ASSOEADR2, eui[2]);
-  radio_write_long_ctrl_reg(ASSOEADR3, eui[3]);
-  radio_write_long_ctrl_reg(ASSOEADR4, eui[4]);
-  radio_write_long_ctrl_reg(ASSOEADR5, eui[5]);
-  radio_write_long_ctrl_reg(ASSOEADR6, eui[6]);
-  radio_write_long_ctrl_reg(ASSOEADR7, eui[7]);
+    radio_write(ASSOEADR0, eui[0]);
+    radio_write(ASSOEADR1, eui[1]);
+    radio_write(ASSOEADR2, eui[2]);
+    radio_write(ASSOEADR3, eui[3]);
+    radio_write(ASSOEADR4, eui[4]);
+    radio_write(ASSOEADR5, eui[5]);
+    radio_write(ASSOEADR6, eui[6]);
+    radio_write(ASSOEADR7, eui[7]);
 }
 
 void radio_set_key(uint16_t address, uint8_t *key) {
-  radio_spi_preamble();
-  spi_write_long(address, 1);
-  
-  int16_t i;
-  for (i = 0; i < 16; i++) {
-    spi_write(key[i]);
-  }
+    radio_spi_preamble();
+    spi_write_long(address, 1);
 
-  radio_spi_postamble();
+    int16_t i;
+    for (i = 0; i < 16; i++) {
+        spi_write(key[i]);
+    }
+
+    radio_spi_postamble();
 }
 
 void radio_hard_reset(void) {
-  radio_reset_pin(0);
-  radio_delay_ms(500); // wait at least 2ms
-  radio_reset_pin(1);
-  radio_delay_ms(500); // wait at least 2ms
+    radio_reset_pin(0);
+    radio_delay_ms(500); // wait at least 2ms
+    radio_reset_pin(1);
+    radio_delay_ms(500); // wait at least 2ms
 }
 
-void radio_initialize(void) {        
-  radio_cs_pin(1);
-  radio_wake_pin(1);
-  
-  radio_hard_reset();
-  
-  //radio_write_short_ctrl_reg(SOFTRST, 0x07); // Perform a software Reset. The bits will be automatically cleared to ?0? by hardware.
- 
-  radio_write_short_ctrl_reg(PACON2, 0x98); // Initialize FIFOEN = 1 and TXONTS = 0x6.
-  radio_write_short_ctrl_reg(TXSTBL, 0x95); // Initialize RFSTBL = 0x9.
-  
-  radio_write_long_ctrl_reg(RFCON0, 0x03); // Initialize RFOPT = 0x03, Channel 11 (2.405GHz)
-  radio_write_long_ctrl_reg(RFCON1, 0x01); // Initialize VCOOPT = 0x02.
-  radio_write_long_ctrl_reg(RFCON2, 0x80); // Enable PLL (PLLEN = 1).
-  radio_write_long_ctrl_reg(RFCON6, 0x90); // Initialize TXFIL = 1 and 20MRECVR = 1.
-  radio_write_long_ctrl_reg(RFCON7, 0x80); // Initialize SLPCLKSEL = 0x2 (100 kHz Internal oscillator).
-  radio_write_long_ctrl_reg(RFCON8, 0x10); // Initialize RFVCO = 1.
-  radio_write_long_ctrl_reg(SLPCON1, 0x21); // Initialize CLKOUTEN = 1 and SLPCLKDIV = 0x01.
+void radio_initialize(void) {
+    radio_cs_pin(1);
+    radio_wake_pin(1);
 
-  radio_write_short_ctrl_reg(BBREG2, 0x80); // Set CCA mode to ED.
-  radio_write_short_ctrl_reg(CCAEDTH, 0x60); // Set CCA ED threshold.
-  radio_write_short_ctrl_reg(BBREG6, 0x40); // Set appended RSSI value to RXFIFO.
-  
-  radio_write_bits_reg(ORDER, 0b11110000, 0xF0); // set BO = 15
-  radio_clear_bit_reg(TXMCR, 5); // set slotted = 0
+    radio_hard_reset();
 
-  radio_write_short_ctrl_reg(MRF24J40_INTCON, 0b10110110); // Enable wake, RX and TX normal interrupts, active low
-  // tx power set to 0dBm at reset
-  
-  radio_write_short_ctrl_reg(RFCTL, 0x04); // Reset RF state machine.
-  radio_delay_us(200);
-  radio_write_short_ctrl_reg(RFCTL, 0x00);
-  radio_delay_us(200); // delay at least 192 ?s 
-  
-//  radio_cs_pin(1);
-//  radio_wake_pin(1);
-//  
-//  radio_hard_reset();
-//  
-//  radio_write_short_ctrl_reg(SOFTRST, (RSTPWR | RSTBB | RSTMAC));
-//
-//  radio_delay_us(192);
-// 
-//  radio_write_short_ctrl_reg(PACON2, FIFOEN | TXONTS(0x18));
-//  radio_write_short_ctrl_reg(TXSTBL, RFSTBL(9) | MSIFS(5));
-//  radio_write_long_ctrl_reg(RFCON1, VCOOPT(0x01));
-//  radio_write_long_ctrl_reg(RFCON2, PLLEN);
-//  radio_write_long_ctrl_reg(RFCON6, _20MRECVR);
-//  radio_write_long_ctrl_reg(RFCON7, SLPCLKSEL(0x02));
-//  radio_write_long_ctrl_reg(RFCON8, RFVCO);
-//  radio_write_long_ctrl_reg(SLPCON1, SLPCLKDIV(1) | CLKOUTDIS);
-//  radio_write_short_ctrl_reg(RXFLUSH, (WAKEPAD | WAKEPOL));
-//
-//  radio_write_short_ctrl_reg(BBREG2, CCAMODE(0x02) | CCASTH(0x00));
-//  radio_write_short_ctrl_reg(CCAEDTH, 0x60);
-//  radio_write_short_ctrl_reg(BBREG6, RSSIMODE2);
-//
-//  radio_rxfifo_flush();
-//  
-//  radio_ie();
+    //radio_write(SOFTRST, 0x07); // Perform a software Reset. The bits will be automatically cleared to ?0? by hardware.
+
+    radio_write(PACON2, 0x98); // Initialize FIFOEN = 1 and TXONTS = 0x6.
+    radio_write(TXSTBL, 0x95); // Initialize RFSTBL = 0x9.
+
+    radio_write(RFCON0, 0x03); // Initialize RFOPT = 0x03, Channel 11 (2.405GHz)
+    radio_write(RFCON1, 0x01); // Initialize VCOOPT = 0x02.
+    radio_write(RFCON2, 0x80); // Enable PLL (PLLEN = 1).
+    radio_write(RFCON6, 0x90); // Initialize TXFIL = 1 and 20MRECVR = 1.
+    radio_write(RFCON7, 0x80); // Initialize SLPCLKSEL = 0x2 (100 kHz Internal oscillator).
+    radio_write(RFCON8, 0x10); // Initialize RFVCO = 1.
+    radio_write(SLPCON1, 0x21); // Initialize CLKOUTEN = 1 and SLPCLKDIV = 0x01.
+
+    radio_write(BBREG2, 0x80); // Set CCA mode to ED.
+    radio_write(CCAEDTH, 0x60); // Set CCA ED threshold.
+    radio_write(BBREG6, 0x40); // Set appended RSSI value to RXFIFO.
+
+    radio_write_bits(ORDER, 0b11110000, 0xF0); // set BO = 15
+    radio_clear_bit(TXMCR, 5); // set slotted = 0
+
+
+    // internal 100kHz clock is selected by default
+    radio_write_bits(SLPCON1, 0b00111111, 0x21); // set !CLKOUTEN = 1 and clock divisor to be 2^1 = 2
+    radio_write(WAKETIMEL, 0x43); // set WAKECNT = 67 (WAKETIME > WAKECNT)
+    radio_write_bits(SLPACK, 0b01111111, 0x42); // set WAKECNT = 66
+
+    radio_write(MRF24J40_INTCON, 0b10110110); // Enable wake, RX and TX normal interrupts, active low
+    // tx power set to 0dBm at reset
+
+    radio_write(RFCTL, 0x04); // Reset RF state machine.
+    radio_delay_us(200);
+    radio_write(RFCTL, 0x00);
+    radio_delay_us(200); // delay at least 192 ?s 
+
+    //  radio_cs_pin(1);
+    //  radio_wake_pin(1);
+    //  
+    //  radio_hard_reset();
+    //  
+    //  radio_write(SOFTRST, (RSTPWR | RSTBB | RSTMAC));
+    //
+    //  radio_delay_us(192);
+    // 
+    //  radio_write(PACON2, FIFOEN | TXONTS(0x18));
+    //  radio_write(TXSTBL, RFSTBL(9) | MSIFS(5));
+    //  radio_write(RFCON1, VCOOPT(0x01));
+    //  radio_write(RFCON2, PLLEN);
+    //  radio_write(RFCON6, _20MRECVR);
+    //  radio_write(RFCON7, SLPCLKSEL(0x02));
+    //  radio_write(RFCON8, RFVCO);
+    //  radio_write(SLPCON1, SLPCLKDIV(1) | CLKOUTDIS);
+    //  radio_write(RXFLUSH, (WAKEPAD | WAKEPOL));
+    //
+    //  radio_write(BBREG2, CCAMODE(0x02) | CCASTH(0x00));
+    //  radio_write(CCAEDTH, 0x60);
+    //  radio_write(BBREG6, RSSIMODE2);
+    //
+    //  radio_rxfifo_flush();
+    //  
+    //  radio_ie();
 }
 
 void radio_sleep(void) {
-  radio_write_short_ctrl_reg(WAKECON, IMMWAKE);
+    radio_write(WAKECON, IMMWAKE);
 
-  uint8_t r = radio_read_short_ctrl_reg(SLPACK);
-  radio_wake_pin(0);
+    uint8_t r = radio_read(SLPACK);
+    radio_wake_pin(0);
 
-  radio_pwr_reset();
-  radio_write_short_ctrl_reg(SLPACK, r | _SLPACK);
+    radio_pwr_reset();
+    radio_write(SLPACK, r | _SLPACK);
 }
 
 void radio_wakeup(void) {
-  radio_wake_pin(1);
-  radio_rf_reset();
+    radio_wake_pin(1);
+    radio_rf_reset();
 }
 
 void radio_txpkt(uint8_t *frame, int16_t hdr_len, int16_t sec_hdr_len, int16_t payload_len) {
-  int16_t frame_len = hdr_len + sec_hdr_len + payload_len;
+    int16_t frame_len = hdr_len + sec_hdr_len + payload_len;
 
-  uint8_t w = radio_read_short_ctrl_reg(TXNCON);
-  w &= ~(TXNSECEN);
-  w &= ~(TXNACKREQ);
+    uint8_t w = radio_read(TXNCON);
+    w &= ~(TXNSECEN);
+    w &= ~(TXNACKREQ);
 
-  if (IEEE_802_15_4_HAS_SEC(frame[0])) {
-    w |= TXNSECEN;
-  }
+    if (IEEE_802_15_4_HAS_SEC(frame[0])) {
+        w |= TXNSECEN;
+    }
 
-  if (IEEE_802_15_4_WANTS_ACK(frame[0])) {
-    w |= TXNACKREQ;
-  }
+    if (IEEE_802_15_4_WANTS_ACK(frame[0])) {
+        w |= TXNACKREQ;
+    }
 
-  radio_spi_preamble();
-  
-  spi_write_long(TXNFIFO, hdr_len);
-  spi_write(frame_len);
+    radio_spi_preamble();
 
-  while (frame_len-- > 0) {
-    spi_write(*frame++);
-  }
-  
-  radio_spi_postamble();
+    spi_write_long(TXNFIFO, hdr_len);
+    spi_write(frame_len);
 
-  //radio_write_short_ctrl_reg(TXNCON, w | TXNTRIG);
+    while (frame_len-- > 0) {
+        spi_write(*frame++);
+    }
+
+    radio_spi_postamble();
+
+    //radio_write(TXNCON, w | TXNTRIG);
 }
 
 void radio_set_cipher(uint8_t rxcipher, uint8_t txcipher) {
-  radio_write_short_ctrl_reg(SECCON0, RXCIPHER(rxcipher) | TXNCIPHER(txcipher));
+    radio_write(SECCON0, RXCIPHER(rxcipher) | TXNCIPHER(txcipher));
 }
 
 bool radio_rx_sec_fail(void) {
-  bool rx_sec_fail = (radio_read_short_ctrl_reg(RXSR) >> 2) & 0x01;
-  radio_write_short_ctrl_reg(RXSR, 0x00);
-  return rx_sec_fail;
+    bool rx_sec_fail = (radio_read(RXSR) >> 2) & 0x01;
+    radio_write(RXSR, 0x00);
+    return rx_sec_fail;
 }
 
 void radio_sec_intcb(bool accept) {
-  uint8_t w = radio_read_short_ctrl_reg(SECCON0);
+    uint8_t w = radio_read(SECCON0);
 
-  w |= accept ? SECSTART : SECIGNORE;
-  radio_write_short_ctrl_reg(SECCON0, w);
+    w |= accept ? SECSTART : SECIGNORE;
+    radio_write(SECCON0, w);
 }
 
 int16_t radio_txpkt_intcb(void) {
-  uint8_t stat = radio_read_short_ctrl_reg(TXSTAT);
-  if (stat & TXNSTAT) {
-    if (stat & CCAFAIL) {
-      return EBUSY;
+    uint8_t stat = radio_read(TXSTAT);
+    if (stat & TXNSTAT) {
+        if (stat & CCAFAIL) {
+            return EBUSY;
+        } else {
+            return EIO;
+        }
     } else {
-      return EIO;
+        return 0;
     }
-  } else {
-    return 0;
-  }
 }
 
 int16_t radio_rxpkt_intcb(uint8_t *buf, uint8_t *plqi, uint8_t *prssi) {
-  radio_write_short_ctrl_reg(BBREG1, radio_read_short_ctrl_reg(BBREG1) | RXDECINV);
+    radio_write(BBREG1, radio_read(BBREG1) | RXDECINV);
 
-  radio_spi_preamble();
-  uint16_t flen = spi_read_long(RXFIFO);
-  
-  uint16_t i;
-  for (i = 0; i < flen; i++) {
-    *buf++ = spi_read();
-  }
+    radio_spi_preamble();
+    uint16_t flen = spi_read_long(RXFIFO);
 
-  uint8_t lqi = spi_read();
-  uint8_t rssi = spi_read();
+    uint16_t i;
+    for (i = 0; i < flen; i++) {
+        *buf++ = spi_read();
+    }
 
-  if (plqi != NULL) {
-    *plqi = lqi;
-  }
+    uint8_t lqi = spi_read();
+    uint8_t rssi = spi_read();
 
-  if (prssi != NULL) {
-    *prssi = rssi;
-  }
+    if (plqi != NULL) {
+        *plqi = lqi;
+    }
 
-  radio_spi_postamble();
+    if (prssi != NULL) {
+        *prssi = rssi;
+    }
 
-  radio_rxfifo_flush();
-  radio_write_short_ctrl_reg(BBREG1, radio_read_short_ctrl_reg(BBREG1) & ~RXDECINV);
-  
-  return flen;
+    radio_spi_postamble();
+
+    radio_rxfifo_flush();
+    radio_write(BBREG1, radio_read(BBREG1) & ~RXDECINV);
+
+    return flen;
 }
 
 int16_t radio_int_tasks(void) {
-  int16_t ret = 0;
+    int16_t ret = 0;
 
-  uint8_t stat = radio_read_short_ctrl_reg(INTSTAT);
+    uint8_t stat = radio_read(INTSTAT);
 
-  if (stat & RXIF) {
-    ret |= MRF24J40_INT_RX;
-  }
+    if (stat & RXIF) {
+        ret |= MRF24J40_INT_RX;
+    }
 
-  if (stat & TXNIF) {
-    ret |= MRF24J40_INT_TX;
-  }
+    if (stat & TXNIF) {
+        ret |= MRF24J40_INT_TX;
+    }
 
-  if (stat & SECIF) {
-    ret |= MRF24J40_INT_SEC;
-  }
+    if (stat & SECIF) {
+        ret |= MRF24J40_INT_SEC;
+    }
 
-  return ret;
+    return ret;
 }

@@ -13,6 +13,8 @@
 #include "payload.h"
 #include "delay.h"
 
+#define TOGGLE_LED_PERIOD_MS 250
+
 uint8_t checkAndClear(uint8_t volatile * flag_p) {
     if (*flag_p) {
         *flag_p = 0;
@@ -27,7 +29,7 @@ void mrf24j40PrintTxFifo(uint16_t totalLength) {
     uint8_t value;
     uint16_t fifo_i;
     for (fifo_i = 0; fifo_i < 6 + totalLength; fifo_i++) {
-        value = radio_read_long_ctrl_reg(fifo_i);    
+        value = radio_read_long(fifo_i);    
         if (isValidPayloadChar(value)) {
             printf("%c", value);
         } else {
@@ -41,10 +43,10 @@ void mrf24j40PrintAllRegisters(void) {
     // print out the values of all the registers on the MRF24J40
     uint16_t addr;
     for (addr = 0x00; addr <= 0x3F; addr++) {
-        printf("%x=%x\r\n", addr, radio_read_short_ctrl_reg(addr));
+        printf("%x=%x\r\n", addr, radio_read(addr));
     }
     for (addr = 0x200; addr <= 0x24C; addr++) {
-        printf("%x=%x\r\n", addr, radio_read_long_ctrl_reg(addr));
+        printf("%x=%x\r\n", addr, radio_read(addr));
     }
 }
 
@@ -57,9 +59,16 @@ void uart1Print(char const * const str) {
     }
 }
 
-void toggleLedForever(void) {
-    while (1) { // do not continue if a test fails
+void toggleLed(uint16_t num) {
+    uint32_t toggles = num * 2;
+    while (toggles--) {
         LED_Toggle();
-        delay_ms(250);
+        delay_ms(TOGGLE_LED_PERIOD_MS);
+    };
+}
+
+void toggleLedForever(void) {
+    while (1) {
+        toggleLed(0xFFFF);
     }; 
 }

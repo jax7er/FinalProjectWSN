@@ -19,7 +19,6 @@
 
 uint8_t rxMode = 1; // default to RX mode
 uint8_t moteId = 1; // default to mote 1
-uint16_t totalLength = 0;
     
 int main(void) {
     SYSTEM_Initialize();
@@ -39,8 +38,8 @@ int main(void) {
         println("Set mote 2, ID = 2, address = 0xAA55");
     }
         
-    radio_write_short_ctrl_reg(SADRH, srcAddrH); // set source address
-    radio_write_short_ctrl_reg(SADRL, srcAddrL);
+    radio_write(SADRH, srcAddrH); // set source address
+    radio_write(SADRL, srcAddrL);
     
     delay_ms(1000);
     
@@ -67,25 +66,9 @@ int main(void) {
     } else {
         println("TX mode");
         
+        payload_init(); // initialise data and size of payload
+        
         LED_SetHigh();
-        
-        uint16_t payloadLengthBits = 0;
-        uint16_t payloadElementHeaderBits = payloadElementIdBits + payloadElementSizeBits + payloadElementLengthBits;
-        uint16_t element_i;
-        for (element_i = 0; element_i < NUM_ELEMENTS; element_i++) {
-            payloadLengthBits += payloadElementHeaderBits + ((1 << (payload[element_i].size + 3)) * (payload[element_i].length + 1));
-        }
-        totalLength = mhrLength + (payloadLengthBits / 8);
-
-        println("mhr length = %d", mhrLength);
-        println("payload length bits (bytes) = %d (%d)", payloadLengthBits, payloadLengthBits / 8);
-        println("total length = %d", totalLength);
-        
-        if (totalLength > (TXNFIFO_SIZE - 2)) {
-            println("Total length too big! Maximum is %d", TXNFIFO_SIZE - 2);
-            
-            toggleLedForever();
-        }
     } 
     
     while (1) {
@@ -103,27 +86,25 @@ int main(void) {
                 ifs.wake = 0;
                 println("Radio woke up");
             }
-        } else {
-            uint16_t fifo_i = TXNFIFO;
-            mrf24f40_mhr_write(&fifo_i, totalLength);
-            payload_write(&fifo_i);
+        } else {            
+            payload_write();
             
             // read back TXNFIFO
-            mrf24j40PrintTxFifo(totalLength);
-            delay_ms(100); // allow printing to finish
+//            mrf24j40PrintTxFifo(payload_totalLength);
+//            delay_ms(100); // allow printing to finish
             
             // trigger transmit
             radio_trigger_tx();
             
-            seqNum++;
-            sequenceNumberString[3] = '0' + (seqNum / 100) % 10;
-            sequenceNumberString[4] = '0' + (seqNum / 10) % 10;
-            sequenceNumberString[5] = '0' + seqNum % 10;
-            
-            while (!(ifs.tx)); // wait for TX interrupt
-                
+            while (!(ifs.tx)); // wait for TX interrupt                
             ifs.tx = 0; // reset TX flag
+            
             mrf24f40_check_txstat();
+            
+            payload_seqNum++;
+            payload_seqNumString[3] = '0' + (payload_seqNum / 100) % 10;
+            payload_seqNumString[4] = '0' + (payload_seqNum / 10) % 10;
+            payload_seqNumString[5] = '0' + payload_seqNum % 10;
             
             delay_ms(2500);
         }
@@ -137,7 +118,7 @@ void __attribute__ ( ( interrupt, no_auto_psv ) ) _INT1Interrupt(void)
 {
     EX_INT1_InterruptDisable();
     
-    uint8_t intstat = radio_read_short_ctrl_reg(INTSTAT);
+    uint8_t intstat = radio_read(INTSTAT);
     
     println("INTSTAT = 0x%.2X", intstat);
     
