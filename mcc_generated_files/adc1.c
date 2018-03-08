@@ -111,6 +111,8 @@ void ADC1_Initialize (void)
 
    adc1_obj.intSample = AD1CON2bits.SMPI;
    
+   // Enabling ADC1 interrupt.
+   IEC0bits.AD1IE = 1;
 }
 
 void ADC1_Start(void)
@@ -149,11 +151,11 @@ void ADC1_ChannelSelect( ADC1_CHANNEL channel )
 }
 
 
-void ADC1_Tasks ( void )
-{
-    // clear the ADC interrupt flag
-    IFS0bits.AD1IF = false;
-}
+//void __attribute__ ( ( __interrupt__ , auto_psv ) ) _ADC1Interrupt ( void )
+//{
+//    // clear the ADC interrupt flag
+//    IFS0bits.AD1IF = false;
+//}
 
 
 /**

@@ -117,10 +117,6 @@ uint8_t runTest(testId_e id) {
             println("Radio woken");
             
             break;
-        case SYSTEM_TEST_ID_TX_RX:
-            //TODO
-            
-            break;
         default:
             println("No such test, id = %d", id);
             return 0;

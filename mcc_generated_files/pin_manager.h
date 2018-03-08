@@ -785,13 +785,13 @@
 #define MRF24J40_WAKE_SetDigitalOutput() _TRISB12 = 0
 /**
   @Summary
-    Sets the GPIO pin, RB14, high using LATB14.
+    Sets the GPIO pin, RB15, high using LATB15.
 
   @Description
-    Sets the GPIO pin, RB14, high using LATB14.
+    Sets the GPIO pin, RB15, high using LATB15.
 
   @Preconditions
-    The RB14 must be set to an output.
+    The RB15 must be set to an output.
 
   @Returns
     None.
@@ -801,21 +801,21 @@
 
   @Example
     <code>
-    // Set RB14 high (1)
-    channel_AN6_SetHigh();
+    // Set RB15 high (1)
+    channel_AN9_SetHigh();
     </code>
 
 */
-#define channel_AN6_SetHigh()          _LATB14 = 1
+#define channel_AN9_SetHigh()          _LATB15 = 1
 /**
   @Summary
-    Sets the GPIO pin, RB14, low using LATB14.
+    Sets the GPIO pin, RB15, low using LATB15.
 
   @Description
-    Sets the GPIO pin, RB14, low using LATB14.
+    Sets the GPIO pin, RB15, low using LATB15.
 
   @Preconditions
-    The RB14 must be set to an output.
+    The RB15 must be set to an output.
 
   @Returns
     None.
@@ -825,21 +825,21 @@
 
   @Example
     <code>
-    // Set RB14 low (0)
-    channel_AN6_SetLow();
+    // Set RB15 low (0)
+    channel_AN9_SetLow();
     </code>
 
 */
-#define channel_AN6_SetLow()           _LATB14 = 0
+#define channel_AN9_SetLow()           _LATB15 = 0
 /**
   @Summary
-    Toggles the GPIO pin, RB14, using LATB14.
+    Toggles the GPIO pin, RB15, using LATB15.
 
   @Description
-    Toggles the GPIO pin, RB14, using LATB14.
+    Toggles the GPIO pin, RB15, using LATB15.
 
   @Preconditions
-    The RB14 must be set to an output.
+    The RB15 must be set to an output.
 
   @Returns
     None.
@@ -849,18 +849,18 @@
 
   @Example
     <code>
-    // Toggle RB14
-    channel_AN6_Toggle();
+    // Toggle RB15
+    channel_AN9_Toggle();
     </code>
 
 */
-#define channel_AN6_Toggle()           _LATB14 ^= 1
+#define channel_AN9_Toggle()           _LATB15 ^= 1
 /**
   @Summary
-    Reads the value of the GPIO pin, RB14.
+    Reads the value of the GPIO pin, RB15.
 
   @Description
-    Reads the value of the GPIO pin, RB14.
+    Reads the value of the GPIO pin, RB15.
 
   @Preconditions
     None.
@@ -875,18 +875,18 @@
     <code>
     uint16_t portValue;
 
-    // Read RB14
-    postValue = channel_AN6_GetValue();
+    // Read RB15
+    postValue = channel_AN9_GetValue();
     </code>
 
 */
-#define channel_AN6_GetValue()         _RB14
+#define channel_AN9_GetValue()         _RB15
 /**
   @Summary
-    Configures the GPIO pin, RB14, as an input.
+    Configures the GPIO pin, RB15, as an input.
 
   @Description
-    Configures the GPIO pin, RB14, as an input.
+    Configures the GPIO pin, RB15, as an input.
 
   @Preconditions
     None.
@@ -899,18 +899,18 @@
 
   @Example
     <code>
-    // Sets the RB14 as an input
-    channel_AN6_SetDigitalInput();
+    // Sets the RB15 as an input
+    channel_AN9_SetDigitalInput();
     </code>
 
 */
-#define channel_AN6_SetDigitalInput()  _TRISB14 = 1
+#define channel_AN9_SetDigitalInput()  _TRISB15 = 1
 /**
   @Summary
-    Configures the GPIO pin, RB14, as an output.
+    Configures the GPIO pin, RB15, as an output.
 
   @Description
-    Configures the GPIO pin, RB14, as an output.
+    Configures the GPIO pin, RB15, as an output.
 
   @Preconditions
     None.
@@ -923,12 +923,12 @@
 
   @Example
     <code>
-    // Sets the RB14 as an output
-    channel_AN6_SetDigitalOutput();
+    // Sets the RB15 as an output
+    channel_AN9_SetDigitalOutput();
     </code>
 
 */
-#define channel_AN6_SetDigitalOutput() _TRISB14 = 0
+#define channel_AN9_SetDigitalOutput() _TRISB15 = 0
 /**
   @Summary
     Sets the GPIO pin, RB7, high using LATB7.

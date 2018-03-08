@@ -19,6 +19,7 @@
 
 uint8_t rxMode = 1; // default to RX mode
 uint8_t moteId = 1; // default to mote 1
+uint8_t volatile adcDoneFlag = 0;
     
 int main(void) {
     SYSTEM_Initialize();
@@ -67,6 +68,7 @@ int main(void) {
         println("TX mode");
         
         payload_init(); // initialise data and size of payload
+        ADC1_ChannelSelect(ADC1_CHANNEL_AN9); // select channel 9 for ADC
         
         LED_SetHigh();
     } 
@@ -74,6 +76,8 @@ int main(void) {
     while (1) {
         if (rxMode) {
             println("Sleeping...");
+            delay_ms(10);
+            
             Sleep();
             
             if (ifs.rx) {
@@ -86,15 +90,23 @@ int main(void) {
                 ifs.wake = 0;
                 println("Radio woke up");
             }
-        } else {            
+        } else {
+            ADC1_Start();
+            
+            while (!adcDoneFlag);
+            adcDoneFlag = 0;
+            
+            println("ADC done");
+            
+            while (1);
+            
             payload_write();
             
             // read back TXNFIFO
 //            mrf24j40PrintTxFifo(payload_totalLength);
 //            delay_ms(100); // allow printing to finish
             
-            // trigger transmit
-            radio_trigger_tx();
+            radio_trigger_tx(); // trigger transmit
             
             while (!(ifs.tx)); // wait for TX interrupt                
             ifs.tx = 0; // reset TX flag
@@ -129,4 +141,13 @@ void __attribute__ ( ( interrupt, no_auto_psv ) ) _INT1Interrupt(void)
     EX_INT1_InterruptFlagClear();
     
     EX_INT1_InterruptEnable();
+}
+
+// ISR for the ADC completion
+void __attribute__ ( ( __interrupt__ , auto_psv ) ) _ADC1Interrupt ( void )
+{
+    adcDoneFlag = 1;
+    
+    // clear the ADC interrupt flag
+    IFS0bits.AD1IF = false;
 }

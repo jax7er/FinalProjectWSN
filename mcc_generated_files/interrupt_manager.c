@@ -52,6 +52,9 @@
 */
 void INTERRUPT_Initialize (void)
 {
+    //    ADI: ADC1 - Pipeline A/D Converter 1
+    //    Priority: 1
+        IPC3bits.AD1IP = 1;
     //    INT1I: INT1 - External Interrupt 1
     //    Priority: 2
         IPC5bits.INT1IP = 2;
