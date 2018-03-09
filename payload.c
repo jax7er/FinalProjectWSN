@@ -14,7 +14,7 @@ uint16_t payload_length_bits = 0;
 uint16_t payload_totalLength = 0;
 uint8_t payload_seqNum = 0;
 uint8_t payload_seqNumString[] = "SN 000 this is a test message";
-uint8_t payload_pressureSensorString[] = "Pressure data goes here";
+uint16_t payload_adcValue = 0;
 uint32_t payload_data32Bit[] = {
     0x12345678,
     0x23456781,
@@ -31,35 +31,35 @@ void payload_init(void) {
     payload_elements[SEQUENCE_NUM_INDEX] = (payloadElement_t){
         .id = SEQUENCE_NUM_ID, 
         .size = BITS_8, 
-        .length = sizeof(payload_seqNumString) / sizeof(uint8_t),
-        .data = payload_seqNumString
+        .length = toLength(sizeof(payload_seqNumString) / sizeof(uint8_t)),
+        .data_p = payload_seqNumString
     };
     
-    payload_elements[PRESSURE_SENSOR_INDEX] = (payloadElement_t){
-        .id = PRESSURE_SENSOR_ID, 
-        .size = BITS_8,
-        .length = sizeof(payload_pressureSensorString) / sizeof(uint8_t),
-        .data = payload_pressureSensorString
+    payload_elements[ADC_VALUE_INDEX] = (payloadElement_t){
+        .id = ADC_VALUE_ID, 
+        .size = BITS_16,
+        .length = toLength(1),
+        .data_p = &payload_adcValue
     };
     
     payload_elements[DATA_32_BIT_INDEX] = (payloadElement_t){
         .id = DATA_32_BIT_ID, 
         .size = BITS_32,
-        .length = sizeof(payload_data32Bit) / sizeof(uint32_t),
-        .data = payload_data32Bit
+        .length = toLength(sizeof(payload_data32Bit) / sizeof(uint32_t)),
+        .data_p = payload_data32Bit
     };
     
     payload_elements[LAST_ELEMENT_INDEX] = (payloadElement_t){
         .id = LAST_ELEMENT_ID, 
         .size = BITS_8,
-        .length = sizeof(payload_lastElementString) / sizeof(uint8_t),
-        .data = payload_lastElementString
+        .length = toLength(sizeof(payload_lastElementString) / sizeof(uint8_t)),
+        .data_p = payload_lastElementString
     };
     
     payload_length_bits = payloadElementHeaderBits * NUM_ELEMENTS;
     uint16_t element_i;
     for (element_i = 0; element_i < NUM_ELEMENTS; element_i++) {
-        payload_length_bits += ((1 << (payload_elements[element_i].size + 3)) * (payload_elements[element_i].length + 1));
+        payload_length_bits += (sizeToWordLength(payload_elements[element_i].size) * (payload_elements[element_i].length + 1));
     }    
     payload_totalLength = mhrLength + (payload_length_bits / 8);        
     
@@ -94,20 +94,20 @@ void payload_write() {
         while (word_i < numWords) {
             switch (payload_elements[element_i].size) { // allow fallthrough to save lines of code
                 case BITS_64: { // 8 writes are required 
-                    radio_write_fifo(fifo_i++, ((uint8_t)(((uint64_t *)(payload_elements[element_i].data))[word_i] >> 56)));
-                    radio_write_fifo(fifo_i++, ((uint8_t)(((uint64_t *)(payload_elements[element_i].data))[word_i] >> 48)));
-                    radio_write_fifo(fifo_i++, ((uint8_t)(((uint64_t *)(payload_elements[element_i].data))[word_i] >> 40)));
-                    radio_write_fifo(fifo_i++, ((uint8_t)(((uint64_t *)(payload_elements[element_i].data))[word_i] >> 32)));
+                    radio_write_fifo(fifo_i++, ((uint8_t)(((uint64_t *)(payload_elements[element_i].data_p))[word_i] >> 56)));
+                    radio_write_fifo(fifo_i++, ((uint8_t)(((uint64_t *)(payload_elements[element_i].data_p))[word_i] >> 48)));
+                    radio_write_fifo(fifo_i++, ((uint8_t)(((uint64_t *)(payload_elements[element_i].data_p))[word_i] >> 40)));
+                    radio_write_fifo(fifo_i++, ((uint8_t)(((uint64_t *)(payload_elements[element_i].data_p))[word_i] >> 32)));
                 }
                 case BITS_32: { // 4 writes are required 
-                    radio_write_fifo(fifo_i++, ((uint8_t)(((uint32_t *)(payload_elements[element_i].data))[word_i] >> 24)));
-                    radio_write_fifo(fifo_i++, ((uint8_t)(((uint32_t *)(payload_elements[element_i].data))[word_i] >> 16)));
+                    radio_write_fifo(fifo_i++, ((uint8_t)(((uint32_t *)(payload_elements[element_i].data_p))[word_i] >> 24)));
+                    radio_write_fifo(fifo_i++, ((uint8_t)(((uint32_t *)(payload_elements[element_i].data_p))[word_i] >> 16)));
                 }
                 case BITS_16: { // 2 writes are required 
-                    radio_write_fifo(fifo_i++, ((uint8_t)(((uint16_t *)(payload_elements[element_i].data))[word_i] >> 8)));
+                    radio_write_fifo(fifo_i++, ((uint8_t)(((uint16_t *)(payload_elements[element_i].data_p))[word_i] >> 8)));
                 }
                 case BITS_8: { // 1 write is required
-                    radio_write_fifo(fifo_i++, ((uint8_t *)(payload_elements[element_i].data))[word_i]);
+                    radio_write_fifo(fifo_i++, ((uint8_t *)(payload_elements[element_i].data_p))[word_i]);
                     break;
                 }
                 default:
@@ -119,4 +119,12 @@ void payload_write() {
 
         element_i++;
     }
+}
+
+void payload_update(void) {
+    payload_seqNumString[3] = '0' + (payload_seqNum / 100) % 10;
+    payload_seqNumString[4] = '0' + (payload_seqNum / 10) % 10;
+    payload_seqNumString[5] = '0' + payload_seqNum % 10;
+    
+    payload_adcValue = readAdc();
 }

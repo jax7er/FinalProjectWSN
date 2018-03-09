@@ -76,7 +76,7 @@
  */
 typedef enum 
 {
-    ADC1_CHANNEL_AN9 =  0x9,
+    ADC1_CHANNEL_AN0 =  0x0,
     ADC1_CHANNEL_CTMU_TEMPERATURE_SENSOR_INPUT =  0xD,
     ADC1_CHANNEL_CTMU =  0xE,
     ADC1_CHANNEL_VBG_2 =  0x1B,
@@ -294,6 +294,28 @@ bool ADC1_IsConversionComplete( void );
 
 void ADC1_ChannelSelect( ADC1_CHANNEL channel );
 
+/**
+  @Summary
+    Polled implementation
+
+  @Description
+    This routine is used to implement the tasks for polled implementations.
+  
+  @Preconditions
+    ADC1_Initialize() function should have been 
+    called before calling this function.
+ 
+  @Returns 
+    None
+ 
+  @Param
+    None
+ 
+  @Example
+    Refer to ADC1_Initialize(); for an example
+    
+*/
+void ADC1_Tasks(void);
 
 
         

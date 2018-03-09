@@ -80,17 +80,17 @@ static ADC_OBJECT adc1_obj;
 
 void ADC1_Initialize (void)
 {
-    // ASAM disabled; DMABM disabled; ADSIDL disabled; DONE disabled; DMAEN disabled; FORM Absolute decimal result, unsigned, right-justified; SAMP disabled; SSRC Clearing sample bit ends sampling and starts conversion; MODE12 12-bit; ADON enabled; 
+    // ASAM disabled; DMABM disabled; ADSIDL disabled; DONE disabled; DMAEN disabled; FORM Absolute decimal result, unsigned, right-justified; SAMP disabled; SSRC Internal counter ends sampling and starts conversion; MODE12 12-bit; ADON enabled; 
 
-   AD1CON1 = 0x8400;
+   AD1CON1 = 0x8470;
 
     // CSCNA disabled; NVCFG0 AVSS; PVCFG AVDD; ALTS disabled; BUFM disabled; SMPI Generates interrupt after completion of every sample/conversion operation; OFFCAL disabled; BUFREGEN disabled; 
 
    AD1CON2 = 0x0000;
 
-    // SAMC 0; EXTSAM disabled; PUMPEN disabled; ADRC FOSC/2; ADCS 0; 
+    // SAMC 31; EXTSAM disabled; PUMPEN disabled; ADRC RC clock; ADCS 0; 
 
-   AD1CON3 = 0x0000;
+   AD1CON3 = 0x9F00;
 
     // CH0SA AN0; CH0SB AN0; CH0NB AVSS; CH0NA AVSS; 
 
@@ -111,8 +111,6 @@ void ADC1_Initialize (void)
 
    adc1_obj.intSample = AD1CON2bits.SMPI;
    
-   // Enabling ADC1 interrupt.
-   IEC0bits.AD1IE = 1;
 }
 
 void ADC1_Start(void)
@@ -151,11 +149,11 @@ void ADC1_ChannelSelect( ADC1_CHANNEL channel )
 }
 
 
-//void __attribute__ ( ( __interrupt__ , auto_psv ) ) _ADC1Interrupt ( void )
-//{
-//    // clear the ADC interrupt flag
-//    IFS0bits.AD1IF = false;
-//}
+void ADC1_Tasks ( void )
+{
+    // clear the ADC interrupt flag
+    IFS0bits.AD1IF = false;
+}
 
 
 /**

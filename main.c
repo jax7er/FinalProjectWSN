@@ -19,7 +19,6 @@
 
 uint8_t rxMode = 1; // default to RX mode
 uint8_t moteId = 1; // default to mote 1
-uint8_t volatile adcDoneFlag = 0;
     
 int main(void) {
     SYSTEM_Initialize();
@@ -27,7 +26,7 @@ int main(void) {
     
     radio_initialize();
     println("radio init done");
-    
+        
     delay_ms(1000);
     
     if (BUTTON_GetValue()) { // select which mote this one is
@@ -63,12 +62,11 @@ int main(void) {
     if (rxMode) {
         println("RX mode");
         
-        radio_set_promiscuous(0); // accept all packets, good or bad CRC
+        //radio_set_promiscuous(0); // accept all packets, good or bad CRC
     } else {
         println("TX mode");
         
         payload_init(); // initialise data and size of payload
-        ADC1_ChannelSelect(ADC1_CHANNEL_AN9); // select channel 9 for ADC
         
         LED_SetHigh();
     } 
@@ -91,20 +89,13 @@ int main(void) {
                 println("Radio woke up");
             }
         } else {
-            ADC1_Start();
-            
-            while (!adcDoneFlag);
-            adcDoneFlag = 0;
-            
-            println("ADC done");
-            
-            while (1);
+            payload_update();          
             
             payload_write();
             
             // read back TXNFIFO
-//            mrf24j40PrintTxFifo(payload_totalLength);
-//            delay_ms(100); // allow printing to finish
+            mrf24j40PrintTxFifo(payload_totalLength);
+            delay_ms(100); // allow printing to finish
             
             radio_trigger_tx(); // trigger transmit
             
@@ -112,11 +103,6 @@ int main(void) {
             ifs.tx = 0; // reset TX flag
             
             mrf24f40_check_txstat();
-            
-            payload_seqNum++;
-            payload_seqNumString[3] = '0' + (payload_seqNum / 100) % 10;
-            payload_seqNumString[4] = '0' + (payload_seqNum / 10) % 10;
-            payload_seqNumString[5] = '0' + payload_seqNum % 10;
             
             delay_ms(2500);
         }
@@ -141,13 +127,4 @@ void __attribute__ ( ( interrupt, no_auto_psv ) ) _INT1Interrupt(void)
     EX_INT1_InterruptFlagClear();
     
     EX_INT1_InterruptEnable();
-}
-
-// ISR for the ADC completion
-void __attribute__ ( ( __interrupt__ , auto_psv ) ) _ADC1Interrupt ( void )
-{
-    adcDoneFlag = 1;
-    
-    // clear the ADC interrupt flag
-    IFS0bits.AD1IF = false;
 }

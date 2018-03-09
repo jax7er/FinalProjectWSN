@@ -15,13 +15,13 @@
 
 #define TOGGLE_LED_PERIOD_MS 250
 
-uint8_t checkAndClear(uint8_t volatile * flag_p) {
-    if (*flag_p) {
-        *flag_p = 0;
-        return 1;
-    } else {
-        return 0;
-    }
+uint16_t readAdc(void) {
+    AD1CON1bits.DONE = 0;
+    AD1CON1bits.SAMP = 1; // start sampling
+
+    while (!AD1CON1bits.DONE); // wait for conversion to complete
+
+    return ADC1BUF0; // read value
 }
 
 void mrf24j40PrintTxFifo(uint16_t totalLength) {

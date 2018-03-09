@@ -72,6 +72,7 @@ void radio_set_sleep_time(uint32_t ms) { // uint32_t with units of ms gives up t
 
 void radio_trigger_tx(void) {
     radio_set_bit(TXNCON, 0); // set the TXNTRIG bit
+    payload_seqNum++;
 }
 
 // creates and writes the MAC header (MHR) to the TXNFIFO on the MRF24J40
@@ -114,48 +115,61 @@ void mrf24f40_mhr_write(uint16_t * fifo_i_p) {
 }
 
 void radio_read_rx(void) {
-    //uint8_t bbreg1 = radio_read(BBREG1);
-    //radio_write(BBREG1, bbreg1 | RXDECINV); // disable receiving packets off air.
+    uint8_t bbreg1 = radio_read(BBREG1);
+    radio_write(BBREG1, bbreg1 | RXDECINV); // disable receiving packets off air.
 
-    uint8_t frameLength = radio_read(RXFIFO);
+    uint16_t fifo_i = RXFIFO;
+    uint8_t frameLength = radio_read(fifo_i++);
+    uint16_t rxPayloadLength = frameLength - 2;
 
-    uint16_t const fifoStart = RXFIFO + 1;
-    uint16_t const fifoEnd = fifoStart + frameLength;
-    uint16_t fifoIndex = fifoStart;
+    uint16_t const fifoEnd = fifo_i + rxPayloadLength; // -2 for the FCS bytes
     uint16_t bufferIndex = 0;
-    while (fifoIndex < fifoEnd) {
-        rxBuffer[bufferIndex++] = radio_read(fifoIndex++);
+    while (fifo_i < fifoEnd) {
+        rxBuffer[bufferIndex++] = radio_read(fifo_i++);
     }
 
-    uint8_t const fcsL = radio_read(fifoIndex++);
-    uint8_t const fcsH = radio_read(fifoIndex++);
-    uint8_t const lqi = radio_read(fifoIndex++);
-    uint8_t const rssi = radio_read(fifoIndex++);
+    uint8_t const fcsL = radio_read(fifo_i++);
+    uint8_t const fcsH = radio_read(fifo_i++);
+    uint8_t const lqi = radio_read(fifo_i++);
+    uint8_t const rssi = radio_read(fifo_i++);
 
-    radio_write(RXFLUSH, radio_read(RXFLUSH) | _RXFLUSH); // reset the RXFIFO pointer
+    radio_set_bit(RXFLUSH, 0); // reset the RXFIFO pointer, RXFLUSH = 1
 
-    //radio_write(BBREG1, bbreg1 | ~(RXDECINV)); // enable receiving packets off air.
+    radio_write(BBREG1, bbreg1 | ~(RXDECINV)); // enable receiving packets off air.
 
-    printf("RX payload: [");
-    uint16_t const payloadLength = frameLength - 2;
+    printf("RX payload: mhr = [");
     uint8_t value;
     bufferIndex = 0;
-    while (bufferIndex < payloadLength) {
-        value = rxBuffer[bufferIndex];
-        if (bufferIndex < mhrLength - 1) {
-            printf("0x%.2X, ", value);
-        } else if (bufferIndex == mhrLength - 1) {
-            printf("0x%.2X] \"", value);
-        } else {
-            if (isValidPayloadChar(value)) {
-                printf("%c", value);
-            } else {
-                printf("<%.2X>", value);
+    while (bufferIndex < mhrLength) {
+        if (bufferIndex < mhrLength - 1) { // mhr
+            printf("0x%.2X, ", rxBuffer[bufferIndex++]);
+        } else { // last mhr value
+            printf("0x%.2X]", rxBuffer[bufferIndex++]);
+        }
+    }
+    uint16_t element_i = 0;
+    while (bufferIndex < rxPayloadLength) {
+        println("payload element %u", element_i);
+        
+        println("id = %c", rxBuffer[bufferIndex++]);
+        
+        uint8_t sizeAndLength = rxBuffer[bufferIndex++];
+        payloadElementDataSize_e size = sizeAndLength >> 6;
+        uint8_t numWords = sizeAndLength & 0x3F;
+        println("word length = %u", sizeToWordLength(size));
+        println("number of words = %u", numWords);
+        
+        uint16_t word_i = 0;
+        while (word_i < numWords) {
+            switch (size) {
+                case BITS_64: {
+                    
+                }
             }
         }
-        bufferIndex++;
+        
+        element_i++;
     }
-    println("\"");
 
     println("FCSH = 0x%.2X", fcsH);
     println("FCSL = 0x%.2X", fcsL);
@@ -167,9 +181,9 @@ void mrf24f40_check_txstat(void) {
     uint8_t txstat = radio_read(TXSTAT);
 
     if (~txstat & TXNSTAT) { // TXNSTAT == 0 shows a successful transmission
-        println("TX successful, SN = %d, TXSTAT = 0x%.2X", payload_seqNum, txstat);
+        println("TX successful, SN = %d, TXSTAT = 0x%.2X", payload_seqNum - 1, txstat);
     } else {
-        println("TX failed, SN = %d, TXSTAT = 0x%.2X", payload_seqNum, txstat);
+        println("TX failed, SN = %d, TXSTAT = 0x%.2X", payload_seqNum - 1, txstat);
     }
 }
 

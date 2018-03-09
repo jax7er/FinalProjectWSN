@@ -55,6 +55,152 @@
 */
 /**
   @Summary
+    Sets the GPIO pin, RA0, high using LATA0.
+
+  @Description
+    Sets the GPIO pin, RA0, high using LATA0.
+
+  @Preconditions
+    The RA0 must be set to an output.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Set RA0 high (1)
+    channel_AN0_SetHigh();
+    </code>
+
+*/
+#define channel_AN0_SetHigh()          _LATA0 = 1
+/**
+  @Summary
+    Sets the GPIO pin, RA0, low using LATA0.
+
+  @Description
+    Sets the GPIO pin, RA0, low using LATA0.
+
+  @Preconditions
+    The RA0 must be set to an output.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Set RA0 low (0)
+    channel_AN0_SetLow();
+    </code>
+
+*/
+#define channel_AN0_SetLow()           _LATA0 = 0
+/**
+  @Summary
+    Toggles the GPIO pin, RA0, using LATA0.
+
+  @Description
+    Toggles the GPIO pin, RA0, using LATA0.
+
+  @Preconditions
+    The RA0 must be set to an output.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Toggle RA0
+    channel_AN0_Toggle();
+    </code>
+
+*/
+#define channel_AN0_Toggle()           _LATA0 ^= 1
+/**
+  @Summary
+    Reads the value of the GPIO pin, RA0.
+
+  @Description
+    Reads the value of the GPIO pin, RA0.
+
+  @Preconditions
+    None.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    uint16_t portValue;
+
+    // Read RA0
+    postValue = channel_AN0_GetValue();
+    </code>
+
+*/
+#define channel_AN0_GetValue()         _RA0
+/**
+  @Summary
+    Configures the GPIO pin, RA0, as an input.
+
+  @Description
+    Configures the GPIO pin, RA0, as an input.
+
+  @Preconditions
+    None.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Sets the RA0 as an input
+    channel_AN0_SetDigitalInput();
+    </code>
+
+*/
+#define channel_AN0_SetDigitalInput()  _TRISA0 = 1
+/**
+  @Summary
+    Configures the GPIO pin, RA0, as an output.
+
+  @Description
+    Configures the GPIO pin, RA0, as an output.
+
+  @Preconditions
+    None.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Sets the RA0 as an output
+    channel_AN0_SetDigitalOutput();
+    </code>
+
+*/
+#define channel_AN0_SetDigitalOutput() _TRISA0 = 0
+/**
+  @Summary
     Sets the GPIO pin, RA2, high using LATA2.
 
   @Description
@@ -783,152 +929,6 @@
 
 */
 #define MRF24J40_WAKE_SetDigitalOutput() _TRISB12 = 0
-/**
-  @Summary
-    Sets the GPIO pin, RB15, high using LATB15.
-
-  @Description
-    Sets the GPIO pin, RB15, high using LATB15.
-
-  @Preconditions
-    The RB15 must be set to an output.
-
-  @Returns
-    None.
-
-  @Param
-    None.
-
-  @Example
-    <code>
-    // Set RB15 high (1)
-    channel_AN9_SetHigh();
-    </code>
-
-*/
-#define channel_AN9_SetHigh()          _LATB15 = 1
-/**
-  @Summary
-    Sets the GPIO pin, RB15, low using LATB15.
-
-  @Description
-    Sets the GPIO pin, RB15, low using LATB15.
-
-  @Preconditions
-    The RB15 must be set to an output.
-
-  @Returns
-    None.
-
-  @Param
-    None.
-
-  @Example
-    <code>
-    // Set RB15 low (0)
-    channel_AN9_SetLow();
-    </code>
-
-*/
-#define channel_AN9_SetLow()           _LATB15 = 0
-/**
-  @Summary
-    Toggles the GPIO pin, RB15, using LATB15.
-
-  @Description
-    Toggles the GPIO pin, RB15, using LATB15.
-
-  @Preconditions
-    The RB15 must be set to an output.
-
-  @Returns
-    None.
-
-  @Param
-    None.
-
-  @Example
-    <code>
-    // Toggle RB15
-    channel_AN9_Toggle();
-    </code>
-
-*/
-#define channel_AN9_Toggle()           _LATB15 ^= 1
-/**
-  @Summary
-    Reads the value of the GPIO pin, RB15.
-
-  @Description
-    Reads the value of the GPIO pin, RB15.
-
-  @Preconditions
-    None.
-
-  @Returns
-    None.
-
-  @Param
-    None.
-
-  @Example
-    <code>
-    uint16_t portValue;
-
-    // Read RB15
-    postValue = channel_AN9_GetValue();
-    </code>
-
-*/
-#define channel_AN9_GetValue()         _RB15
-/**
-  @Summary
-    Configures the GPIO pin, RB15, as an input.
-
-  @Description
-    Configures the GPIO pin, RB15, as an input.
-
-  @Preconditions
-    None.
-
-  @Returns
-    None.
-
-  @Param
-    None.
-
-  @Example
-    <code>
-    // Sets the RB15 as an input
-    channel_AN9_SetDigitalInput();
-    </code>
-
-*/
-#define channel_AN9_SetDigitalInput()  _TRISB15 = 1
-/**
-  @Summary
-    Configures the GPIO pin, RB15, as an output.
-
-  @Description
-    Configures the GPIO pin, RB15, as an output.
-
-  @Preconditions
-    None.
-
-  @Returns
-    None.
-
-  @Param
-    None.
-
-  @Example
-    <code>
-    // Sets the RB15 as an output
-    channel_AN9_SetDigitalOutput();
-    </code>
-
-*/
-#define channel_AN9_SetDigitalOutput() _TRISB15 = 0
 /**
   @Summary
     Sets the GPIO pin, RB7, high using LATB7.

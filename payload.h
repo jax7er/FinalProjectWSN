@@ -37,6 +37,8 @@
         || ((value) >= 'a' && (value) <= 'z') \
         || ((value) >= 'A' && (value) <= 'Z') \
         || (value) == ' ')
+#define toLength(x) ((x) - 1)
+#define sizeToWordLength(s) (1 << ((s) + 3))
 
 #define payloadElementIdBits     8
 #define payloadElementSizeBits   2
@@ -47,7 +49,7 @@
 
 typedef enum payloadId {
     SEQUENCE_NUM_ID = 'n',
-    PRESSURE_SENSOR_ID = 'p',
+    ADC_VALUE_ID = 'a',
     DATA_32_BIT_ID = 'd',
     LAST_ELEMENT_ID = 'l'
 } payloadId_e;
@@ -59,34 +61,36 @@ typedef enum payloadElementDataSize {
     BITS_64
 } payloadElementDataSize_e;
 
-// size in bits of payload element = 8 + 2 + 6 + (8 * 2^size * (length + 1)) = 16 + 2^(3 + size) * (length + 1)
-typedef struct payloadElementFormat {
-    payloadId_e id : payloadElementIdBits; // up to 2^payloadElementIdBits ids
-    payloadElementDataSize_e size : payloadElementSizeBits; // number of bits per word
-    unsigned int length : payloadElementLengthBits; // number of words per element - 1, up to length + 1 words
-    void * data; // pointer to data
-} payloadElement_t;
-
 typedef enum payloadElementIndex {
     SEQUENCE_NUM_INDEX = 0,
-    PRESSURE_SENSOR_INDEX,
+    ADC_VALUE_INDEX,
     DATA_32_BIT_INDEX,
     LAST_ELEMENT_INDEX,
     NUM_ELEMENTS
 } payloadElementIndex_e;
 
-extern payloadElement_t payload_elements[];
+// size in bits of payload element = 8 + 2 + 6 + (8 * 2^size * (length + 1)) = 16 + 2^(3 + size) * (length + 1)
+typedef struct payloadElementFormat {
+    payloadId_e id : payloadElementIdBits; // up to 2^payloadElementIdBits ids
+    payloadElementDataSize_e size : payloadElementSizeBits; // number of bits per word
+    unsigned int length : payloadElementLengthBits; // number of words per element - 1, up to length + 1 words
+    void * data_p; // pointer to data
+} payloadElement_t;
 
 extern uint16_t payload_length_bits;
 extern uint16_t payload_totalLength;
 extern uint8_t payload_seqNum;
+
+extern payloadElement_t payload_elements[];
+
 extern uint8_t payload_seqNumString[];
-extern uint8_t payload_pressureSensorString[];
+extern uint16_t payload_adcValue;
 extern uint32_t payload_data32Bit[];
 extern uint8_t payload_lastElementString[];
 
 void payload_init(void);
 void payload_write(void);
+void payload_update(void);
 
 #endif	/* PAYLOAD_H */
 

@@ -40,6 +40,7 @@ void mrf24j40PrintAllRegisters(void);
 void mrf24j40PrintTxFifo(uint16_t totalLength);
 void uart1Print(char const * const str);
 void toggleLedForever(void);
+uint16_t readAdc(void);
 
 #endif	/* UTILS_H */
 
