@@ -37,8 +37,11 @@
         || ((value) >= 'a' && (value) <= 'z') \
         || ((value) >= 'A' && (value) <= 'Z') \
         || (value) == ' ')
-#define toLength(x) ((x) - 1)
+#define numWordsToLength(w) ((w) - 1)
+#define lengthToNumWords(l) ((l) + 1)
 #define sizeToWordLength(s) (1 << ((s) + 3))
+
+#define payload_printChar(c) do { if (isValidPayloadChar(c)) printf("%c", (c)); else printf("<%.2X>", (c)); } while (0)
 
 #define payloadElementIdBits     8
 #define payloadElementSizeBits   2
@@ -46,13 +49,6 @@
 #define payloadElementHeaderBits (payloadElementIdBits + payloadElementSizeBits + payloadElementLengthBits)
 
 #define payload_maxLength (TXNFIFO_SIZE - 3)
-
-typedef enum payloadId {
-    SEQUENCE_NUM_ID = 'n',
-    ADC_VALUE_ID = 'a',
-    DATA_32_BIT_ID = 'd',
-    LAST_ELEMENT_ID = 'l'
-} payloadId_e;
 
 typedef enum payloadElementDataSize {
     BITS_8 = 0,
@@ -71,7 +67,7 @@ typedef enum payloadElementIndex {
 
 // size in bits of payload element = 8 + 2 + 6 + (8 * 2^size * (length + 1)) = 16 + 2^(3 + size) * (length + 1)
 typedef struct payloadElementFormat {
-    payloadId_e id : payloadElementIdBits; // up to 2^payloadElementIdBits ids
+    uint8_t id; // up to 256 ids
     payloadElementDataSize_e size : payloadElementSizeBits; // number of bits per word
     unsigned int length : payloadElementLengthBits; // number of words per element - 1, up to length + 1 words
     void * data_p; // pointer to data
@@ -89,8 +85,9 @@ extern uint32_t payload_data32Bit[];
 extern uint8_t payload_lastElementString[];
 
 void payload_init(void);
-void payload_write(void);
 void payload_update(void);
+void payload_write(void);
+void payload_read(void);
 
 #endif	/* PAYLOAD_H */
 

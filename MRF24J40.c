@@ -42,11 +42,11 @@
 #include <stdlib.h>
 
 radio_if_t ifs = {.rx = 0, .tx = 0, .wake = 0};
-uint8_t volatile rxBuffer[RXFIFO_SIZE] = {0};
-uint8_t volatile txBuffer[TXNFIFO_SIZE] = {0};
+uint8_t rxBuffer[RXFIFO_SIZE] = {0};
+uint8_t txBuffer[TXNFIFO_SIZE] = {0};
 uint8_t srcAddrH = 0xAA; // default address = 0xAA54
 uint8_t srcAddrL = 0x54;
-uint8_t mhr[mhrLength];
+uint8_t mhr[mhrLength] = {0};
 
 void radio_sleep_timed_start(void) {
     radio_set_bit(MAINCNT3, 7); // start the radio sleeping
@@ -112,69 +112,6 @@ void mrf24f40_mhr_write(uint16_t * fifo_i_p) {
     while (mhr_i < mhrLength) {
         radio_write_fifo((*fifo_i_p)++, mhr[mhr_i++]);
     }
-}
-
-void radio_read_rx(void) {
-    uint8_t bbreg1 = radio_read(BBREG1);
-    radio_write(BBREG1, bbreg1 | RXDECINV); // disable receiving packets off air.
-
-    uint16_t fifo_i = RXFIFO;
-    uint8_t frameLength = radio_read(fifo_i++);
-    uint16_t rxPayloadLength = frameLength - 2;
-
-    uint16_t const fifoEnd = fifo_i + rxPayloadLength; // -2 for the FCS bytes
-    uint16_t bufferIndex = 0;
-    while (fifo_i < fifoEnd) {
-        rxBuffer[bufferIndex++] = radio_read(fifo_i++);
-    }
-
-    uint8_t const fcsL = radio_read(fifo_i++);
-    uint8_t const fcsH = radio_read(fifo_i++);
-    uint8_t const lqi = radio_read(fifo_i++);
-    uint8_t const rssi = radio_read(fifo_i++);
-
-    radio_set_bit(RXFLUSH, 0); // reset the RXFIFO pointer, RXFLUSH = 1
-
-    radio_write(BBREG1, bbreg1 | ~(RXDECINV)); // enable receiving packets off air.
-
-    printf("RX payload: mhr = [");
-    uint8_t value;
-    bufferIndex = 0;
-    while (bufferIndex < mhrLength) {
-        if (bufferIndex < mhrLength - 1) { // mhr
-            printf("0x%.2X, ", rxBuffer[bufferIndex++]);
-        } else { // last mhr value
-            printf("0x%.2X]", rxBuffer[bufferIndex++]);
-        }
-    }
-    uint16_t element_i = 0;
-    while (bufferIndex < rxPayloadLength) {
-        println("payload element %u", element_i);
-        
-        println("id = %c", rxBuffer[bufferIndex++]);
-        
-        uint8_t sizeAndLength = rxBuffer[bufferIndex++];
-        payloadElementDataSize_e size = sizeAndLength >> 6;
-        uint8_t numWords = sizeAndLength & 0x3F;
-        println("word length = %u", sizeToWordLength(size));
-        println("number of words = %u", numWords);
-        
-        uint16_t word_i = 0;
-        while (word_i < numWords) {
-            switch (size) {
-                case BITS_64: {
-                    
-                }
-            }
-        }
-        
-        element_i++;
-    }
-
-    println("FCSH = 0x%.2X", fcsH);
-    println("FCSL = 0x%.2X", fcsL);
-    println("LQI = %d", lqi);
-    println("RSSI = %d", rssi);
 }
 
 void mrf24f40_check_txstat(void) {

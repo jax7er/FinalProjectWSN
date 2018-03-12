@@ -398,7 +398,7 @@
 #define radio_is_short_addr(a)    (((uint16_t)(a)) <= 0x3F)
 #define radio_read_short          radio_read_short_ctrl_reg
 #define radio_read_long           radio_read_long_ctrl_reg
-#define radio_read_fifo           radio_read_long_
+#define radio_read_fifo           radio_read_long
 #define radio_read(r)             (radio_is_short_addr(r) ? radio_read_short(((uint8_t)(r))) : radio_read_long(((uint16_t)(r))))
 #define radio_read_bit(r, b)      ((radio_read(r) & (1 << (b))) != 0)
 #define radio_write_short         radio_write_short_ctrl_reg
@@ -425,8 +425,8 @@ typedef struct radio_interrupt_flags {
 } radio_if_t;
 
 extern radio_if_t ifs;
-extern uint8_t volatile rxBuffer[RXFIFO_SIZE];
-extern uint8_t volatile txBuffer[TXNFIFO_SIZE];
+extern uint8_t rxBuffer[];
+extern uint8_t txBuffer[];
 extern uint8_t srcAddrH;
 extern uint8_t srcAddrL;
 extern uint8_t mhr[]; 
@@ -435,7 +435,6 @@ void radio_sleep_timed_start(void);
 void radio_set_sleep_time(uint32_t ms);
 void radio_trigger_tx(void);
 void mrf24f40_mhr_write(uint16_t * fifo_i_p);
-void radio_read_rx(void);
 void mrf24f40_check_txstat(void);
 uint8_t radio_read_long_ctrl_reg(uint16_t addr);
 uint8_t radio_read_short_ctrl_reg(uint8_t addr);

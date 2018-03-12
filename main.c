@@ -43,7 +43,7 @@ int main(void) {
     
     delay_ms(1000);
     
-    if (BUTTON_GetValue()) { // perform tests by default
+    if (!BUTTON_GetValue()) { // perform tests if button pushed
         if (runAllTests()) {
             println("Testing complete");
         } else { 
@@ -52,7 +52,7 @@ int main(void) {
             toggleLedForever();
         }
     } else {
-        println("Testing cancelled");
+        println("Testing skipped");
     }
     
     delay_ms(1000);
@@ -82,7 +82,7 @@ int main(void) {
                 ifs.rx = 0;
                 println("Message received");
                 
-                radio_read_rx();
+                payload_read();
             }
             if (ifs.wake) {
                 ifs.wake = 0;
