@@ -15,7 +15,7 @@
 #include "mcc_generated_files/mcc.h"
 #include "SPI_functions.h"
 #include "tests.h"
-#include "payload.h"
+#include "payload.h" 
 
 uint8_t rxMode = 1; // default to RX mode
 uint8_t moteId = 1; // default to mote 1
@@ -26,6 +26,20 @@ int main(void) {
     
     radio_initialize();
     println("radio init done");
+            
+    delay_ms(1000);
+    
+    if (!BUTTON_GetValue()) { // perform tests if button pushed
+        if (runAllTests()) {
+            println("Testing complete");
+        } else { 
+            println("Testing failed");
+
+            toggleLedForever();
+        }
+    } else {
+        println("Testing skipped");
+    }
         
     delay_ms(1000);
     
@@ -40,20 +54,6 @@ int main(void) {
         
     radio_write(SADRH, srcAddrH); // set source address
     radio_write(SADRL, srcAddrL);
-    
-    delay_ms(1000);
-    
-    if (!BUTTON_GetValue()) { // perform tests if button pushed
-        if (runAllTests()) {
-            println("Testing complete");
-        } else { 
-            println("Testing failed");
-
-            toggleLedForever();
-        }
-    } else {
-        println("Testing skipped");
-    }
     
     delay_ms(1000);
         
@@ -74,7 +74,7 @@ int main(void) {
     while (1) {
         if (rxMode) {
             println("Sleeping...");
-            delay_ms(10);
+            delay_ms(10); 
             
             Sleep();
             
