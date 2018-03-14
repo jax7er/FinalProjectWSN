@@ -443,7 +443,7 @@ void radio_write_short_ctrl_reg(uint8_t addr, uint8_t value);
 void radio_rxfifo_flush(void);
 uint8_t radio_get_pending_frame(void);
 void radio_hard_reset(void);
-void radio_initialize(void);
+void radio_init(void);
 void radio_sleep(void);
 void radio_wakeup(void);
 void radio_set_short_addr(uint8_t *addr);
@@ -466,6 +466,8 @@ int16_t radio_int_tasks(void);
 int16_t radio_rxpkt_intcb(uint8_t *buf, uint8_t *plqi, uint8_t *prssi);
 int16_t radio_txpkt_intcb(void);
 void radio_sec_intcb(bool accept);
+void radio_printAllRegisters(void);
+void radio_printTxFifo(uint16_t totalLength);
 
 #endif /* MRF24J40_H */
 

@@ -28,16 +28,17 @@
 
 // This is a guard condition so that contents of this file are not included
 // more than once.  
-#ifndef UTILS_H
-#define	UTILS_H
+#ifndef SENSOR_H
+#define	SENSOR_H
 
-#include <stdio.h>
-#include <stdint.h>
+#include <xc.h> // include processor files - each processor file is guarded.  
 
-#define println(...) do { printf(__VA_ARGS__); printf("\r\n"); } while (0)
+void sensor_init(void);
+uint16_t sensor_readHumidity(void);
+uint16_t sensor_readTemperature(void);
+uint16_t sensor_readLastTemperature(void);
+uint16_t sensor_readPressure(void);
+uint16_t sensor_readAdc(void);
 
-void utils_uart1Print(char const * const str);
-void utils_flashLedForever(void);
-
-#endif	/* UTILS_H */
+#endif	/* XC_HEADER_TEMPLATE_H */
 

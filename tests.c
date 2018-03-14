@@ -15,12 +15,12 @@
 uint8_t const mockData[] = {2, 45, 84, 78, 144, 240, 255, 254, 10, 50};
 uint16_t const mockDataCount = sizeof(mockData) / sizeof(mockData[0]);
 
-uint8_t runAllTests(void) {
+uint8_t tests_runAll(void) {
     println("Start all tests...");
     
     testId_e test;
     for (test = 0; test < NUM_TESTS; test++) {
-        if (!runTest(test)) {
+        if (!tests_run(test)) {
             return 0;
         }
     }
@@ -30,7 +30,7 @@ uint8_t runAllTests(void) {
     return 1;
 }
 
-uint8_t runTest(testId_e id) {
+uint8_t tests_run(testId_e id) {
     uint16_t mean = 0;
     uint16_t i;
     uint32_t const desiredSleepTime_ms = 1000; // 1s
@@ -56,7 +56,7 @@ uint8_t runTest(testId_e id) {
             
             delay_ms(1000);
             
-            if (runTest(SOFTWARE_TEST_ID_PROCESSING)) {
+            if (tests_run(SOFTWARE_TEST_ID_PROCESSING)) {
                 println("Processing complete");
                 
                 break;

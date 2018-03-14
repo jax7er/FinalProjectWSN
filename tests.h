@@ -43,8 +43,8 @@ typedef enum {
 
 #include <stdint.h>
 
-uint8_t runAllTests(void);
-uint8_t runTest(testId_e id);
+uint8_t tests_runAll(void);
+uint8_t tests_run(testId_e id);
 
 #endif	/* TESTS_H */
 

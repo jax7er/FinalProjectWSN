@@ -9,6 +9,7 @@
 #include "xc.h"
 #include "utils.h"
 #include "MRF24J40.h"
+#include "sensor.h"
 
 uint16_t payload_length_bits = 0;
 uint16_t payload_totalLength = 0;
@@ -70,7 +71,7 @@ void payload_init(void) {
     if (payload_totalLength > payload_maxLength) {
         println("Total length too big! Maximum is %d", payload_maxLength);
 
-        toggleLedForever();
+        utils_flashLedForever();
     }
 }
 
@@ -79,7 +80,7 @@ void payload_update(void) {
     payload_seqNumString[4] = '0' + (payload_seqNum / 10) % 10;
     payload_seqNumString[5] = '0' + payload_seqNum % 10;
     
-    payload_adcValue = readAdc();
+    payload_adcValue = sensor_readAdc();
 }
 
 void payload_write() {

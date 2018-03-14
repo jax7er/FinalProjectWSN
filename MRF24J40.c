@@ -264,7 +264,7 @@ void radio_hard_reset(void) {
     radio_delay_ms(500); // wait at least 2ms
 }
 
-void radio_initialize(void) {
+void radio_init(void) {
     radio_cs_pin(1);
     radio_wake_pin(1);
 
@@ -454,4 +454,30 @@ int16_t radio_int_tasks(void) {
     }
 
     return ret;
+}
+
+void radio_printTxFifo(uint16_t totalLength) {
+    printf("TXNFIFO = \"");
+    uint8_t value;
+    uint16_t fifo_i;
+    for (fifo_i = 0; fifo_i < 6 + totalLength; fifo_i++) {
+        value = radio_read_long(fifo_i);    
+        if (isValidPayloadChar(value)) {
+            printf("%c", value);
+        } else {
+            printf("<%.2X>", value);
+        }
+    }
+    println("\"");
+}
+
+void radio_printAllRegisters(void) {
+    // print out the values of all the registers on the MRF24J40
+    uint16_t addr;
+    for (addr = 0x00; addr <= 0x3F; addr++) {
+        printf("%x=%x\r\n", addr, radio_read(addr));
+    }
+    for (addr = 0x200; addr <= 0x24C; addr++) {
+        printf("%x=%x\r\n", addr, radio_read(addr));
+    }
 }

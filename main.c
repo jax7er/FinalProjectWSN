@@ -15,27 +15,54 @@
 #include "mcc_generated_files/mcc.h"
 #include "SPI_functions.h"
 #include "tests.h"
-#include "payload.h" 
+#include "payload.h"
+#include "sensor.h" 
 
 uint8_t rxMode = 1; // default to RX mode
 uint8_t moteId = 1; // default to mote 1
     
+//int main(void) {
+//    SYSTEM_Initialize();    
+//    
+//    I2C2_MESSAGE_STATUS status;
+//    
+//    uint8_t data1[] = {0, 0};
+//    I2C2_MasterWrite(data1, 2, 0b0100000, &status);
+//    
+//    uint8_t data2[] = {9, 0};
+//    
+//    while (1) {
+//        I2C2_MasterWrite(data2, 2, 0b0100000, &status);
+//        
+//        data2[1]++;
+//        
+//        delay_ms(4);
+//    }
+//}
+
 int main(void) {
     SYSTEM_Initialize();
-    println("board init done");       
+    println("board init done");
     
-    radio_initialize();
+    delay_ms(500);
+    
+    sensor_init();
+    
+    println("result = %d", sensor_readHumidity()); 
+    while (1);
+    
+    radio_init();
     println("radio init done");
             
     delay_ms(1000);
     
     if (!BUTTON_GetValue()) { // perform tests if button pushed
-        if (runAllTests()) {
+        if (tests_runAll()) {
             println("Testing complete");
         } else { 
             println("Testing failed");
 
-            toggleLedForever();
+            utils_flashLedForever();
         }
     } else {
         println("Testing skipped");
@@ -94,7 +121,7 @@ int main(void) {
             payload_write();
             
             // read back TXNFIFO
-            mrf24j40PrintTxFifo(payload_totalLength);
+            radio_printTxFifo(payload_totalLength);
             delay_ms(100); // allow printing to finish
             
             radio_trigger_tx(); // trigger transmit
