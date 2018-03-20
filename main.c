@@ -107,7 +107,9 @@ int main(void) {
                 
                 println("Radio woke up");
             }
-        } else {
+        } else { // TX mode
+            while (!BUTTON_GetValue()); // wait if pressing the button
+            
             payload_update();          
             
             payload_write();
