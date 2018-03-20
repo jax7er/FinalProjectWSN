@@ -205,8 +205,8 @@ void I2C2_Initialize(void)
     // initialize the hardware
     // Baud Rate Generator Value: I2CBRG 18;   
     I2C2BRG = 0x0012;
-    // ACKEN enabled; STRICT disabled; STREN disabled; GCEN disabled; SMEN disabled; DISSLW enabled; I2CSIDL disabled; ACKDT Sends ACK; SCLREL Holds; RSEN enabled; A10M 7 Bit; PEN enabled; RCEN disabled; SEN enabled; I2CEN enabled; 
-    I2C2CONL = 0x8017;
+    // ACKEN disabled; STRICT disabled; STREN disabled; GCEN disabled; SMEN disabled; DISSLW enabled; I2CSIDL disabled; ACKDT Sends ACK; SCLREL Holds; RSEN disabled; A10M 7 Bit; PEN disabled; RCEN disabled; SEN disabled; I2CEN enabled; 
+    I2C2CONL = 0x8000;
     // BCL disabled; D_nA disabled; R_nW disabled; P disabled; S disabled; I2COV disabled; IWCOL disabled; 
     I2C2STAT = 0x0000;
 
@@ -214,7 +214,7 @@ void I2C2_Initialize(void)
     // clear the master interrupt flag
     IFS3bits.MI2C2IF = 0;
     // enable the master interrupt
-    IEC3bits.MI2C2IE = 1;
+//    IEC3bits.MI2C2IE = 1; // COMMENT THIS LINE OUT TO STOP THE ISR RUNNING AND MESSING THINGS UP
 
 }
 

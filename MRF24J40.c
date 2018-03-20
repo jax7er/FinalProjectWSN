@@ -34,19 +34,32 @@
 
 #include "config.h"
 #include "MRF24J40.h"
-#include "SPI_functions.h"
+#include "interface.h"
 #include "utils.h"
 #include "stdio.h"
 #include "payload.h"
+#include "delay.h"
 
 #include <stdlib.h>
 
-radio_if_t ifs = {.rx = 0, .tx = 0, .wake = 0};
+radio_if_t ifs = {.event = 0, .rx = 0, .tx = 0, .wake = 0};
 uint8_t rxBuffer[RXFIFO_SIZE] = {0};
 uint8_t txBuffer[TXNFIFO_SIZE] = {0};
-uint8_t srcAddrH = 0xAA; // default address = 0xAA54
-uint8_t srcAddrL = 0x54;
+uint8_t srcAddrH = 0x13; // default address = 0x1357
+uint8_t srcAddrL = 0x57;
 uint8_t mhr[mhrLength] = {0};
+
+void radio_getIntFlags(void) {
+    ifs.event = 0;
+    
+    uint8_t intstat = radio_read(INTSTAT);
+    
+//    println("INTSTAT = 0x%.2X", intstat);
+    
+    ifs.rx = (intstat & RXIF) != 0;
+    ifs.tx = (intstat & TXNIF) != 0;
+    ifs.wake = (intstat & WAKEIF) != 0;
+}
 
 void radio_sleep_timed_start(void) {
     radio_set_bit(MAINCNT3, 7); // start the radio sleeping
@@ -173,7 +186,7 @@ void radio_rf_reset(void) {
 
     radio_write(RFCTL, old | RFRST);
     radio_write(RFCTL, old & ~RFRST);
-    radio_delay_ms(2);
+    delay_ms(2);
 }
 
 uint8_t radio_get_pending_frame(void) {
@@ -259,9 +272,9 @@ void radio_set_key(uint16_t address, uint8_t *key) {
 
 void radio_hard_reset(void) {
     radio_reset_pin(0);
-    radio_delay_ms(500); // wait at least 2ms
+    delay_ms(500); // wait at least 2ms
     radio_reset_pin(1);
-    radio_delay_ms(500); // wait at least 2ms
+    delay_ms(500); // wait at least 2ms
 }
 
 void radio_init(void) {
@@ -300,9 +313,9 @@ void radio_init(void) {
     // tx power set to 0dBm at reset
 
     radio_write(RFCTL, 0x04); // Reset RF state machine.
-    radio_delay_us(200);
+    delay_us(200);
     radio_write(RFCTL, 0x00);
-    radio_delay_us(200); // delay at least 192 ?s 
+    delay_us(200); // delay at least 192 ?s 
 
     //  radio_cs_pin(1);
     //  radio_wake_pin(1);
@@ -311,7 +324,7 @@ void radio_init(void) {
     //  
     //  radio_write(SOFTRST, (RSTPWR | RSTBB | RSTMAC));
     //
-    //  radio_delay_us(192);
+    //  delay_us(192);
     // 
     //  radio_write(PACON2, FIFOEN | TXONTS(0x18));
     //  radio_write(TXSTBL, RFSTBL(9) | MSIFS(5));
@@ -456,11 +469,11 @@ int16_t radio_int_tasks(void) {
     return ret;
 }
 
-void radio_printTxFifo(uint16_t totalLength) {
+void radio_printTxFifo() {
     printf("TXNFIFO = \"");
     uint8_t value;
     uint16_t fifo_i;
-    for (fifo_i = 0; fifo_i < 6 + totalLength; fifo_i++) {
+    for (fifo_i = 0; fifo_i < 6 + payload_totalLength; fifo_i++) {
         value = radio_read_long(fifo_i);    
         if (isValidPayloadChar(value)) {
             printf("%c", value);

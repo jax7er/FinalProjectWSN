@@ -13,7 +13,7 @@
 #include "utils.h"
 #include "MRF24J40.h"
 #include "mcc_generated_files/mcc.h"
-#include "SPI_functions.h"
+#include "interface.h"
 #include "tests.h"
 #include "payload.h"
 #include "sensor.h" 
@@ -44,13 +44,6 @@ int main(void) {
     SYSTEM_Initialize();
     println("board init done");
     
-    delay_ms(500);
-    
-    sensor_init();
-    
-    println("result = %d", sensor_readHumidity()); 
-    while (1);
-    
     radio_init();
     println("radio init done");
             
@@ -70,17 +63,16 @@ int main(void) {
         
     delay_ms(1000);
     
-    if (BUTTON_GetValue()) { // select which mote this one is
-        // mote 1 has address 0xAA54 and id 1
-        println("Set mote 1, ID = 1, address = 0xAA54"); 
-    } else {
-        srcAddrL = 0x55; // mote 2 has address 0xAA55
+    if (!BUTTON_GetValue()) { // select which mote this one is
+        srcAddrH = 0x24; // mote 2 has address 0x2468
+        srcAddrL = 0x68;
         moteId = 2; // mote 2 has id 2
-        println("Set mote 2, ID = 2, address = 0xAA55");
     }
-        
+                
     radio_write(SADRH, srcAddrH); // set source address
     radio_write(SADRL, srcAddrL);
+    
+    println("Mote ID = %u, address = 0x%.2X%.2X", moteId, srcAddrH, srcAddrL); 
     
     delay_ms(1000);
         
@@ -88,6 +80,7 @@ int main(void) {
         
     if (rxMode) {
         println("RX mode");
+        delay_ms(10);
         
         //radio_set_promiscuous(0); // accept all packets, good or bad CRC
     } else {
@@ -100,19 +93,18 @@ int main(void) {
     
     while (1) {
         if (rxMode) {
-            println("Sleeping...");
-            delay_ms(10); 
-            
             Sleep();
+            
+            radio_getIntFlags();
             
             if (ifs.rx) {
                 ifs.rx = 0;
-                println("Message received");
                 
                 payload_read();
             }
             if (ifs.wake) {
                 ifs.wake = 0;
+                
                 println("Radio woke up");
             }
         } else {
@@ -121,17 +113,25 @@ int main(void) {
             payload_write();
             
             // read back TXNFIFO
-            radio_printTxFifo(payload_totalLength);
-            delay_ms(100); // allow printing to finish
+//            radio_printTxFifo();
+//            delay_ms(100); // allow printing to finish
+            
+            LED_Toggle();
             
             radio_trigger_tx(); // trigger transmit
             
-            while (!(ifs.tx)); // wait for TX interrupt                
+            do {
+                while (!(ifs.event)); // wait for interrupt    
+                
+                radio_getIntFlags();
+            } while (!(ifs.tx));
             ifs.tx = 0; // reset TX flag
             
-            mrf24f40_check_txstat();
+            LED_Toggle();
             
-            delay_ms(2500);
+//            mrf24f40_check_txstat();
+            
+//            delay_ms(2500);
         }
     }
     
@@ -141,17 +141,11 @@ int main(void) {
 // ISR for the radio INT output pin
 void __attribute__ ( ( interrupt, no_auto_psv ) ) _INT1Interrupt(void)
 {
-    EX_INT1_InterruptDisable();
-    
-    uint8_t intstat = radio_read(INTSTAT);
-    
-    println("INTSTAT = 0x%.2X", intstat);
-    
-    ifs.rx = (intstat & RXIF) != 0;
-    ifs.tx = (intstat & TXNIF) != 0;
-    ifs.wake = (intstat & WAKEIF) != 0;
-    
+//    EX_INT1_InterruptDisable();
+//    
+    ifs.event = 1;
+//    
     EX_INT1_InterruptFlagClear();
-    
-    EX_INT1_InterruptEnable();
+//    
+//    EX_INT1_InterruptEnable();
 }

@@ -55,11 +55,5 @@ void INTERRUPT_Initialize (void)
     //    INT1I: INT1 - External Interrupt 1
     //    Priority: 2
         IPC5bits.INT1IP = 2;
-    //    MICI: MI2C2 - I2C2 Master Events
-    //    Priority: 1
-        IPC12bits.MI2C2IP = 1;
-    //    SICI: SI2C2 - I2C2 Slave Events
-    //    Priority: 1
-        IPC12bits.SI2C2IP = 1;
 
 }

@@ -419,9 +419,10 @@
 #define mhrLength (frameCtrlLength + seqNumLength + addrFieldsLength)
 
 typedef struct radio_interrupt_flags {
-    volatile uint8_t rx;
-    volatile uint8_t tx;
-    volatile uint8_t wake;
+    volatile uint8_t event : 1;
+    volatile uint8_t rx : 1;
+    volatile uint8_t tx : 1;
+    volatile uint8_t wake : 1;
 } radio_if_t;
 
 extern radio_if_t ifs;
@@ -431,6 +432,7 @@ extern uint8_t srcAddrH;
 extern uint8_t srcAddrL;
 extern uint8_t mhr[]; 
 
+void radio_getIntFlags(void);
 void radio_sleep_timed_start(void);
 void radio_set_sleep_time(uint32_t ms);
 void radio_trigger_tx(void);
@@ -467,7 +469,7 @@ int16_t radio_rxpkt_intcb(uint8_t *buf, uint8_t *plqi, uint8_t *prssi);
 int16_t radio_txpkt_intcb(void);
 void radio_sec_intcb(bool accept);
 void radio_printAllRegisters(void);
-void radio_printTxFifo(uint16_t totalLength);
+void radio_printTxFifo();
 
 #endif /* MRF24J40_H */
 

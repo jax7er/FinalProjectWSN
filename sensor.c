@@ -10,58 +10,67 @@
 #include "mcc_generated_files/i2c2.h"
 #include "utils.h"
 #include "delay.h"
+#include "interface.h"
 
 #define PRESSURE_SENSOR_ADDR      0x77
 #define HUMIDITY_TEMP_SENSOR_ADDR 0x40
 
-//typedef enum {
-//    I2C2_MESSAGE_FAIL,
-//    I2C2_MESSAGE_PENDING,
-//    I2C2_MESSAGE_COMPLETE,
-//    I2C2_STUCK_START, 
-//    I2C2_MESSAGE_ADDRESS_NO_ACK,
-//    I2C2_DATA_NO_ACK,
-//    I2C2_LOST_STATE
-//} I2C2_MESSAGE_STATUS;
-static I2C2_MESSAGE_STATUS _status = I2C2_MESSAGE_FAIL;
-static uint8_t _command = 0;
-
-void sensor_init(void) {
+static void _i2c_write_command(uint8_t addr, uint8_t cmd) {    
+    i2c_start(); 
     
-    //*** http://www.microchip.com/forums/m985492.aspx ***//
+    i2c_tx(i2c_addrWrite(addr));
     
-    // dummy write to initialise I2C driver
-    I2C2_MasterWrite(&_command, 1, 0, &_status);
+    if (i2c_gotAck()) {
+        i2c_tx(cmd);
+    }
     
-    //println("status = %u", _status);
-    
-    _command = 0xFE; // 0xFE = reset
-    I2C2_MasterWrite(&_command, 1, HUMIDITY_TEMP_SENSOR_ADDR, &_status);
-    
-    println("status = %u", _status);
-    
-    while (_status == I2C2_MESSAGE_PENDING); // wait for message to be sent
-    
-    println("status = %u", _status);
+    i2c_stop();
 }
 
-uint16_t sensor_readHumidity(void) {    
-    _command = 0xF5; // 0xF5 = read humidity
-    I2C2_MasterWrite(&_command, 1, HUMIDITY_TEMP_SENSOR_ADDR, &_status);
+void sensor_init(void) {
+    _i2c_write_command(HUMIDITY_TEMP_SENSOR_ADDR, 0xFE); // 0xFE is the reset command
+}
+
+uint8_t sensor_readHumidity(void) {    
+    // assert start condition
+    i2c_start(); 
     
-    uint16_t attempts = 0;
-    uint8_t result[2] = {0};        
+    // slave address with write
+    i2c_tx(i2c_addrWrite(HUMIDITY_TEMP_SENSOR_ADDR));
+    if (i2c_gotNack()) { // expecting ACK = 0
+        println("slave addr nack");
+        return 0xFF;
+    }
+    
+    // command for humidity read
+    i2c_tx(0xF5);  // 0xF5 = read humidity  
+    if (i2c_gotNack()) { // expecting ACK = 0
+        println("command nack");
+        return 0xFF;
+    }
+    
+    // when sensor reading is complete, sends an ACK
     do {
-        I2C2_MasterRead(result, 2, HUMIDITY_TEMP_SENSOR_ADDR, &_status);
-        
-        attempts++;
-        
-        while (_status == I2C2_MESSAGE_PENDING);
-    } while (_status == I2C2_DATA_NO_ACK);
+        delay_ms(5);
+        i2c_repeatedStart();
+        i2c_tx(i2c_addrRead(HUMIDITY_TEMP_SENSOR_ADDR));
+    } while (i2c_gotNack()); // when complete ACK = 0
     
-    println("post status = %u, attempts = %u", _status, attempts);
+    // begin receiving data
+    uint32_t rxValue = 0; // 16 bit value but make 32 bits for ease of calculating %RH
     
-    return (((uint16_t)(result[0])) << 8) | ((uint16_t)(result[1]));
+    // receive MSByte
+    rxValue |= ((uint16_t)(i2c_rx())) << 8;
+    i2c_sendAck();
+    
+    // receive LSByte
+    rxValue |= ((uint16_t)(i2c_rx()));
+    i2c_sendNack();
+    
+    // assert stop condition
+    i2c_stop();
+    
+    return ((uint8_t)(((125 * rxValue) / 65536) - 6));
 }
 
 uint16_t sensor_readTemperature(void) {

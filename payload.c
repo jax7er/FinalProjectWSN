@@ -11,61 +11,68 @@
 #include "MRF24J40.h"
 #include "sensor.h"
 
-uint16_t payload_length_bits = 0;
-uint16_t payload_totalLength = 0;
+// externally visible
+uint16_t payload_totalLength = 0; 
 uint8_t payload_seqNum = 0;
-uint8_t payload_seqNumString[] = "SN 000 this is a test message";
-uint16_t payload_adcValue = 0;
-uint32_t payload_data32Bit[] = {
-    0x12345678,
-    0x23456781,
-    0x34567812,
-    0x45678123,
-    0x56781234,
-    0x67812345
+
+// static
+static uint16_t _length_bits = 0;
+
+typedef enum payloadElementIndex {
+    SEQUENCE_NUM_INDEX = 0,
+    ADC_VALUE_INDEX,
+    HUMIDITY_INDEX,
+    DATA_64_BIT_INDEX,
+    NUM_ELEMENTS
+} payloadElementIndex_e;
+
+static uint16_t _adcValue = 0;
+static uint8_t _rhValue = 0;
+static uint64_t _data64Bit[] = {
+    0x1234567823456781,
+    0x3456781245678123
 };
-uint8_t payload_lastElementString[] = "Last digit is a two  2";
 
 payloadElement_t payload_elements[NUM_ELEMENTS]; // allocate memory for elements
 
 void payload_init(void) {
     payload_elements[SEQUENCE_NUM_INDEX] = (payloadElement_t){
-        .id = 'n', 
+        .id = 'n',
         .size = BITS_8, 
-        .length = numWordsToLength(sizeof(payload_seqNumString) / sizeof(uint8_t)),
-        .data_p = payload_seqNumString
+        .length = numWordsToLength(1),
+        .data_p = &payload_seqNum
     };
     
     payload_elements[ADC_VALUE_INDEX] = (payloadElement_t){
         .id = 'a', 
         .size = BITS_16,
         .length = numWordsToLength(1),
-        .data_p = &payload_adcValue
+        .data_p = &_adcValue
     };
     
-    payload_elements[DATA_32_BIT_INDEX] = (payloadElement_t){
-        .id = 'd', 
-        .size = BITS_32,
-        .length = numWordsToLength(sizeof(payload_data32Bit) / sizeof(uint32_t)),
-        .data_p = payload_data32Bit
-    };
-    
-    payload_elements[LAST_ELEMENT_INDEX] = (payloadElement_t){
-        .id = 'l', 
+    payload_elements[HUMIDITY_INDEX] = (payloadElement_t){
+        .id = 'h', 
         .size = BITS_8,
-        .length = numWordsToLength(sizeof(payload_lastElementString) / sizeof(uint8_t)),
-        .data_p = payload_lastElementString
+        .length = numWordsToLength(1),
+        .data_p = &_rhValue
     };
     
-    payload_length_bits = payloadElementHeaderBits * NUM_ELEMENTS;
+    payload_elements[DATA_64_BIT_INDEX] = (payloadElement_t){
+        .id = 'd', 
+        .size = BITS_64,
+        .length = numWordsToLength(sizeof(_data64Bit) / sizeof(uint64_t)),
+        .data_p = _data64Bit
+    };
+    
+    _length_bits = payloadElementHeaderBits * NUM_ELEMENTS;
     uint16_t element_i;
     for (element_i = 0; element_i < NUM_ELEMENTS; element_i++) {
-        payload_length_bits += (sizeToWordLength(payload_elements[element_i].size) * lengthToNumWords(payload_elements[element_i].length));
+        _length_bits += (sizeToWordLength(payload_elements[element_i].size) * lengthToNumWords(payload_elements[element_i].length));
     }    
-    payload_totalLength = mhrLength + (payload_length_bits / 8);        
+    payload_totalLength = mhrLength + (_length_bits / 8);        
     
     println("mhr length = %d", mhrLength);
-    println("payload length bits (bytes) = %d (%d)", payload_length_bits, payload_length_bits / 8);
+    println("payload length bits (bytes) = %d (%d)", _length_bits, _length_bits / 8);
     println("total length = %d", payload_totalLength);
     
     if (payload_totalLength > payload_maxLength) {
@@ -75,25 +82,23 @@ void payload_init(void) {
     }
 }
 
-void payload_update(void) {
-    payload_seqNumString[3] = '0' + (payload_seqNum / 100) % 10;
-    payload_seqNumString[4] = '0' + (payload_seqNum / 10) % 10;
-    payload_seqNumString[5] = '0' + payload_seqNum % 10;
+void payload_update(void) {    
+    _adcValue = sensor_readAdc();
     
-    payload_adcValue = sensor_readAdc();
+    _rhValue = sensor_readHumidity();
 }
 
 void payload_write() {
     uint16_t fifo_i = TXNFIFO;
     mrf24f40_mhr_write(&fifo_i);
     
-    println("Start writing payload at address %d", fifo_i);
+//    println("Start writing payload at address %d", fifo_i);
     
     uint16_t element_i = 0;
     while (element_i < NUM_ELEMENTS) {
         uint16_t const numWords = lengthToNumWords(payload_elements[element_i].length);
         
-        println("payload[%d]: num words = %d, word length = %d bits", element_i, numWords, 1 << (payload_elements[element_i].size + 3));
+//        println("payload[%d]: num words = %d, word length = %d bits", element_i, numWords, 1 << (payload_elements[element_i].size + 3));
 
         // write the element header (total 2 bytes)
         radio_write_fifo(fifo_i++, payload_elements[element_i].id);
@@ -129,6 +134,8 @@ void payload_write() {
 
         element_i++;
     }
+    
+    println("TX SN = %u", payload_seqNum);
 }
 
 void payload_read(void) {
@@ -151,102 +158,105 @@ void payload_read(void) {
     uint8_t const fcsH = radio_read_fifo(fifo_i++);
     uint8_t const lqi = radio_read_fifo(fifo_i++);
     uint8_t const rssi = radio_read_fifo(fifo_i++);  
+    
+    println("RX SN = %u", rxBuffer[2]);
+    
+    // cast data to proper type and print
+//    printf("RX payload: mhr = [");    
+//    buf_i = 0; // reset buffer index
+//    while (buf_i < mhrLength) {
+//        if (buf_i < mhrLength - 1) { // mhr
+//            printf("0x%.2X, ", rxBuffer[buf_i++]);
+//        } else { // last mhr value
+//            println("0x%.2X]", rxBuffer[buf_i++]);
+//        }
+//    }
+//    uint16_t element_i = 0;
+//    while (buf_i < rxPayloadLength) {
+//        println("- payload element %u -", element_i);
+//        
+//        println("id = %c", rxBuffer[buf_i++]);
+//        
+//        uint8_t sizeAndLength = rxBuffer[buf_i++];
+//        payloadElementDataSize_e size = sizeAndLength >> 6;
+//        uint8_t numWords = lengthToNumWords(sizeAndLength & 0x3F);
+//        println("word length = %u", sizeToWordLength(size));
+//        println("number of words = %u", numWords);
+//        
+//        uint16_t word_i = 0;
+//        if (size == BITS_8) {
+//            uint8_t data_8[numWords];
+//            
+//            printf("data = ");
+//            
+//            while (word_i < numWords) {
+//                data_8[word_i] = rxBuffer[buf_i];
+//                
+//                payload_printChar(data_8[word_i]);
+//                
+//                word_i++;
+//                buf_i++;
+//            }
+//            
+//            printf("\r\n");
+//        } else if (size == BITS_16) {
+//            uint16_t data_16[numWords];
+//            
+//            while (word_i < numWords) {
+//                data_16[word_i] = 
+//                        (((uint16_t)(rxBuffer[buf_i])) << 8) | 
+//                        ((uint16_t)(rxBuffer[buf_i + 1]));
+//                                
+//                println("data %u = %u", word_i, data_16[word_i]);
+//                
+//                word_i++;
+//                buf_i += 2;
+//            }
+//        } else if (size == BITS_32) {
+//            uint32_t data_32[numWords];
+//            
+//            while (word_i < numWords) {
+//                data_32[word_i] = 
+//                        (((uint32_t)(rxBuffer[buf_i])) << 24) | 
+//                        (((uint32_t)(rxBuffer[buf_i + 1])) << 16) | 
+//                        (((uint32_t)(rxBuffer[buf_i + 2])) << 8) | 
+//                        ((uint32_t)(rxBuffer[buf_i + 3]));
+//                
+//                println("data %u = %lu", word_i, data_32[word_i]);
+//                
+//                word_i++;
+//                buf_i += 4;
+//            }
+//        } else if (size == BITS_64) {
+//            uint64_t data_64[numWords];
+//            
+//            while (word_i < numWords) {
+//                data_64[word_i] = 
+//                        (((uint64_t)(rxBuffer[buf_i])) << 56) | 
+//                        (((uint64_t)(rxBuffer[buf_i + 1])) << 48) | 
+//                        (((uint64_t)(rxBuffer[buf_i + 2])) << 40) | 
+//                        (((uint64_t)(rxBuffer[buf_i + 3])) << 32) | 
+//                        (((uint64_t)(rxBuffer[buf_i + 4])) << 24) | 
+//                        (((uint64_t)(rxBuffer[buf_i + 5])) << 16) | 
+//                        (((uint64_t)(rxBuffer[buf_i + 6])) << 8) | 
+//                        ((uint64_t)(rxBuffer[buf_i + 7]));
+//                
+//                println("data %u = %llu", word_i, data_64[word_i]);
+//                
+//                word_i++;
+//                buf_i += 8;
+//            }
+//        }
+//        
+//        element_i++;
+//    }
+//
+//    println("FCSH = 0x%.2X", fcsH);
+//    println("FCSL = 0x%.2X", fcsL);
+//    println("LQI = %d", lqi);
+//    println("RSSI = %d", rssi);
 
     radio_set_bit(RXFLUSH, 0); // reset the RXFIFO pointer, RXFLUSH = 1
 
     radio_clear_bit(BBREG1, 2); // RXDECINV = 0, enable receiving packets off air.
-    
-    printf("RX payload: mhr = [");    
-    buf_i = 0; // reset buffer index
-    while (buf_i < mhrLength) {
-        if (buf_i < mhrLength - 1) { // mhr
-            printf("0x%.2X, ", rxBuffer[buf_i++]);
-        } else { // last mhr value
-            println("0x%.2X]", rxBuffer[buf_i++]);
-        }
-    }
-    uint16_t element_i = 0;
-    while (buf_i < rxPayloadLength) {
-        println("- payload element %u -", element_i);
-        
-        println("id = %c", rxBuffer[buf_i++]);
-        
-        uint8_t sizeAndLength = rxBuffer[buf_i++];
-        payloadElementDataSize_e size = sizeAndLength >> 6;
-        uint8_t numWords = lengthToNumWords(sizeAndLength & 0x3F);
-        println("word length = %u", sizeToWordLength(size));
-        println("number of words = %u", numWords);
-        
-        uint16_t word_i = 0;
-        if (size == BITS_8) {
-            uint8_t data_8[numWords];
-            
-            printf("data = ");
-            
-            while (word_i < numWords) {
-                data_8[word_i] = rxBuffer[buf_i];
-                
-                payload_printChar(data_8[word_i]);
-                
-                word_i++;
-                buf_i++;
-            }
-            
-            printf("\r\n");
-        } else if (size == BITS_16) {
-            uint16_t data_16[numWords];
-            
-            while (word_i < numWords) {
-                data_16[word_i] = 
-                        (((uint16_t)(rxBuffer[buf_i])) << 8) | 
-                        ((uint16_t)(rxBuffer[buf_i + 1]));
-                                
-                println("data %u = %u", word_i, data_16[word_i]);
-                
-                word_i++;
-                buf_i += 2;
-            }
-        } else if (size == BITS_32) {
-            uint32_t data_32[numWords];
-            
-            while (word_i < numWords) {
-                data_32[word_i] = 
-                        (((uint32_t)(rxBuffer[buf_i])) << 24) | 
-                        (((uint32_t)(rxBuffer[buf_i + 1])) << 16) | 
-                        (((uint32_t)(rxBuffer[buf_i + 2])) << 8) | 
-                        ((uint32_t)(rxBuffer[buf_i + 3]));
-                
-                println("data %u = %lu", word_i, data_32[word_i]);
-                
-                word_i++;
-                buf_i += 4;
-            }
-        } else if (size == BITS_64) {
-            uint64_t data_64[numWords];
-            
-            while (word_i < numWords) {
-                data_64[word_i] = 
-                        (((uint64_t)(rxBuffer[buf_i])) << 56) | 
-                        (((uint64_t)(rxBuffer[buf_i + 1])) << 48) | 
-                        (((uint64_t)(rxBuffer[buf_i + 2])) << 40) | 
-                        (((uint64_t)(rxBuffer[buf_i + 3])) << 32) | 
-                        (((uint64_t)(rxBuffer[buf_i + 4])) << 24) | 
-                        (((uint64_t)(rxBuffer[buf_i + 5])) << 16) | 
-                        (((uint64_t)(rxBuffer[buf_i + 6])) << 8) | 
-                        ((uint64_t)(rxBuffer[buf_i + 7]));
-                
-                println("data %u = %llu", word_i, data_64[word_i]);
-                
-                word_i++;
-                buf_i += 8;
-            }
-        }
-        
-        element_i++;
-    }
-
-    println("FCSH = 0x%.2X", fcsH);
-    println("FCSL = 0x%.2X", fcsL);
-    println("LQI = %d", lqi);
-    println("RSSI = %d", rssi);
 }

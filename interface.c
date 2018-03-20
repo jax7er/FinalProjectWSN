@@ -1,12 +1,77 @@
 /*
- * File:   SPI_functions.c
+ * File:   interface.c
  * Author: jmm546
  *
  * Created on February 27, 2018, 12:43 PM
  */
 
-#include "SPI_functions.h"
+#include "interface.h"
 #include "mcc_generated_files/spi1.h"
+#include "utils.h"
+
+// I2C functions
+
+void i2c_sendAck(void) {
+    i2c_mif = 0; 
+    i2c_ackDt = 0; 
+    i2c_ackEn = 1; 
+    while (!i2c_mif);
+}
+
+void i2c_sendNack(void) {
+    i2c_mif = 0;
+    i2c_ackDt = 1;
+    i2c_ackEn = 1;
+    while (!i2c_mif);
+}
+
+void i2c_stop(void) {
+    i2c_mif = 0; 
+    i2c_pEn = 1; 
+    while (!i2c_mif);
+}
+
+void i2c_repeatedStart(void) {
+    i2c_mif = 0; 
+    i2c_rsEn = 1; 
+    while (!i2c_mif);
+}
+
+void i2c_start(void) {
+    i2c_mif = 0; 
+    i2c_sEn = 1; 
+    while (!i2c_mif);
+}
+
+void i2c_tx(uint8_t x) {
+    i2c_mif = 0; 
+    i2c_trn = x;    
+    while (!i2c_mif);
+}
+
+uint8_t i2c_rx(void) {
+    i2c_mif = 0;
+    i2c_rcEn = 1; 
+    while (!i2c_mif);
+    return i2c_rcv;
+}
+
+uint8_t i2c_gotAck(void) {
+    return i2c_ackStat == 0;
+}
+
+uint8_t i2c_gotNack(void) {
+    return i2c_ackStat == 1;
+}
+
+uint8_t i2c_addrWrite(uint8_t a) {
+    return (a << 1) & 0xFE;
+}
+uint8_t i2c_addrRead(uint8_t a) {
+    return (a << 1) | 0x01;
+}
+
+// SPI functions
 
 uint8_t spi_read(void) {
     volatile uint8_t rx;

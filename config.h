@@ -82,14 +82,4 @@
 #define radio_reset_pin(v) (_LATB11 = v)
 #define radio_cs_pin(v) (_LATB10 = v)
 
-//#define radio_spi_read() spi_exchange8(0)
-//#define radio_spi_write(val) spi_exchange8(val)
-#define radio_delay_us(v) delay_us(v)
-#define radio_delay_ms(v) delay_ms(v)
-
-// Function prototypes
-//uint8_t spi_exchange8(uint8_t data);
-void delay_us(uint16_t us);
-void delay_ms(uint16_t ms);
-
 #endif	/* CONFIG_H */

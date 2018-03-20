@@ -57,14 +57,6 @@ typedef enum payloadElementDataSize {
     BITS_64
 } payloadElementDataSize_e;
 
-typedef enum payloadElementIndex {
-    SEQUENCE_NUM_INDEX = 0,
-    ADC_VALUE_INDEX,
-    DATA_32_BIT_INDEX,
-    LAST_ELEMENT_INDEX,
-    NUM_ELEMENTS
-} payloadElementIndex_e;
-
 // size in bits of payload element = 8 + 2 + 6 + (8 * 2^size * (length + 1)) = 16 + 2^(3 + size) * (length + 1)
 typedef struct payloadElementFormat {
     uint8_t id; // up to 256 ids
@@ -73,16 +65,8 @@ typedef struct payloadElementFormat {
     void * data_p; // pointer to data
 } payloadElement_t;
 
-extern uint16_t payload_length_bits;
 extern uint16_t payload_totalLength;
 extern uint8_t payload_seqNum;
-
-extern payloadElement_t payload_elements[];
-
-extern uint8_t payload_seqNumString[];
-extern uint16_t payload_adcValue;
-extern uint32_t payload_data32Bit[];
-extern uint8_t payload_lastElementString[];
 
 void payload_init(void);
 void payload_update(void);
