@@ -36,7 +36,9 @@
 #define payload_isValidChar(value) (((value) >= '0' && (value) <= '9') \
         || ((value) >= 'a' && (value) <= 'z') \
         || ((value) >= 'A' && (value) <= 'Z') \
-        || (value) == ' ')
+        || (value) == '(' || (value) == ')' \
+        || (value) == ' ' \
+        || (value) == '.')
 
 extern uint16_t payload_totalLength;
 extern uint8_t payload_seqNum;

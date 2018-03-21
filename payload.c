@@ -19,11 +19,20 @@
 #define _maxLength (TXNFIFO_SIZE - 3)
 
 #define _makeElement(i, s, w, d_p) (_element_t){.id = (i), .size = (s), .length = _numWordsToLength(w), .data_p = (d_p)}
-#define _len(arr, bits) (sizeof(arr) / ((bits) / 8))
+#define _len(arr) (sizeof(arr) / sizeof((arr)[0]))
 #define _numWordsToLength(w) ((w) - 1)
 #define _lengthToNumWords(l) ((l) + 1)
 #define _sizeToWordLength(s) ((s) == FLOAT ? 32 : 1 << ((s) + 3))
 #define _printChar(c) do { if (payload_isValidChar(c)) printf("%c", (c)); else printf("<%.2X>", (c)); } while (0)
+
+typedef enum payloadElementId {
+    SEQUENCE_NUM_ID = 'n',
+    ADC_VALUE_ID = 'a',
+    RH_ID = 'h',
+    TEMP_ID = 't',
+    PRESSURE_ID = 'p',
+    TEST_STRING_ID = 's'
+} _elementId_e;
 
 typedef enum payloadElementDataSize {
     BITS_8 = 0,
@@ -34,7 +43,7 @@ typedef enum payloadElementDataSize {
 
 // size in bits of payload element = 8 + 2 + 6 + (8 * 2^size * (length + 1)) = 16 + 2^(3 + size) * (length + 1)
 typedef struct payloadElementFormat {
-    uint8_t id; // up to 256 ids
+    _elementId_e id : _elementIdBits; // up to 256 ids
     _elementDataSize_e size : _elementSizeBits; // number of bits per word
     unsigned int length : _elementLengthBits; // number of words per element - 1, up to length + 1 words
     void * data_p; // pointer to data
@@ -45,7 +54,8 @@ typedef enum payloadElementIndex {
     ADC_VALUE_INDEX,
     RH_INDEX,
     TEMP_INDEX,
-    DATA_32_BIT_INDEX,
+    PRESSURE_INDEX,
+    TEST_STRING_INDEX,
     NUM_ELEMENTS
 } _elementIndex_e;
 
@@ -65,12 +75,8 @@ static _element_t _elements[NUM_ELEMENTS]; // allocate memory for elements
 static uint16_t _adcValue = 0;
 static uint8_t _rhValue = 0;
 static float _tempValue = 0;
-static uint32_t _data32[] = {
-    0x12345678,
-    0x23456781,
-    0x34567812,
-    0x45678123
-};
+static uint32_t _pressureValue = 0;
+static uint8_t _testString[] = "Hello World...";
 
 void payload_init(void) {
     _length_bits = _elementHeaderBits * NUM_ELEMENTS;
@@ -79,11 +85,12 @@ void payload_init(void) {
     // _makeElement(id, word length, number of words, pointer to data)
     for_range(e_i, NUM_ELEMENTS) {
         switch (e_i) {
-            case SEQUENCE_NUM_INDEX: _elements[e_i] = _makeElement('n', BITS_8,  1,                    &payload_seqNum); break;       
-            case ADC_VALUE_INDEX:    _elements[e_i] = _makeElement('a', BITS_16, 1,                    &_adcValue);      break; 
-            case RH_INDEX:           _elements[e_i] = _makeElement('h', BITS_8,  1,                    &_rhValue);       break;
-            case TEMP_INDEX:         _elements[e_i] = _makeElement('t', FLOAT,   1,                    &_tempValue);     break;  
-            case DATA_32_BIT_INDEX:  _elements[e_i] = _makeElement('d', BITS_32, _len(_data32, 32), _data32);      break;
+            case SEQUENCE_NUM_INDEX: _elements[e_i] = _makeElement(SEQUENCE_NUM_ID, BITS_8,  1,                 &payload_seqNum); break;       
+            case ADC_VALUE_INDEX:    _elements[e_i] = _makeElement(ADC_VALUE_ID,    BITS_16, 1,                 &_adcValue);      break; 
+            case RH_INDEX:           _elements[e_i] = _makeElement(RH_ID,           BITS_8,  1,                 &_rhValue);       break;
+            case TEMP_INDEX:         _elements[e_i] = _makeElement(TEMP_ID,         FLOAT,   1,                 &_tempValue);     break;  
+            case PRESSURE_INDEX:     _elements[e_i] = _makeElement(PRESSURE_ID,     BITS_32, 1,                 &_pressureValue); break;  
+            case TEST_STRING_INDEX:  _elements[e_i] = _makeElement(TEST_STRING_ID,  BITS_8,  _len(_testString), _testString);     break;
             default: println("Unknown payload element index: %u", e_i);
         }
         
@@ -103,18 +110,13 @@ void payload_init(void) {
     }
 }
 
-void payload_update(void) {
-    uint32_t temp;
-    for_range(i, _len(_data32, 32)) {
-        temp = _data32[i] << 28;
-        _data32[i] = (_data32[i] >> 4) | temp;
-    }
+void payload_update(void) {    
+    _adcValue = sensor_readAdc();    
+    _rhValue = sensor_readRh();    
+    _tempValue = sensor_readTemp();    
+    _pressureValue = sensor_readPressure();
     
-    _adcValue = sensor_readAdc();
-    
-    _rhValue = sensor_readRh();
-    
-    _tempValue = sensor_readTemp();
+    println("adc = %u, rh = %c, temp = %f, pressure = %ul", _adcValue, _rhValue, _tempValue, _pressureValue);
 }
 
 void payload_write() {

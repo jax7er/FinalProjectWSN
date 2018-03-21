@@ -37,8 +37,8 @@ void sensor_init(void);
 uint8_t sensor_readRh(void);
 float sensor_readTemp(void);
 float sensor_readLastTemp(void);
-uint16_t sensor_readPressure(void);
+uint32_t sensor_readPressure(void);
 uint16_t sensor_readAdc(void);
 
-#endif	/* XC_HEADER_TEMPLATE_H */
+#endif	/* SENSOR_H */
 
