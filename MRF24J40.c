@@ -475,7 +475,7 @@ void radio_printTxFifo() {
     uint16_t fifo_i;
     for (fifo_i = 0; fifo_i < 6 + payload_totalLength; fifo_i++) {
         value = radio_read_long(fifo_i);    
-        if (isValidPayloadChar(value)) {
+        if (payload_isValidChar(value)) {
             printf("%c", value);
         } else {
             printf("<%.2X>", value);

@@ -46,6 +46,11 @@ int main(void) {
     
     radio_init();
     println("radio init done");
+    
+//    sensor_readPressure();
+//    println("temp = %f", sensor_readTemp());
+//    
+//    while (1);
             
     delay_ms(1000);
     

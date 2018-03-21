@@ -34,9 +34,9 @@
 #include <xc.h> // include processor files - each processor file is guarded.  
 
 void sensor_init(void);
-uint8_t sensor_readHumidity(void);
-uint16_t sensor_readTemperature(void);
-uint16_t sensor_readLastTemperature(void);
+uint8_t sensor_readRh(void);
+float sensor_readTemp(void);
+float sensor_readLastTemp(void);
 uint16_t sensor_readPressure(void);
 uint16_t sensor_readAdc(void);
 

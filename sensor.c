@@ -12,8 +12,18 @@
 #include "delay.h"
 #include "interface.h"
 
-#define PRESSURE_SENSOR_ADDR      0x77
-#define HUMIDITY_TEMP_SENSOR_ADDR 0x40
+// I2C addresses
+#define PRESSURE_ADDR 0x77
+#define RH_TEMP_ADDR  0x40
+
+// humidity/temperature sensor commands
+#define RH_TEMP_RESET  0xFE
+#define RH_READ        0xF5
+#define TEMP_READ      0xF3
+#define LAST_TEMP_READ 0xE0
+
+#define _readingToTemp(r) (((175.72 * ((float)(r))) / 65536.0) - 46.85)
+#define _readingToRh(r)   ((uint8_t)(((125 * (r)) / 65536) - 6))
 
 static void _i2c_write_command(uint8_t addr, uint8_t cmd) {    
     i2c_start(); 
@@ -27,34 +37,38 @@ static void _i2c_write_command(uint8_t addr, uint8_t cmd) {
     i2c_stop();
 }
 
-void sensor_init(void) {
-    _i2c_write_command(HUMIDITY_TEMP_SENSOR_ADDR, 0xFE); // 0xFE is the reset command
-}
-
-uint8_t sensor_readHumidity(void) {    
+static uint16_t _rhTempSensorGetReading(uint8_t cmd) {
     // assert start condition
     i2c_start(); 
     
     // slave address with write
-    i2c_tx(i2c_addrWrite(HUMIDITY_TEMP_SENSOR_ADDR));
+    i2c_tx(i2c_addrWrite(RH_TEMP_ADDR));
     if (i2c_gotNack()) { // expecting ACK = 0
         println("slave addr nack");
         return 0xFF;
     }
     
     // command for humidity read
-    i2c_tx(0xF5);  // 0xF5 = read humidity  
+    i2c_tx(cmd);
     if (i2c_gotNack()) { // expecting ACK = 0
         println("command nack");
         return 0xFF;
     }
     
-    // when sensor reading is complete, sends an ACK
-    do {
-        delay_ms(5);
+    if (cmd == LAST_TEMP_READ) {
         i2c_repeatedStart();
-        i2c_tx(i2c_addrRead(HUMIDITY_TEMP_SENSOR_ADDR));
-    } while (i2c_gotNack()); // when complete ACK = 0
+        i2c_tx(i2c_addrRead(RH_TEMP_ADDR));
+        if (i2c_gotNack()) { // expecting ACK = 0
+            println("second addr nack");
+            return 0xFF;
+        }
+    } else { // other readings take some time to produce a measurement
+        do {
+            delay_ms(5);
+            i2c_repeatedStart();
+            i2c_tx(i2c_addrRead(RH_TEMP_ADDR));
+        } while (i2c_gotNack()); // when complete ACK = 0
+    }
     
     // begin receiving data
     uint32_t rxValue = 0; // 16 bit value but make 32 bits for ease of calculating %RH
@@ -70,15 +84,27 @@ uint8_t sensor_readHumidity(void) {
     // assert stop condition
     i2c_stop();
     
-    return ((uint8_t)(((125 * rxValue) / 65536) - 6));
+    return rxValue;
 }
 
-uint16_t sensor_readTemperature(void) {
-    return 0;
+void sensor_init(void) {
+    _i2c_write_command(RH_TEMP_ADDR, RH_TEMP_RESET);
 }
 
-uint16_t sensor_readLastTemperature(void) {
-    return 0;
+uint8_t sensor_readRh(void) { 
+    uint32_t reading = _rhTempSensorGetReading(RH_READ); // 16 bit value but make 32 bits for ease of calculating %RH    
+    return _readingToRh(reading);
+}
+
+float sensor_readTemp(void) {
+    uint16_t reading = _rhTempSensorGetReading(TEMP_READ);
+    return _readingToTemp(reading);
+}
+
+float sensor_readLastTemp(void) {
+    uint16_t reading = _rhTempSensorGetReading(LAST_TEMP_READ);
+    println("reading = %u", reading);
+    return _readingToTemp(reading);
 }
 
 uint16_t sensor_readPressure(void) {

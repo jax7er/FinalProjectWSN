@@ -11,6 +11,49 @@
 #include "MRF24J40.h"
 #include "sensor.h"
 
+#define _elementIdBits     8
+#define _elementSizeBits   2
+#define _elementLengthBits 6
+#define _elementHeaderBits (_elementIdBits + _elementSizeBits + _elementLengthBits)
+
+#define _maxLength (TXNFIFO_SIZE - 3)
+
+#define _makeElement(i, s, w, d_p) (_element_t){.id = (i), .size = (s), .length = _numWordsToLength(w), .data_p = (d_p)}
+#define _len(arr, bits) (sizeof(arr) / ((bits) / 8))
+#define _numWordsToLength(w) ((w) - 1)
+#define _lengthToNumWords(l) ((l) + 1)
+#define _sizeToWordLength(s) ((s) == FLOAT ? 32 : 1 << ((s) + 3))
+#define _printChar(c) do { if (payload_isValidChar(c)) printf("%c", (c)); else printf("<%.2X>", (c)); } while (0)
+
+typedef enum payloadElementDataSize {
+    BITS_8 = 0,
+    BITS_16,
+    BITS_32,
+    FLOAT
+} _elementDataSize_e;
+
+// size in bits of payload element = 8 + 2 + 6 + (8 * 2^size * (length + 1)) = 16 + 2^(3 + size) * (length + 1)
+typedef struct payloadElementFormat {
+    uint8_t id; // up to 256 ids
+    _elementDataSize_e size : _elementSizeBits; // number of bits per word
+    unsigned int length : _elementLengthBits; // number of words per element - 1, up to length + 1 words
+    void * data_p; // pointer to data
+} _element_t;
+
+typedef enum payloadElementIndex {
+    SEQUENCE_NUM_INDEX = 0,
+    ADC_VALUE_INDEX,
+    RH_INDEX,
+    TEMP_INDEX,
+    DATA_32_BIT_INDEX,
+    NUM_ELEMENTS
+} _elementIndex_e;
+
+union uint32Float_union {
+    uint32_t uint32_value;
+    float    float_value;
+} uint32Float;
+
 // externally visible
 uint16_t payload_totalLength = 0; 
 uint8_t payload_seqNum = 0;
@@ -18,74 +61,60 @@ uint8_t payload_seqNum = 0;
 // static
 static uint16_t _length_bits = 0;
 
-typedef enum payloadElementIndex {
-    SEQUENCE_NUM_INDEX = 0,
-    ADC_VALUE_INDEX,
-    HUMIDITY_INDEX,
-    DATA_64_BIT_INDEX,
-    NUM_ELEMENTS
-} payloadElementIndex_e;
-
+static _element_t _elements[NUM_ELEMENTS]; // allocate memory for elements
 static uint16_t _adcValue = 0;
 static uint8_t _rhValue = 0;
-static uint64_t _data64Bit[] = {
-    0x1234567823456781,
-    0x3456781245678123
+static float _tempValue = 0;
+static uint32_t _data32[] = {
+    0x12345678,
+    0x23456781,
+    0x34567812,
+    0x45678123
 };
 
-payloadElement_t payload_elements[NUM_ELEMENTS]; // allocate memory for elements
-
 void payload_init(void) {
-    payload_elements[SEQUENCE_NUM_INDEX] = (payloadElement_t){
-        .id = 'n',
-        .size = BITS_8, 
-        .length = numWordsToLength(1),
-        .data_p = &payload_seqNum
-    };
+    _length_bits = _elementHeaderBits * NUM_ELEMENTS;
     
-    payload_elements[ADC_VALUE_INDEX] = (payloadElement_t){
-        .id = 'a', 
-        .size = BITS_16,
-        .length = numWordsToLength(1),
-        .data_p = &_adcValue
-    };
+    // build the payload array with elements, each element has an entry and new elements need to be added here
+    // _makeElement(id, word length, number of words, pointer to data)
+    for_range(e_i, NUM_ELEMENTS) {
+        switch (e_i) {
+            case SEQUENCE_NUM_INDEX: _elements[e_i] = _makeElement('n', BITS_8,  1,                    &payload_seqNum); break;       
+            case ADC_VALUE_INDEX:    _elements[e_i] = _makeElement('a', BITS_16, 1,                    &_adcValue);      break; 
+            case RH_INDEX:           _elements[e_i] = _makeElement('h', BITS_8,  1,                    &_rhValue);       break;
+            case TEMP_INDEX:         _elements[e_i] = _makeElement('t', FLOAT,   1,                    &_tempValue);     break;  
+            case DATA_32_BIT_INDEX:  _elements[e_i] = _makeElement('d', BITS_32, _len(_data32, 32), _data32);      break;
+            default: println("Unknown payload element index: %u", e_i);
+        }
+        
+        _length_bits += (_sizeToWordLength(_elements[e_i].size) * _lengthToNumWords(_elements[e_i].length));
+    }
     
-    payload_elements[HUMIDITY_INDEX] = (payloadElement_t){
-        .id = 'h', 
-        .size = BITS_8,
-        .length = numWordsToLength(1),
-        .data_p = &_rhValue
-    };
-    
-    payload_elements[DATA_64_BIT_INDEX] = (payloadElement_t){
-        .id = 'd', 
-        .size = BITS_64,
-        .length = numWordsToLength(sizeof(_data64Bit) / sizeof(uint64_t)),
-        .data_p = _data64Bit
-    };
-    
-    _length_bits = payloadElementHeaderBits * NUM_ELEMENTS;
-    uint16_t element_i;
-    for (element_i = 0; element_i < NUM_ELEMENTS; element_i++) {
-        _length_bits += (sizeToWordLength(payload_elements[element_i].size) * lengthToNumWords(payload_elements[element_i].length));
-    }    
-    payload_totalLength = mhrLength + (_length_bits / 8);        
+    payload_totalLength = mhrLength + (_length_bits / 8);
     
     println("mhr length = %d", mhrLength);
     println("payload length bits (bytes) = %d (%d)", _length_bits, _length_bits / 8);
     println("total length = %d", payload_totalLength);
     
-    if (payload_totalLength > payload_maxLength) {
-        println("Total length too big! Maximum is %d", payload_maxLength);
+    if (payload_totalLength > _maxLength) {
+        println("Total length too big! Maximum is %d", _maxLength);
 
         utils_flashLedForever();
     }
 }
 
-void payload_update(void) {    
+void payload_update(void) {
+    uint32_t temp;
+    for_range(i, _len(_data32, 32)) {
+        temp = _data32[i] << 28;
+        _data32[i] = (_data32[i] >> 4) | temp;
+    }
+    
     _adcValue = sensor_readAdc();
     
-    _rhValue = sensor_readHumidity();
+    _rhValue = sensor_readRh();
+    
+    _tempValue = sensor_readTemp();
 }
 
 void payload_write() {
@@ -96,37 +125,40 @@ void payload_write() {
     
     uint16_t element_i = 0;
     while (element_i < NUM_ELEMENTS) {
-        uint16_t const numWords = lengthToNumWords(payload_elements[element_i].length);
+        uint16_t const numWords = _lengthToNumWords(_elements[element_i].length);
         
 //        println("payload[%d]: num words = %d, word length = %d bits", element_i, numWords, 1 << (payload_elements[element_i].size + 3));
 
         // write the element header (total 2 bytes)
-        radio_write_fifo(fifo_i++, payload_elements[element_i].id);
-        radio_write_fifo(fifo_i++, (((uint8_t)(payload_elements[element_i].size)) << 6) | payload_elements[element_i].length);
+        radio_write_fifo(fifo_i++, _elements[element_i].id);
+        radio_write_fifo(fifo_i++, (((uint8_t)(_elements[element_i].size)) << 6) | _elements[element_i].length);
 
         // write the element payload (total ((length + 1) * 2^(size + 3) / 8) bytes)
         uint16_t word_i = 0;
+        void * data_p = _elements[element_i].data_p;
         while (word_i < numWords) {
-            switch (payload_elements[element_i].size) { // allow fallthrough to save lines of code
-                case BITS_64: { // 8 writes are required 
-                    radio_write_fifo(fifo_i++, ((uint8_t)(((uint64_t *)(payload_elements[element_i].data_p))[word_i] >> 56)));
-                    radio_write_fifo(fifo_i++, ((uint8_t)(((uint64_t *)(payload_elements[element_i].data_p))[word_i] >> 48)));
-                    radio_write_fifo(fifo_i++, ((uint8_t)(((uint64_t *)(payload_elements[element_i].data_p))[word_i] >> 40)));
-                    radio_write_fifo(fifo_i++, ((uint8_t)(((uint64_t *)(payload_elements[element_i].data_p))[word_i] >> 32)));
+            switch (_elements[element_i].size) {
+                case FLOAT: { // floats are also 32 bits
+                    uint32Float.float_value = ((float *)(data_p))[word_i]; // use union to get the correct bit pattern as a uint32
+                    radio_write_fifo(fifo_i++, ((uint8_t)(uint32Float.uint32_value >> 24)));
+                    radio_write_fifo(fifo_i++, ((uint8_t)(uint32Float.uint32_value >> 16)));
+                    radio_write_fifo(fifo_i++, ((uint8_t)(uint32Float.uint32_value >> 8)));
+                    radio_write_fifo(fifo_i++, ((uint8_t)(uint32Float.uint32_value)));
+                    break;
                 }
-                case BITS_32: { // 4 writes are required 
-                    radio_write_fifo(fifo_i++, ((uint8_t)(((uint32_t *)(payload_elements[element_i].data_p))[word_i] >> 24)));
-                    radio_write_fifo(fifo_i++, ((uint8_t)(((uint32_t *)(payload_elements[element_i].data_p))[word_i] >> 16)));
+                case BITS_32: { // 4 writes are required, allow fallthrough to save lines of code
+                    radio_write_fifo(fifo_i++, ((uint8_t)(((uint32_t *)(data_p))[word_i] >> 24)));
+                    radio_write_fifo(fifo_i++, ((uint8_t)(((uint32_t *)(data_p))[word_i] >> 16)));
                 }
-                case BITS_16: { // 2 writes are required 
-                    radio_write_fifo(fifo_i++, ((uint8_t)(((uint16_t *)(payload_elements[element_i].data_p))[word_i] >> 8)));
+                case BITS_16: { // 2 writes are required, allow fallthrough to save lines of code
+                    radio_write_fifo(fifo_i++, ((uint8_t)(((uint16_t *)(data_p))[word_i] >> 8)));
                 }
                 case BITS_8: { // 1 write is required
-                    radio_write_fifo(fifo_i++, ((uint8_t *)(payload_elements[element_i].data_p))[word_i]);
+                    radio_write_fifo(fifo_i++, ((uint8_t *)(data_p))[word_i]);
                     break;
                 }
                 default:
-                    println("Unknown word size: %d", payload_elements[element_i].size);
+                    println("Unknown word size: %d", _elements[element_i].size);
             }
 
             word_i++;
@@ -173,29 +205,29 @@ void payload_read(void) {
     }
     uint16_t element_i = 0;
     while (buf_i < rxPayloadLength) {
-        println("- payload element %u -", element_i);
+//        println("- payload element %u -", element_i);
         
-        println("id = %c", rxBuffer[buf_i++]);
+        println("%u id = %c", element_i, rxBuffer[buf_i++]);
         
         uint8_t sizeAndLength = rxBuffer[buf_i++];
-        payloadElementDataSize_e size = sizeAndLength >> 6;
-        uint8_t numWords = lengthToNumWords(sizeAndLength & 0x3F);
-        println("word length = %u", sizeToWordLength(size));
-        println("number of words = %u", numWords);
+        _elementDataSize_e size = sizeAndLength >> 6;
+        uint8_t numWords = _lengthToNumWords(sizeAndLength & 0x3F);
+        println("%u word length = %u", element_i, _sizeToWordLength(size));
+        println("%u number of words = %u", element_i, numWords);
         
         uint16_t word_i = 0;
         if (size == BITS_8) {
             uint8_t data_8[numWords];
             
-            printf("data = ");
+            printf("%u data = ", element_i);
             
             while (word_i < numWords) {
                 data_8[word_i] = rxBuffer[buf_i];
                 
-                payload_printChar(data_8[word_i]);
+                _printChar(data_8[word_i]);
                 
                 word_i++;
-                buf_i++;
+                buf_i++; // 8 bits = 1 byte
             }
             
             printf("\r\n");
@@ -207,10 +239,10 @@ void payload_read(void) {
                         (((uint16_t)(rxBuffer[buf_i])) << 8) | 
                         ((uint16_t)(rxBuffer[buf_i + 1]));
                                 
-                println("data %u = %u", word_i, data_16[word_i]);
+                println("%u data %u = <%.2X>", element_i, word_i, data_16[word_i]);
                 
                 word_i++;
-                buf_i += 2;
+                buf_i += 2; // 16 bits = 2 bytes
             }
         } else if (size == BITS_32) {
             uint32_t data_32[numWords];
@@ -222,29 +254,26 @@ void payload_read(void) {
                         (((uint32_t)(rxBuffer[buf_i + 2])) << 8) | 
                         ((uint32_t)(rxBuffer[buf_i + 3]));
                 
-                println("data %u = %lu", word_i, data_32[word_i]);
+                println("%u data %u = <%.4X>", element_i, word_i, data_32[word_i]);
                 
                 word_i++;
-                buf_i += 4;
+                buf_i += 4; // 32 bits = 4 bytes
             }
-        } else if (size == BITS_64) {
-            uint64_t data_64[numWords];
+        } else if (size == FLOAT) {
+            float data_f[numWords];
             
             while (word_i < numWords) {
-                data_64[word_i] = 
-                        (((uint64_t)(rxBuffer[buf_i])) << 56) | 
-                        (((uint64_t)(rxBuffer[buf_i + 1])) << 48) | 
-                        (((uint64_t)(rxBuffer[buf_i + 2])) << 40) | 
-                        (((uint64_t)(rxBuffer[buf_i + 3])) << 32) | 
-                        (((uint64_t)(rxBuffer[buf_i + 4])) << 24) | 
-                        (((uint64_t)(rxBuffer[buf_i + 5])) << 16) | 
-                        (((uint64_t)(rxBuffer[buf_i + 6])) << 8) | 
-                        ((uint64_t)(rxBuffer[buf_i + 7]));
+                uint32Float.uint32_value = 
+                        (((uint32_t)(rxBuffer[buf_i])) << 24) | 
+                        (((uint32_t)(rxBuffer[buf_i + 1])) << 16) | 
+                        (((uint32_t)(rxBuffer[buf_i + 2])) << 8) | 
+                        ((uint32_t)(rxBuffer[buf_i + 3]));
+                data_f[word_i] = uint32Float.float_value;
                 
-                println("data %u = %llu", word_i, data_64[word_i]);
+                println("%u data %u = %f", element_i, word_i, data_f[word_i]);
                 
                 word_i++;
-                buf_i += 8;
+                buf_i += 4; // 32 bits = 4 bytes
             }
         }
         
