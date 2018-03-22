@@ -88,7 +88,11 @@ int main(void) {
             if (ifs.rx) {
                 ifs.rx = 0;
                 
+                LED_Toggle();
+                
                 payload_read();
+                
+                LED_Toggle();
             }
             if (ifs.wake) {
                 ifs.wake = 0;
