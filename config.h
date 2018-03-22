@@ -53,33 +53,5 @@
 #ifndef CONFIG_H
 #define	CONFIG_H
 
-// Includes
-#include <xc.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include "MRF24J40.h"
-#include "mcc_generated_files/pin_manager.h"
-#include "mcc_generated_files/ext_int.h"
-
-// Definitions
-#define LITTLE_ENDIAN
-
-#define EUI_64_ADDR 0
-#define PAN_ID_ADDR 8
-#define SHORT_ADDRESS_ADDR 10
-#define CHANNEL_ADDR 12
-#define MASTER_KEY 16
-#define RX_AES_KEY 32
-#define TX_AES_KEY 48
-#define RX_FRAME_COUNTER 64
-#define TX_FRAME_COUNTER 68
-
-// MRF24J40 HAL Configuration
-#define radio_set_ie(v) (IEC1bits.INT1IE = v)
-#define radio_get_ie() (IEC1bits.INT1IE)
-
-#define radio_wake_pin(v) (_LATB12 = v)
-#define radio_reset_pin(v) (_LATB11 = v)
-#define radio_cs_pin(v) (_LATB10 = v)
 
 #endif	/* CONFIG_H */

@@ -7,7 +7,7 @@
 
 #include "xc.h"
 #include "delay.h"
-#include "MRF24J40.h"
+#include "radio.h"
 
 void delay_us(uint16_t us) {
     PR3 = us * 4; // each clock tick takes 0.25us

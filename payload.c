@@ -8,7 +8,7 @@
 #include "payload.h"
 #include "xc.h"
 #include "utils.h"
-#include "MRF24J40.h"
+#include "radio.h"
 #include "sensor.h"
 
 #define _elementIdBits     8
@@ -121,7 +121,7 @@ void payload_update(void) {
 
 void payload_write() {
     uint16_t fifo_i = TXNFIFO;
-    mrf24f40_mhr_write(&fifo_i);
+    radio_mhr_write(&fifo_i);
     
 //    println("Start writing payload at address %d", fifo_i);
     
@@ -142,7 +142,7 @@ void payload_write() {
         while (word_i < numWords) {
             switch (_elements[element_i].size) {
                 case FLOAT: { // floats are also 32 bits
-                    uint32Float.float_value = ((float *)(data_p))[word_i]; // use union to get the correct bit pattern as a uint32
+                    uint32Float.float_value = f_p(data_p)[word_i]; // use union to get the correct bit pattern as a uint32
                     radio_write_fifo(fifo_i++, u8(uint32Float.uint32_value >> 24));
                     radio_write_fifo(fifo_i++, u8(uint32Float.uint32_value >> 16));
                     radio_write_fifo(fifo_i++, u8(uint32Float.uint32_value >> 8));

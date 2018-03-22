@@ -17,14 +17,14 @@
         <itemPath>mcc_generated_files/i2c2.h</itemPath>
         <itemPath>mcc_generated_files/adc1.h</itemPath>
       </logicalFolder>
-      <itemPath>MRF24J40.h</itemPath>
-      <itemPath>config.h</itemPath>
       <itemPath>C:/jmm546MPLABXProjects/MRF24J40_test.X/delay.h</itemPath>
       <itemPath>C:/jmm546MPLABXProjects/MRF24J40_test.X/utils.h</itemPath>
       <itemPath>C:/jmm546MPLABXProjects/MRF24J40_test.X/tests.h</itemPath>
       <itemPath>C:/jmm546MPLABXProjects/MRF24J40_test.X/payload.h</itemPath>
       <itemPath>C:/jmm546MPLABXProjects/MRF24J40_test.X/sensor.h</itemPath>
       <itemPath>C:/jmm546MPLABXProjects/MRF24J40_test.X/interface.h</itemPath>
+      <itemPath>radio.h</itemPath>
+      <itemPath>C:/jmm546MPLABXProjects/MRF24J40_test.X/mrf24j40_driver_old.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -46,7 +46,6 @@
         <itemPath>mcc_generated_files/i2c2.c</itemPath>
         <itemPath>mcc_generated_files/adc1.c</itemPath>
       </logicalFolder>
-      <itemPath>MRF24J40.c</itemPath>
       <itemPath>main.c</itemPath>
       <itemPath>C:/jmm546MPLABXProjects/MRF24J40_test.X/utils.c</itemPath>
       <itemPath>C:/jmm546MPLABXProjects/MRF24J40_test.X/delay.c</itemPath>
@@ -54,6 +53,8 @@
       <itemPath>C:/jmm546MPLABXProjects/MRF24J40_test.X/payload.c</itemPath>
       <itemPath>C:/jmm546MPLABXProjects/MRF24J40_test.X/sensor.c</itemPath>
       <itemPath>C:/jmm546MPLABXProjects/MRF24J40_test.X/interface.c</itemPath>
+      <itemPath>radio.c</itemPath>
+      <itemPath>C:/jmm546MPLABXProjects/MRF24J40_test.X/mrf24j40_driver_old.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"

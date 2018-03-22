@@ -50,8 +50,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef MRF24J40_H
-#define	MRF24J40_H
+#ifndef RADIO_H
+#define	RADIO_H
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -66,8 +66,8 @@
 #define MRF24J40_INT_ENC	0x10
 #define MRF24J40_INT_DEC	0x20
 
-#define EIO			1
-#define EBUSY			2
+#define EIO	  1
+#define EBUSY 2
 
 /* IEEE 802.15.4 constants for building the MHR (MAC header) */
 #define IEEE_FRAME_TYPE_BEACON    0x0
@@ -396,15 +396,11 @@
 #define radio_spi_postamble() radio_cs_pin(1); radio_set_ie(tmpIE);
 
 #define radio_is_short_addr(a)    (u16(a) <= 0x3F)
-#define radio_read_short          radio_read_short_ctrl_reg
-#define radio_read_long           radio_read_long_ctrl_reg
 #define radio_read_fifo           radio_read_long
 #define radio_read(r)             (radio_is_short_addr(r) ? radio_read_short(u8(r)) : radio_read_long(u16(r)))
 #define radio_read_bit(r, b)      ((radio_read(r) & (1 << (b))) != 0)
-#define radio_write_short         radio_write_short_ctrl_reg
-#define radio_write_long          radio_write_long_ctrl_reg
 #define radio_write_fifo          radio_write_long
-#define radio_write(r, d)         do { if (radio_is_short_addr(r)) radio_write_short(u8(r), d); else radio_write_long_ctrl_reg(u16(r), d); } while (0)
+#define radio_write(r, d)         do { if (radio_is_short_addr(r)) radio_write_short(u8(r), d); else radio_write_long(u16(r), d); } while (0)
 #define radio_set_bit(r, b)       radio_write(r, radio_read(r) | (1 << (b)))
 #define radio_set_bits(r, m)      radio_write(r, radio_read(r) | (m))
 #define radio_clear_bit(r, b)     radio_write(r, radio_read(r) & ~(1 << (b)))
@@ -432,43 +428,20 @@ extern uint8_t srcAddrH;
 extern uint8_t srcAddrL;
 extern uint8_t mhr[]; 
 
+void radio_init(void);
+void radio_hard_reset(void);
 void radio_getIntFlags(void);
 void radio_sleep_timed(uint32_t ms);
 void radio_trigger_tx(void);
-void mrf24f40_mhr_write(uint16_t * fifo_i_p);
-void mrf24f40_check_txstat(void);
-uint8_t radio_read_long_ctrl_reg(uint16_t addr);
-uint8_t radio_read_short_ctrl_reg(uint8_t addr);
-void radio_write_long_ctrl_reg(uint16_t addr, uint8_t value);
-void radio_write_short_ctrl_reg(uint8_t addr, uint8_t value);
+void radio_mhr_write(uint16_t * fifo_i_p);
+void radio_check_txstat(void);
+uint8_t radio_read_long(uint16_t addr);
+uint8_t radio_read_short(uint8_t addr);
+void radio_write_long(uint16_t addr, uint8_t value);
+void radio_write_short(uint8_t addr, uint8_t value);
 void radio_rxfifo_flush(void);
-uint8_t radio_get_pending_frame(void);
-void radio_hard_reset(void);
-void radio_init(void);
-void radio_sleep(void);
-void radio_wakeup(void);
-void radio_set_short_addr(uint8_t *addr);
-void radio_set_coordinator_short_addr(uint8_t *addr);
-void radio_set_coordinator_eui(uint8_t *eui);
-void radio_set_eui(uint8_t *eui);
-void radio_set_pan(uint8_t *pan);
-void radio_set_key(uint16_t address, uint8_t *key);
-#define radio_tx_key(key) radio_set_key(SECKTXNFIFO, key);
-#define radio_rx_key(key) radio_set_key(SECKRXFIFO, key);
-void radio_set_channel(int16_t ch);
-void radio_set_promiscuous(bool crc_check);
-void radio_set_coordinator(void);
-void radio_clear_coordinator(void);
-void radio_txpkt(uint8_t *frame, int16_t hdr_len, int16_t sec_hdr_len, int16_t payload_len);
-void radio_set_cipher(uint8_t rxcipher, uint8_t txcipher);
-bool radio_rx_sec_fail(void);
-uint8_t radio_get_channel(void);
-int16_t radio_int_tasks(void);
-int16_t radio_rxpkt_intcb(uint8_t *buf, uint8_t *plqi, uint8_t *prssi);
-int16_t radio_txpkt_intcb(void);
-void radio_sec_intcb(bool accept);
 void radio_printAllRegisters(void);
 void radio_printTxFifo();
 
-#endif /* MRF24J40_H */
+#endif /* RADIO_H */
 

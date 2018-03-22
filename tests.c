@@ -9,7 +9,7 @@
 #include "xc.h"
 #include <stdio.h>
 #include "delay.h"
-#include "MRF24J40.h"
+#include "radio.h"
 #include "utils.h"
 
 uint8_t const mockData[] = {2, 45, 84, 78, 144, 240, 255, 254, 10, 50};

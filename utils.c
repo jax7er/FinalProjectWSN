@@ -9,7 +9,8 @@
 #include "xc.h"
 #include <stdio.h>
 #include "mcc_generated_files/uart1.h"
-#include "MRF24J40.h"
+#include "mcc_generated_files/pin_manager.h"
+#include "radio.h"
 #include "payload.h"
 #include "delay.h"
 

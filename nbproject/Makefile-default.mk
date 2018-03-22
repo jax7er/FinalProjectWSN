@@ -57,17 +57,17 @@ OBJECTDIR=build/${CND_CONF}/${IMAGE_TYPE}
 DISTDIR=dist/${CND_CONF}/${IMAGE_TYPE}
 
 # Source Files Quoted if spaced
-SOURCEFILES_QUOTED_IF_SPACED=mcc_generated_files/interrupt_manager.c mcc_generated_files/mcc.c mcc_generated_files/pin_manager.c mcc_generated_files/spi1.c mcc_generated_files/uart1.c mcc_generated_files/tmr3.c mcc_generated_files/ext_int.c mcc_generated_files/i2c2.c mcc_generated_files/adc1.c MRF24J40.c main.c C:/jmm546MPLABXProjects/MRF24J40_test.X/utils.c C:/jmm546MPLABXProjects/MRF24J40_test.X/delay.c C:/jmm546MPLABXProjects/MRF24J40_test.X/tests.c C:/jmm546MPLABXProjects/MRF24J40_test.X/payload.c C:/jmm546MPLABXProjects/MRF24J40_test.X/sensor.c C:/jmm546MPLABXProjects/MRF24J40_test.X/interface.c
+SOURCEFILES_QUOTED_IF_SPACED=mcc_generated_files/interrupt_manager.c mcc_generated_files/mcc.c mcc_generated_files/pin_manager.c mcc_generated_files/spi1.c mcc_generated_files/uart1.c mcc_generated_files/tmr3.c mcc_generated_files/ext_int.c mcc_generated_files/i2c2.c mcc_generated_files/adc1.c main.c C:/jmm546MPLABXProjects/MRF24J40_test.X/utils.c C:/jmm546MPLABXProjects/MRF24J40_test.X/delay.c C:/jmm546MPLABXProjects/MRF24J40_test.X/tests.c C:/jmm546MPLABXProjects/MRF24J40_test.X/payload.c C:/jmm546MPLABXProjects/MRF24J40_test.X/sensor.c C:/jmm546MPLABXProjects/MRF24J40_test.X/interface.c radio.c C:/jmm546MPLABXProjects/MRF24J40_test.X/mrf24j40_driver_old.c
 
 # Object Files Quoted if spaced
-OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/mcc_generated_files/interrupt_manager.o ${OBJECTDIR}/mcc_generated_files/mcc.o ${OBJECTDIR}/mcc_generated_files/pin_manager.o ${OBJECTDIR}/mcc_generated_files/spi1.o ${OBJECTDIR}/mcc_generated_files/uart1.o ${OBJECTDIR}/mcc_generated_files/tmr3.o ${OBJECTDIR}/mcc_generated_files/ext_int.o ${OBJECTDIR}/mcc_generated_files/i2c2.o ${OBJECTDIR}/mcc_generated_files/adc1.o ${OBJECTDIR}/MRF24J40.o ${OBJECTDIR}/main.o ${OBJECTDIR}/_ext/780245002/utils.o ${OBJECTDIR}/_ext/780245002/delay.o ${OBJECTDIR}/_ext/780245002/tests.o ${OBJECTDIR}/_ext/780245002/payload.o ${OBJECTDIR}/_ext/780245002/sensor.o ${OBJECTDIR}/_ext/780245002/interface.o
-POSSIBLE_DEPFILES=${OBJECTDIR}/mcc_generated_files/interrupt_manager.o.d ${OBJECTDIR}/mcc_generated_files/mcc.o.d ${OBJECTDIR}/mcc_generated_files/pin_manager.o.d ${OBJECTDIR}/mcc_generated_files/spi1.o.d ${OBJECTDIR}/mcc_generated_files/uart1.o.d ${OBJECTDIR}/mcc_generated_files/tmr3.o.d ${OBJECTDIR}/mcc_generated_files/ext_int.o.d ${OBJECTDIR}/mcc_generated_files/i2c2.o.d ${OBJECTDIR}/mcc_generated_files/adc1.o.d ${OBJECTDIR}/MRF24J40.o.d ${OBJECTDIR}/main.o.d ${OBJECTDIR}/_ext/780245002/utils.o.d ${OBJECTDIR}/_ext/780245002/delay.o.d ${OBJECTDIR}/_ext/780245002/tests.o.d ${OBJECTDIR}/_ext/780245002/payload.o.d ${OBJECTDIR}/_ext/780245002/sensor.o.d ${OBJECTDIR}/_ext/780245002/interface.o.d
+OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/mcc_generated_files/interrupt_manager.o ${OBJECTDIR}/mcc_generated_files/mcc.o ${OBJECTDIR}/mcc_generated_files/pin_manager.o ${OBJECTDIR}/mcc_generated_files/spi1.o ${OBJECTDIR}/mcc_generated_files/uart1.o ${OBJECTDIR}/mcc_generated_files/tmr3.o ${OBJECTDIR}/mcc_generated_files/ext_int.o ${OBJECTDIR}/mcc_generated_files/i2c2.o ${OBJECTDIR}/mcc_generated_files/adc1.o ${OBJECTDIR}/main.o ${OBJECTDIR}/_ext/780245002/utils.o ${OBJECTDIR}/_ext/780245002/delay.o ${OBJECTDIR}/_ext/780245002/tests.o ${OBJECTDIR}/_ext/780245002/payload.o ${OBJECTDIR}/_ext/780245002/sensor.o ${OBJECTDIR}/_ext/780245002/interface.o ${OBJECTDIR}/radio.o ${OBJECTDIR}/_ext/780245002/mrf24j40_driver_old.o
+POSSIBLE_DEPFILES=${OBJECTDIR}/mcc_generated_files/interrupt_manager.o.d ${OBJECTDIR}/mcc_generated_files/mcc.o.d ${OBJECTDIR}/mcc_generated_files/pin_manager.o.d ${OBJECTDIR}/mcc_generated_files/spi1.o.d ${OBJECTDIR}/mcc_generated_files/uart1.o.d ${OBJECTDIR}/mcc_generated_files/tmr3.o.d ${OBJECTDIR}/mcc_generated_files/ext_int.o.d ${OBJECTDIR}/mcc_generated_files/i2c2.o.d ${OBJECTDIR}/mcc_generated_files/adc1.o.d ${OBJECTDIR}/main.o.d ${OBJECTDIR}/_ext/780245002/utils.o.d ${OBJECTDIR}/_ext/780245002/delay.o.d ${OBJECTDIR}/_ext/780245002/tests.o.d ${OBJECTDIR}/_ext/780245002/payload.o.d ${OBJECTDIR}/_ext/780245002/sensor.o.d ${OBJECTDIR}/_ext/780245002/interface.o.d ${OBJECTDIR}/radio.o.d ${OBJECTDIR}/_ext/780245002/mrf24j40_driver_old.o.d
 
 # Object Files
-OBJECTFILES=${OBJECTDIR}/mcc_generated_files/interrupt_manager.o ${OBJECTDIR}/mcc_generated_files/mcc.o ${OBJECTDIR}/mcc_generated_files/pin_manager.o ${OBJECTDIR}/mcc_generated_files/spi1.o ${OBJECTDIR}/mcc_generated_files/uart1.o ${OBJECTDIR}/mcc_generated_files/tmr3.o ${OBJECTDIR}/mcc_generated_files/ext_int.o ${OBJECTDIR}/mcc_generated_files/i2c2.o ${OBJECTDIR}/mcc_generated_files/adc1.o ${OBJECTDIR}/MRF24J40.o ${OBJECTDIR}/main.o ${OBJECTDIR}/_ext/780245002/utils.o ${OBJECTDIR}/_ext/780245002/delay.o ${OBJECTDIR}/_ext/780245002/tests.o ${OBJECTDIR}/_ext/780245002/payload.o ${OBJECTDIR}/_ext/780245002/sensor.o ${OBJECTDIR}/_ext/780245002/interface.o
+OBJECTFILES=${OBJECTDIR}/mcc_generated_files/interrupt_manager.o ${OBJECTDIR}/mcc_generated_files/mcc.o ${OBJECTDIR}/mcc_generated_files/pin_manager.o ${OBJECTDIR}/mcc_generated_files/spi1.o ${OBJECTDIR}/mcc_generated_files/uart1.o ${OBJECTDIR}/mcc_generated_files/tmr3.o ${OBJECTDIR}/mcc_generated_files/ext_int.o ${OBJECTDIR}/mcc_generated_files/i2c2.o ${OBJECTDIR}/mcc_generated_files/adc1.o ${OBJECTDIR}/main.o ${OBJECTDIR}/_ext/780245002/utils.o ${OBJECTDIR}/_ext/780245002/delay.o ${OBJECTDIR}/_ext/780245002/tests.o ${OBJECTDIR}/_ext/780245002/payload.o ${OBJECTDIR}/_ext/780245002/sensor.o ${OBJECTDIR}/_ext/780245002/interface.o ${OBJECTDIR}/radio.o ${OBJECTDIR}/_ext/780245002/mrf24j40_driver_old.o
 
 # Source Files
-SOURCEFILES=mcc_generated_files/interrupt_manager.c mcc_generated_files/mcc.c mcc_generated_files/pin_manager.c mcc_generated_files/spi1.c mcc_generated_files/uart1.c mcc_generated_files/tmr3.c mcc_generated_files/ext_int.c mcc_generated_files/i2c2.c mcc_generated_files/adc1.c MRF24J40.c main.c C:/jmm546MPLABXProjects/MRF24J40_test.X/utils.c C:/jmm546MPLABXProjects/MRF24J40_test.X/delay.c C:/jmm546MPLABXProjects/MRF24J40_test.X/tests.c C:/jmm546MPLABXProjects/MRF24J40_test.X/payload.c C:/jmm546MPLABXProjects/MRF24J40_test.X/sensor.c C:/jmm546MPLABXProjects/MRF24J40_test.X/interface.c
+SOURCEFILES=mcc_generated_files/interrupt_manager.c mcc_generated_files/mcc.c mcc_generated_files/pin_manager.c mcc_generated_files/spi1.c mcc_generated_files/uart1.c mcc_generated_files/tmr3.c mcc_generated_files/ext_int.c mcc_generated_files/i2c2.c mcc_generated_files/adc1.c main.c C:/jmm546MPLABXProjects/MRF24J40_test.X/utils.c C:/jmm546MPLABXProjects/MRF24J40_test.X/delay.c C:/jmm546MPLABXProjects/MRF24J40_test.X/tests.c C:/jmm546MPLABXProjects/MRF24J40_test.X/payload.c C:/jmm546MPLABXProjects/MRF24J40_test.X/sensor.c C:/jmm546MPLABXProjects/MRF24J40_test.X/interface.c radio.c C:/jmm546MPLABXProjects/MRF24J40_test.X/mrf24j40_driver_old.c
 
 
 CFLAGS=
@@ -157,13 +157,6 @@ ${OBJECTDIR}/mcc_generated_files/adc1.o: mcc_generated_files/adc1.c  nbproject/M
 	${MP_CC} $(MP_EXTRA_CC_PRE)  mcc_generated_files/adc1.c  -o ${OBJECTDIR}/mcc_generated_files/adc1.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/mcc_generated_files/adc1.o.d"      -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1  -mno-eds-warn  -omf=elf -DXPRJ_default=$(CND_CONF)  -legacy-libc  $(COMPARISON_BUILD)  -I"./" -O0 -msmart-io=1 -Wall -msfr-warn=off  
 	@${FIXDEPS} "${OBJECTDIR}/mcc_generated_files/adc1.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
-${OBJECTDIR}/MRF24J40.o: MRF24J40.c  nbproject/Makefile-${CND_CONF}.mk
-	@${MKDIR} "${OBJECTDIR}" 
-	@${RM} ${OBJECTDIR}/MRF24J40.o.d 
-	@${RM} ${OBJECTDIR}/MRF24J40.o 
-	${MP_CC} $(MP_EXTRA_CC_PRE)  MRF24J40.c  -o ${OBJECTDIR}/MRF24J40.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/MRF24J40.o.d"      -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1  -mno-eds-warn  -omf=elf -DXPRJ_default=$(CND_CONF)  -legacy-libc  $(COMPARISON_BUILD)  -I"./" -O0 -msmart-io=1 -Wall -msfr-warn=off  
-	@${FIXDEPS} "${OBJECTDIR}/MRF24J40.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
-	
 ${OBJECTDIR}/main.o: main.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} "${OBJECTDIR}" 
 	@${RM} ${OBJECTDIR}/main.o.d 
@@ -212,6 +205,20 @@ ${OBJECTDIR}/_ext/780245002/interface.o: C:/jmm546MPLABXProjects/MRF24J40_test.X
 	@${RM} ${OBJECTDIR}/_ext/780245002/interface.o 
 	${MP_CC} $(MP_EXTRA_CC_PRE)  C:/jmm546MPLABXProjects/MRF24J40_test.X/interface.c  -o ${OBJECTDIR}/_ext/780245002/interface.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/780245002/interface.o.d"      -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1  -mno-eds-warn  -omf=elf -DXPRJ_default=$(CND_CONF)  -legacy-libc  $(COMPARISON_BUILD)  -I"./" -O0 -msmart-io=1 -Wall -msfr-warn=off  
 	@${FIXDEPS} "${OBJECTDIR}/_ext/780245002/interface.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
+	
+${OBJECTDIR}/radio.o: radio.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/radio.o.d 
+	@${RM} ${OBJECTDIR}/radio.o 
+	${MP_CC} $(MP_EXTRA_CC_PRE)  radio.c  -o ${OBJECTDIR}/radio.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/radio.o.d"      -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1  -mno-eds-warn  -omf=elf -DXPRJ_default=$(CND_CONF)  -legacy-libc  $(COMPARISON_BUILD)  -I"./" -O0 -msmart-io=1 -Wall -msfr-warn=off  
+	@${FIXDEPS} "${OBJECTDIR}/radio.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
+	
+${OBJECTDIR}/_ext/780245002/mrf24j40_driver_old.o: C:/jmm546MPLABXProjects/MRF24J40_test.X/mrf24j40_driver_old.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}/_ext/780245002" 
+	@${RM} ${OBJECTDIR}/_ext/780245002/mrf24j40_driver_old.o.d 
+	@${RM} ${OBJECTDIR}/_ext/780245002/mrf24j40_driver_old.o 
+	${MP_CC} $(MP_EXTRA_CC_PRE)  C:/jmm546MPLABXProjects/MRF24J40_test.X/mrf24j40_driver_old.c  -o ${OBJECTDIR}/_ext/780245002/mrf24j40_driver_old.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/780245002/mrf24j40_driver_old.o.d"      -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1  -mno-eds-warn  -omf=elf -DXPRJ_default=$(CND_CONF)  -legacy-libc  $(COMPARISON_BUILD)  -I"./" -O0 -msmart-io=1 -Wall -msfr-warn=off  
+	@${FIXDEPS} "${OBJECTDIR}/_ext/780245002/mrf24j40_driver_old.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 else
 ${OBJECTDIR}/mcc_generated_files/interrupt_manager.o: mcc_generated_files/interrupt_manager.c  nbproject/Makefile-${CND_CONF}.mk
@@ -277,13 +284,6 @@ ${OBJECTDIR}/mcc_generated_files/adc1.o: mcc_generated_files/adc1.c  nbproject/M
 	${MP_CC} $(MP_EXTRA_CC_PRE)  mcc_generated_files/adc1.c  -o ${OBJECTDIR}/mcc_generated_files/adc1.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/mcc_generated_files/adc1.o.d"      -mno-eds-warn  -g -omf=elf -DXPRJ_default=$(CND_CONF)  -legacy-libc  $(COMPARISON_BUILD)  -I"./" -O0 -msmart-io=1 -Wall -msfr-warn=off  
 	@${FIXDEPS} "${OBJECTDIR}/mcc_generated_files/adc1.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
-${OBJECTDIR}/MRF24J40.o: MRF24J40.c  nbproject/Makefile-${CND_CONF}.mk
-	@${MKDIR} "${OBJECTDIR}" 
-	@${RM} ${OBJECTDIR}/MRF24J40.o.d 
-	@${RM} ${OBJECTDIR}/MRF24J40.o 
-	${MP_CC} $(MP_EXTRA_CC_PRE)  MRF24J40.c  -o ${OBJECTDIR}/MRF24J40.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/MRF24J40.o.d"      -mno-eds-warn  -g -omf=elf -DXPRJ_default=$(CND_CONF)  -legacy-libc  $(COMPARISON_BUILD)  -I"./" -O0 -msmart-io=1 -Wall -msfr-warn=off  
-	@${FIXDEPS} "${OBJECTDIR}/MRF24J40.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
-	
 ${OBJECTDIR}/main.o: main.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} "${OBJECTDIR}" 
 	@${RM} ${OBJECTDIR}/main.o.d 
@@ -332,6 +332,20 @@ ${OBJECTDIR}/_ext/780245002/interface.o: C:/jmm546MPLABXProjects/MRF24J40_test.X
 	@${RM} ${OBJECTDIR}/_ext/780245002/interface.o 
 	${MP_CC} $(MP_EXTRA_CC_PRE)  C:/jmm546MPLABXProjects/MRF24J40_test.X/interface.c  -o ${OBJECTDIR}/_ext/780245002/interface.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/780245002/interface.o.d"      -mno-eds-warn  -g -omf=elf -DXPRJ_default=$(CND_CONF)  -legacy-libc  $(COMPARISON_BUILD)  -I"./" -O0 -msmart-io=1 -Wall -msfr-warn=off  
 	@${FIXDEPS} "${OBJECTDIR}/_ext/780245002/interface.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
+	
+${OBJECTDIR}/radio.o: radio.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/radio.o.d 
+	@${RM} ${OBJECTDIR}/radio.o 
+	${MP_CC} $(MP_EXTRA_CC_PRE)  radio.c  -o ${OBJECTDIR}/radio.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/radio.o.d"      -mno-eds-warn  -g -omf=elf -DXPRJ_default=$(CND_CONF)  -legacy-libc  $(COMPARISON_BUILD)  -I"./" -O0 -msmart-io=1 -Wall -msfr-warn=off  
+	@${FIXDEPS} "${OBJECTDIR}/radio.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
+	
+${OBJECTDIR}/_ext/780245002/mrf24j40_driver_old.o: C:/jmm546MPLABXProjects/MRF24J40_test.X/mrf24j40_driver_old.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}/_ext/780245002" 
+	@${RM} ${OBJECTDIR}/_ext/780245002/mrf24j40_driver_old.o.d 
+	@${RM} ${OBJECTDIR}/_ext/780245002/mrf24j40_driver_old.o 
+	${MP_CC} $(MP_EXTRA_CC_PRE)  C:/jmm546MPLABXProjects/MRF24J40_test.X/mrf24j40_driver_old.c  -o ${OBJECTDIR}/_ext/780245002/mrf24j40_driver_old.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/780245002/mrf24j40_driver_old.o.d"      -mno-eds-warn  -g -omf=elf -DXPRJ_default=$(CND_CONF)  -legacy-libc  $(COMPARISON_BUILD)  -I"./" -O0 -msmart-io=1 -Wall -msfr-warn=off  
+	@${FIXDEPS} "${OBJECTDIR}/_ext/780245002/mrf24j40_driver_old.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 endif
 

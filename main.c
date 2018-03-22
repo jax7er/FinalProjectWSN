@@ -11,7 +11,7 @@
 #include "xc.h"
 #include "delay.h"
 #include "utils.h"
-#include "MRF24J40.h"
+#include "radio.h"
 #include "mcc_generated_files/mcc.h"
 #include "interface.h"
 #include "tests.h"
@@ -119,7 +119,7 @@ int main(void) {
             
             LED_Toggle();
             
-//            mrf24f40_check_txstat();
+//            radio_check_txstat();
             
 //            delay_ms(2500);
         }
