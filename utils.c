@@ -19,7 +19,7 @@ void utils_uart1Print(char const * const str) {
     if (str) {
         uint16_t i = 0; 
         while (str[i] != '\0') {
-            UART1_Write((uint8_t)str[i++]);
+            UART1_Write(u8(str[i++]));
         }    
     }
 }

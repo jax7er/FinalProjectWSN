@@ -23,7 +23,7 @@
 #define _numWordsToLength(w) ((w) - 1)
 #define _lengthToNumWords(l) ((l) + 1)
 #define _sizeToWordLength(s) ((s) == FLOAT ? 32 : 1 << ((s) + 3))
-#define _printChar(c) do { if (payload_isValidChar(c)) printf("%c", (c)); else printf("<%.2X>", (c)); } while (0)
+#define _printChar(c) do { if (payload_isValidChar(c)) printf("%c", (c)); else printf("<%u>", (c)); } while (0)
 
 typedef enum payloadElementId {
     SEQUENCE_NUM_ID = 'n',
@@ -59,10 +59,10 @@ typedef enum payloadElementIndex {
     NUM_ELEMENTS
 } _elementIndex_e;
 
-union uint32Float_union {
+typedef union uint32Float_union {
     uint32_t uint32_value;
     float    float_value;
-} uint32Float;
+} uint32Float_u;
 
 // externally visible
 uint16_t payload_totalLength = 0; 
@@ -91,10 +91,10 @@ void payload_init(void) {
             case TEMP_INDEX:         _elements[e_i] = _makeElement(TEMP_ID,         FLOAT,   1,                 &_tempValue);     break;  
             case PRESSURE_INDEX:     _elements[e_i] = _makeElement(PRESSURE_ID,     BITS_32, 1,                 &_pressureValue); break;  
             case TEST_STRING_INDEX:  _elements[e_i] = _makeElement(TEST_STRING_ID,  BITS_8,  _len(_testString), _testString);     break;
-            default: println("Unknown payload element index: %u", e_i);
+            default: println("Unknown payload element index: %u", e_i); continue;
         }
         
-        _length_bits += (_sizeToWordLength(_elements[e_i].size) * _lengthToNumWords(_elements[e_i].length));
+        _length_bits += _sizeToWordLength(_elements[e_i].size) * _lengthToNumWords(_elements[e_i].length);
     }
     
     payload_totalLength = mhrLength + (_length_bits / 8);
@@ -116,7 +116,7 @@ void payload_update(void) {
     _tempValue = sensor_readTemp();    
     _pressureValue = sensor_readPressure();
     
-    println("adc = %u, rh = %c, temp = %f, pressure = %ul", _adcValue, _rhValue, _tempValue, _pressureValue);
+    println("adc = %u, rh = %u, temp = %f, pressure = %lu", _adcValue, _rhValue, d(_tempValue), _pressureValue);
 }
 
 void payload_write() {
@@ -133,30 +133,31 @@ void payload_write() {
 
         // write the element header (total 2 bytes)
         radio_write_fifo(fifo_i++, _elements[element_i].id);
-        radio_write_fifo(fifo_i++, (((uint8_t)(_elements[element_i].size)) << 6) | _elements[element_i].length);
+        radio_write_fifo(fifo_i++, (u8(_elements[element_i].size) << 6) | _elements[element_i].length);
 
         // write the element payload (total ((length + 1) * 2^(size + 3) / 8) bytes)
         uint16_t word_i = 0;
         void * data_p = _elements[element_i].data_p;
+        uint32Float_u uint32Float;
         while (word_i < numWords) {
             switch (_elements[element_i].size) {
                 case FLOAT: { // floats are also 32 bits
                     uint32Float.float_value = ((float *)(data_p))[word_i]; // use union to get the correct bit pattern as a uint32
-                    radio_write_fifo(fifo_i++, ((uint8_t)(uint32Float.uint32_value >> 24)));
-                    radio_write_fifo(fifo_i++, ((uint8_t)(uint32Float.uint32_value >> 16)));
-                    radio_write_fifo(fifo_i++, ((uint8_t)(uint32Float.uint32_value >> 8)));
-                    radio_write_fifo(fifo_i++, ((uint8_t)(uint32Float.uint32_value)));
+                    radio_write_fifo(fifo_i++, u8(uint32Float.uint32_value >> 24));
+                    radio_write_fifo(fifo_i++, u8(uint32Float.uint32_value >> 16));
+                    radio_write_fifo(fifo_i++, u8(uint32Float.uint32_value >> 8));
+                    radio_write_fifo(fifo_i++, u8(uint32Float.uint32_value));
                     break;
                 }
                 case BITS_32: { // 4 writes are required, allow fallthrough to save lines of code
-                    radio_write_fifo(fifo_i++, ((uint8_t)(((uint32_t *)(data_p))[word_i] >> 24)));
-                    radio_write_fifo(fifo_i++, ((uint8_t)(((uint32_t *)(data_p))[word_i] >> 16)));
+                    radio_write_fifo(fifo_i++, u8(u32_p(data_p)[word_i] >> 24));
+                    radio_write_fifo(fifo_i++, u8(u32_p(data_p)[word_i] >> 16));
                 }
                 case BITS_16: { // 2 writes are required, allow fallthrough to save lines of code
-                    radio_write_fifo(fifo_i++, ((uint8_t)(((uint16_t *)(data_p))[word_i] >> 8)));
+                    radio_write_fifo(fifo_i++, u8(u16_p(data_p)[word_i] >> 8));
                 }
                 case BITS_8: { // 1 write is required
-                    radio_write_fifo(fifo_i++, ((uint8_t *)(data_p))[word_i]);
+                    radio_write_fifo(fifo_i++, u8_p(data_p)[word_i]);
                     break;
                 }
                 default:
@@ -196,15 +197,16 @@ void payload_read(void) {
     println("%u RX", rxBuffer[2]);
     
     // cast data to proper type and print
-    printf("RX payload: mhr = [");    
-    buf_i = 0; // reset buffer index
-    while (buf_i < mhrLength) {
-        if (buf_i < mhrLength - 1) { // mhr
-            printf("0x%.2X, ", rxBuffer[buf_i++]);
-        } else { // last mhr value
-            println("0x%.2X]", rxBuffer[buf_i++]);
-        }
-    }
+//    printf("RX payload: mhr = [");    
+//    buf_i = 0; // reset buffer index
+//    while (buf_i < mhrLength) {
+//        if (buf_i < mhrLength - 1) { // mhr
+//            printf("0x%.2X, ", rxBuffer[buf_i++]);
+//        } else { // last mhr value
+//            println("0x%.2X]", rxBuffer[buf_i++]);
+//        }
+//    }
+    buf_i = mhrLength;
     uint16_t element_i = 0;
     while (buf_i < rxPayloadLength) {
 //        println("- payload element %u -", element_i);
@@ -238,10 +240,10 @@ void payload_read(void) {
             
             while (word_i < numWords) {
                 data_16[word_i] = 
-                        (((uint16_t)(rxBuffer[buf_i])) << 8) | 
-                        ((uint16_t)(rxBuffer[buf_i + 1]));
+                        (u16(rxBuffer[buf_i]) << 8) | 
+                        u16(rxBuffer[buf_i + 1]);
                                 
-                println("%u data %u = <%.2X>", element_i, word_i, data_16[word_i]);
+                println("%u data %u = %u", element_i, word_i, data_16[word_i]);
                 
                 word_i++;
                 buf_i += 2; // 16 bits = 2 bytes
@@ -251,28 +253,27 @@ void payload_read(void) {
             
             while (word_i < numWords) {
                 data_32[word_i] = 
-                        (((uint32_t)(rxBuffer[buf_i])) << 24) | 
-                        (((uint32_t)(rxBuffer[buf_i + 1])) << 16) | 
-                        (((uint32_t)(rxBuffer[buf_i + 2])) << 8) | 
-                        ((uint32_t)(rxBuffer[buf_i + 3]));
+                        (u32(rxBuffer[buf_i]) << 24) | 
+                        (u32(rxBuffer[buf_i + 1]) << 16) | 
+                        (u32(rxBuffer[buf_i + 2]) << 8) | 
+                        u32(rxBuffer[buf_i + 3]);
                 
-                println("%u data %u = <%.4X>", element_i, word_i, data_32[word_i]);
+                println("%u data %u = %lu", element_i, word_i, data_32[word_i]);
                 
                 word_i++;
                 buf_i += 4; // 32 bits = 4 bytes
             }
         } else if (size == FLOAT) {
-            float data_f[numWords];
+            uint32Float_u data_f[numWords];
             
             while (word_i < numWords) {
-                uint32Float.uint32_value = 
-                        (((uint32_t)(rxBuffer[buf_i])) << 24) | 
-                        (((uint32_t)(rxBuffer[buf_i + 1])) << 16) | 
-                        (((uint32_t)(rxBuffer[buf_i + 2])) << 8) | 
-                        ((uint32_t)(rxBuffer[buf_i + 3]));
-                data_f[word_i] = uint32Float.float_value;
+                data_f[word_i].uint32_value = 
+                        (u32(rxBuffer[buf_i]) << 24) | 
+                        (u32(rxBuffer[buf_i + 1]) << 16) | 
+                        (u32(rxBuffer[buf_i + 2]) << 8) | 
+                        u32(rxBuffer[buf_i + 3]);
                 
-                println("%u data %u = %f", element_i, word_i, data_f[word_i]);
+                println("%u data %u = %f", element_i, word_i, d(data_f[word_i].float_value));
                 
                 word_i++;
                 buf_i += 4; // 32 bits = 4 bytes

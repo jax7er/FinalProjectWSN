@@ -66,14 +66,13 @@ uint8_t tests_run(testId_e id) {
                 return 0;
             }
         case SYSTEM_TEST_ID_INTERRUPT:
-            radio_set_sleep_time(desiredSleepTime_ms);
-                        
-            radio_sleep_timed_start();
+            radio_sleep_timed(desiredSleepTime_ms);
             
             println("Sleeping MCU...");
-            delay_ms(10);
             
             Sleep();
+            
+            radio_getIntFlags();
             
             if (ifs.wake) {
                 ifs.wake = 0;
@@ -104,17 +103,24 @@ uint8_t tests_run(testId_e id) {
             }
             
             break;
-        case SYSTEM_TEST_ID_RADIO_SLEEP:                        
-            radio_set_sleep_time(desiredSleepTime_ms);
-                        
-            radio_sleep_timed_start();
+        case SYSTEM_TEST_ID_RADIO_SLEEP:    
+            radio_sleep_timed(desiredSleepTime_ms);
             
             println("Waiting for radio to wake after ~%lums...", desiredSleepTime_ms); 
             
-            while (!(ifs.wake)); 
-            ifs.wake = 0;
+            while (!(ifs.event)); 
             
-            println("Radio woken");
+            radio_getIntFlags();
+            
+            if (ifs.wake) {
+                ifs.wake = 0;
+            
+                println("Radio woken");
+            } else {
+                println("Interrupt not from radio wake");
+                
+                return 0;
+            }
             
             break;
         default:

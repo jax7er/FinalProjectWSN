@@ -48,6 +48,7 @@ uint8_t txBuffer[TXNFIFO_SIZE] = {0};
 uint8_t srcAddrH = 0x13; // default address = 0x1357
 uint8_t srcAddrL = 0x57;
 uint8_t mhr[mhrLength] = {0};
+uint32_t slpclkPeriod_ns = 0;
 
 void radio_getIntFlags(void) {
     ifs.event = 0;
@@ -61,19 +62,8 @@ void radio_getIntFlags(void) {
     ifs.wake = (intstat & WAKEIF) != 0;
 }
 
-void radio_sleep_timed_start(void) {
-    radio_set_bit(MAINCNT3, 7); // start the radio sleeping
-}
-
-void radio_set_sleep_time(uint32_t ms) { // uint32_t with units of ms gives up to 49 days of sleep
-    radio_set_bit(SLPCAL2, 4); // start sleep clock calibration            
-    delay_us(1); // sleep calibration takes 800ns            
-    while (!radio_read_bit(SLPCAL2, 7)); // check sleep calibration is complete
-    uint32_t slpclkPeriod_ns = (((uint32_t) (radio_read(SLPCAL2) & 0x0F)) << 16) | (((uint32_t) (radio_read(SLPCAL1))) << 8) | ((uint32_t) (radio_read(SLPCAL0)));
-    slpclkPeriod_ns = (slpclkPeriod_ns * 50) / 16; // *50ns/16
-    println("Radio sleep clock calibration done, SLPCLK period = %luns", slpclkPeriod_ns);
-
-    uint32_t sleepClockCycles = ((uint32_t)((((uint64_t)(ms)) * 1000000) / ((uint64_t)(slpclkPeriod_ns)))) ; // calculate the number of clock cycles needed to wait for desired time
+void radio_sleep_timed(uint32_t ms) { // uint32_t with units of ms gives up to 49 days of sleep
+    uint32_t sleepClockCycles = u32((u64(ms) * 1000000) / u64(slpclkPeriod_ns)); // calculate the number of clock cycles needed to wait for desired time
     
     println("sleepClockCycles = %lu", sleepClockCycles);
     
@@ -81,6 +71,8 @@ void radio_set_sleep_time(uint32_t ms) { // uint32_t with units of ms gives up t
     radio_write(MAINCNT2, (sleepClockCycles >> 16) & 0xFF);
     radio_write(MAINCNT1, (sleepClockCycles >> 8) & 0xFF);
     radio_write(MAINCNT0, sleepClockCycles & 0xFF);
+    
+    radio_set_bit(MAINCNT3, 7); // start the radio sleeping
 }
 
 void radio_trigger_tx(void) {
@@ -315,7 +307,14 @@ void radio_init(void) {
     radio_write(RFCTL, 0x04); // Reset RF state machine.
     delay_us(200);
     radio_write(RFCTL, 0x00);
-    delay_us(200); // delay at least 192 ?s 
+    delay_us(200); // delay at least 192 us
+    
+    radio_set_bit(SLPCAL2, 4); // start sleep clock calibration            
+    delay_us(1); // sleep calibration takes 800ns            
+    while (!radio_read_bit(SLPCAL2, 7)); // check sleep calibration is complete
+    slpclkPeriod_ns = (u32(radio_read(SLPCAL2) & 0x0F) << 16) | (u32(radio_read(SLPCAL1)) << 8) | u32(radio_read(SLPCAL0));
+    slpclkPeriod_ns = (slpclkPeriod_ns * 50) / 16; // *50ns/16
+//    println("Radio sleep clock calibration done, SLPCLK period = %luns", slpclkPeriod_ns);
 
     //  radio_cs_pin(1);
     //  radio_wake_pin(1);

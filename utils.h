@@ -39,6 +39,29 @@
 #define range(counter, lessThan) ((counter) = 0; (counter) < (lessThan); (counter)++)
 #define for_range(counter, lessThan) uint16_t (counter); for range(counter, lessThan)
 
+#define c(x) ((char)(x))
+#define f(x) ((float)(x))
+#define d(x) ((double)(x))
+#define u8(x) ((uint8_t)(x))
+#define u16(x) ((uint16_t)(x))
+#define u32(x) ((uint32_t)(x))
+#define u64(x) ((uint64_t)(x))
+#define i8(x) ((int8_t)(x))
+#define i16(x) ((int16_t)(x))
+#define i32(x) ((int32_t)(x))
+#define i64(x) ((int64_t)(x))
+#define c_p(x) ((char *))(x))
+#define f_p(x) ((float *)(x))
+#define d_p(x) ((double *)(x))
+#define u8_p(x) ((uint8_t *)(x))
+#define u16_p(x) ((uint16_t *)(x))
+#define u32_p(x) ((uint32_t *)(x))
+#define u64_p(x) ((uint64_t *)(x))
+#define i8_p(x) ((int8_t *)(x))
+#define i16_p(x) ((int16_t *)(x))
+#define i32_p(x) ((int32_t *)(x))
+#define i64_p(x) ((int64_t *)(x))
+
 void utils_uart1Print(char const * const str);
 void utils_flashLedForever(void);
 

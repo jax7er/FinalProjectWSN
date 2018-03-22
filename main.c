@@ -31,7 +31,7 @@ int main(void) {
     sensor_init();
     println("sensor init done");
     
-//    println("pressure compensated = %lu", sensor_readPressure());
+//    println("temp = %f", sensor_readTemp());
 //    
 //    while (1);
             
