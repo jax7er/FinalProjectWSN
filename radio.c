@@ -30,7 +30,7 @@
  */
 
 #include "radio.h"
-#include "xc.h"
+#include <xc.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>

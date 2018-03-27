@@ -44,17 +44,19 @@
 
 #ifndef MCC_H
 #define	MCC_H
+
 #include <xc.h>
 #include "pin_manager.h"
 #include <stdint.h>
 #include <stdbool.h>
-#include "uart1.h"
-#include "adc1.h"
-#include "interrupt_manager.h"
-#include "tmr3.h"
 #include "ext_int.h"
-#include "i2c2.h"
 #include "spi1.h"
+#include "adc1.h"
+#include "tmr4.h"
+#include "tmr3.h"
+#include "interrupt_manager.h"
+#include "uart1.h"
+#include "i2c2.h"
 
 #define _XTAL_FREQ  8000000UL
 

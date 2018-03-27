@@ -37,7 +37,7 @@
 #define println(...) do { printf(__VA_ARGS__); printf("\r\n"); } while (0)
 
 #define range(counter, lessThan) ((counter) = 0; (counter) < (lessThan); (counter)++)
-#define for_range(counter, lessThan) uint16_t (counter); for range(counter, lessThan)
+#define for_range(counter, lessThan) uint16_t counter; for range(counter, lessThan)
 
 #define c(x) ((char)(x))
 #define f(x) ((float)(x))

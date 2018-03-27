@@ -366,7 +366,7 @@
 #define VCOOPT(x)	((x & 0xFF))
 
 /* RFCON2 */
-#define PLLEN		(1<<7)
+#define RADIO_PLLEN		(1<<7)
 
 /* RFCON3 */
 #define TXPWRL(x)	((x & 0x03) << 6)

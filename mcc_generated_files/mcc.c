@@ -96,6 +96,7 @@ void SYSTEM_Initialize(void)
     UART1_Initialize();
     ADC1_Initialize();
     TMR3_Initialize();
+    TMR4_Initialize();
     I2C2_Initialize();
     EXT_INT_Initialize();
 }
