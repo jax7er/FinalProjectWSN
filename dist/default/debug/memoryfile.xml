@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <project>
-  <executable name="dist/default/production/MRF24J40_test.X.production.elf">
+  <executable name="dist/default/debug/MRF24J40_test.X.debug.elf">
     <memory name="data">
       <units>bytes</units>
       <length>8192</length>
-      <used>734</used>
-      <free>7458</free>
+      <used>812</used>
+      <free>7380</free>
     </memory>
     <memory name="program">
       <units>bytes</units>
       <length>65268</length>
-      <used>30867</used>
-      <free>34401</free>
+      <used>30663</used>
+      <free>34605</free>
     </memory>
   </executable>
 </project>

@@ -23,13 +23,10 @@ uint8_t moteId = 1; // default to mote 1
 
 int main(void) {
     SYSTEM_Initialize();
-    println("board init done");
+    println("Board init done");
     
     radio_init(); 
-    println("radio init done");
-    
-    sensor_init();
-    println("sensor init done");
+    println("Radio init done");
     
 //    println("temp = %f", sensor_readTemp());
 //    
@@ -37,48 +34,51 @@ int main(void) {
             
     delay_ms(1000);
     
-    if (!BUTTON_GetValue()) { // radio speed test        
+    if (BUTTON_GetValue()) { // radio speed test if button not pressed
         println("Radio speed test started");
         
-        uint16_t const totalBytes = 10240; // 10KB
+        uint16_t const totalBytes = 1024; // 1KB
         uint16_t const payloadBytes = 1;
-        uint16_t const numFrames = totalBytes / payloadBytes;    
+        uint16_t const numDummyFrames = totalBytes / payloadBytes;   
+        uint16_t const numFinishedFrames = numDummyFrames / 4;    
         
         uint8_t const dummyData = 0xAA;
         uint8_t const finishedData = 0xFF;
         
         delay_ms(1000);
         
-        if (!BUTTON_GetValue()) { // transmitter
-            printf("Transmitter. starting TXs...");
-            
-            uint8_t mhr_i = 0;
-            // frame control
-            mhr[mhr_i++] = 0x41; // pan ID compression, data frame
-            mhr[mhr_i++] = 0x88; // 16 bit addresses, 2003 frame version
-            // sequence number
-            mhr[mhr_i++] = payload_seqNum;
-            // address fields
-            mhr[mhr_i++] = 0xFF; // destination PAN ID LSByte (0xFFFF broadcast)
-            mhr[mhr_i++] = 0xFF; // MSByte
-            mhr[mhr_i++] = 0xFF; // destination address LSByte (0xFFFF broadcast)
-            mhr[mhr_i++] = 0xFF; // MSByte
-            mhr[mhr_i++] = srcAddrL; // source address LSByte
-            mhr[mhr_i++] = srcAddrH; // MSByte
+        if (!BUTTON_GetValue()) { // transmitter if button pressed
+            printf("Transmitter, starting TXs...");            
 
             uint16_t numSent = 0;
             uint16_t const totalFrameBytes = mhrLength + payloadBytes;
+            uint8_t mhr_i;
+            uint16_t fifo_i;
             
             do {
+                mhr_i = 0;
+                // frame control
+                mhr[mhr_i++] = 0x41; // pan ID compression, data frame
+                mhr[mhr_i++] = 0x88; // 16 bit addresses, 2003 frame version
+                // sequence number
+                mhr[mhr_i++] = payload_seqNum;
+                // address fields
+                mhr[mhr_i++] = 0xFF; // destination PAN ID LSByte (0xFFFF broadcast)
+                mhr[mhr_i++] = 0xFF; // MSByte
+                mhr[mhr_i++] = 0xFF; // destination address LSByte (0xFFFF broadcast)
+                mhr[mhr_i++] = 0xFF; // MSByte
+                mhr[mhr_i++] = srcAddrL; // source address LSByte
+                mhr[mhr_i++] = srcAddrH; // MSByte
+                
                 // write to TXNFIFO
-                uint16_t fifo_i = TXNFIFO;
+                fifo_i = TXNFIFO;
                 radio_write_fifo(fifo_i++, mhrLength);
                 radio_write_fifo(fifo_i++, totalFrameBytes);
                 mhr_i = 0;
                 while (mhr_i < mhrLength) {
                     radio_write_fifo(fifo_i++, mhr[mhr_i++]);
                 }
-                if (numSent < numFrames) {
+                if (numSent < numDummyFrames) {
                     while (fifo_i < totalFrameBytes) {
                         radio_write_fifo(fifo_i++, dummyData);
                     }
@@ -99,27 +99,37 @@ int main(void) {
                 } while (!(ifs.tx));
                 ifs.tx = 0; // reset TX flag
                 
-                LED_Toggle();   
+                LED_Toggle();
                 
                 numSent++;
-            } while (numSent <= numFrames);
-        } else { // receiver
+            } while (numSent <= (numDummyFrames + numFinishedFrames));
+            
+            println("done");
+        } else { // receiver if button not pressed
             printf("Receiver, waiting for TXs to complete...");
             
             uint16_t numReceived = 0;
-            uint8_t lqis[numFrames];
-            uint8_t rssis[numFrames];
-            float timeTaken_us = 0;
-            
-            startTiming();
+            uint8_t lqis[numDummyFrames];
+            uint8_t rssis[numDummyFrames];
+            float timeTaken_us = 1;            
             
             do {
-                while (!(ifs.event));
+                while (!(ifs.event || !BUTTON_GetValue()));
+                
+                if (!BUTTON_GetValue()) { // if button pressed end of transmission
+                    break;
+                }
 
                 radio_getIntFlags();
 
                 if (ifs.rx) {
                     ifs.rx = 0;
+                    
+                    if (numReceived == 0) { // first packet so start timing 
+                        timer_restart();
+                    }
+                    
+                    timeTaken_us = timer_getTime_us();
 
                     LED_Toggle();
 
@@ -137,7 +147,7 @@ int main(void) {
 
                     radio_read_fifo(fifo_i++); // fcsL
                     radio_read_fifo(fifo_i++); // fcsH
-                    ;
+                    
                     lqis[numReceived] = radio_read_fifo(fifo_i++);
                     rssis[numReceived] = radio_read_fifo(fifo_i++);  
 
@@ -148,11 +158,12 @@ int main(void) {
                     LED_Toggle();
                     
                     numReceived++;
+                    
+//                    println("%u %u %u %u", rxBuffer[1], rxBuffer[2], rxBuffer[4], numReceived);
                 }
-            } while (rxBuffer[mhrLength] != finishedData);
+            } while (rxBuffer[mhrLength] != finishedData); // break when finished data is received
             
-            timeTaken_us = getElapsedTime_us();
-            stopTiming();
+            timer_stop();
             
             uint32_t averageLqi = 0;
             uint32_t averageRssi = 0;
@@ -166,13 +177,15 @@ int main(void) {
             println("done");
             println("%u/%u=%lu%% in %.0fus @ %.0fB/s with avg lqi=%u rssi=%u", 
                     numReceived, 
-                    numFrames,  
-                    (u32(numReceived) * 100UL) / u32(numFrames), 
+                    numDummyFrames,  
+                    (u32(numReceived) * 100UL) / u32(numDummyFrames), 
                     d(timeTaken_us), 
                     d(f(numReceived) / timeTaken_us), 
                     u8(averageLqi), 
                     u8(averageRssi));
         }
+        
+        println("Waiting for reset...");
         
         while (1); // wait for reset
     } else {
@@ -181,7 +194,7 @@ int main(void) {
     
     delay_ms(1000);
     
-    if (!BUTTON_GetValue()) { // perform tests if button pushed
+    if (BUTTON_GetValue()) { // perform tests if button not pushed
         if (tests_runAll()) {
             println("Testing complete");
         } else { 
@@ -216,9 +229,13 @@ int main(void) {
         
         //radio_set_promiscuous(0); // accept all packets, good or bad CRC
     } else {
-        println("TX mode");
+        println("TX mode");        
+    
+        sensor_init();
+        println("Sensor init done");
         
         payload_init(); // initialise data and size of payload
+        println("Payload init done");
         
         LED_SetHigh();
     } 

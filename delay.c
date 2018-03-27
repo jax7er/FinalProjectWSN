@@ -34,22 +34,22 @@ void delay_ms(uint16_t ms) {
     }
 }
 
-void startTiming(void) {
+void timer_start(void) {
     timer45StartValue = timer45CurrentValue; // set start time to current timer value
     T4CONbits.TON = 1; // enable timer 4
 }
 
-void restartTiming(void) {    
+void timer_restart(void) {    
     TMR4 = 0; // reset timer 4 value    
     TMR5HLD = 0; // reset timer 5 value    
     timer45StartValue = timer45ResetValue; // set start time to reset value
     T4CONbits.TON = 1; // enable timer 4
 }
 
-float getElapsedTime_us(void) {
+float timer_getTime_us(void) {
     return 64.0 * f(timer45ElapsedCounts); // 64us per counter increment
 }
 
-void stopTiming(void) {
+void timer_stop(void) {
     T4CONbits.TON = 0; // disable timer 4
 }

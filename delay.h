@@ -33,10 +33,10 @@
 
 void delay_us(uint16_t us);    
 void delay_ms(uint16_t ms);
-void startTiming(void);
-void restartTiming(void);
-float getElapsedTime_us(void);
-void stopTiming(void);
+void timer_start(void);
+void timer_restart(void);
+float timer_getTime_us(void);
+void timer_stop(void);
 
 #endif	/* DELAY_H */
 
