@@ -10,11 +10,11 @@
 #include "radio.h"
 #include "utils.h"
 
-#define timer45CurrentValue ((u32(TMR5HLD) << 16) | u32(TMR4))
-#define timer45ResetValue ((u32(PR5) << 16) | u32(PR4))
-#define timer45ElapsedCounts (timer45StartValue - timer45CurrentValue)
-
 uint32_t timer45StartValue = 0;
+
+static uint32_t timer45GetCurrentValue(void) { return ((u32(TMR5HLD) << 16) | u32(TMR4)); }
+static uint32_t timer45GetResetValue(void) { return ((u32(PR5) << 16) | u32(PR4)); }
+static uint32_t timer45GetElapsedCounts(void) { return timer45GetCurrentValue() - timer45StartValue; }
 
 void delay_us(uint16_t us) {
     PR3 = us * 4; // each clock tick takes 0.25us
@@ -34,20 +34,23 @@ void delay_ms(uint16_t ms) {
     }
 }
 
+void timer_reset(void) {    
+    TMR4 = 0; // reset timer 4 value    
+    TMR5HLD = 0; // reset timer 5 value 
+}
+
 void timer_start(void) {
-    timer45StartValue = timer45CurrentValue; // set start time to current timer value
+    timer45StartValue = timer45GetCurrentValue(); // set start time to current timer value
     T4CONbits.TON = 1; // enable timer 4
 }
 
 void timer_restart(void) {    
-    TMR4 = 0; // reset timer 4 value    
-    TMR5HLD = 0; // reset timer 5 value    
-    timer45StartValue = timer45ResetValue; // set start time to reset value
-    T4CONbits.TON = 1; // enable timer 4
+    timer_reset();  
+    timer_start();
 }
 
 float timer_getTime_us(void) {
-    return 64.0 * f(timer45ElapsedCounts); // 64us per counter increment
+    return 64.0 * f(timer45GetElapsedCounts()); // 64us per counter increment
 }
 
 void timer_stop(void) {

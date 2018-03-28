@@ -39,6 +39,9 @@
 #define range(counter, lessThan) ((counter) = 0; (counter) < (lessThan); (counter)++)
 #define for_range(counter, lessThan) uint16_t counter; for range(counter, lessThan)
 
+#define button_down (BUTTON_GetValue() == 0)
+#define button_up (BUTTON_GetValue() == 1)
+
 #define c(x) ((char)(x))
 #define f(x) ((float)(x))
 #define d(x) ((double)(x))

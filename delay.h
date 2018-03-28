@@ -33,6 +33,7 @@
 
 void delay_us(uint16_t us);    
 void delay_ms(uint16_t ms);
+void timer_reset(void);
 void timer_start(void);
 void timer_restart(void);
 float timer_getTime_us(void);
