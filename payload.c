@@ -184,7 +184,7 @@ void payload_writeReadingsRequest(void) {
     radio_write_fifo(fifo_i++, (u8(BITS_8) << 6) | 0);
     
     // write data, 0 for all readings
-    radio_write_fifo(fifo_i++, 0);
+    radio_write_fifo(fifo_i++, 0); 
 }
 
 void payload_read(void) {

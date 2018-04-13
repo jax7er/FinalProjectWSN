@@ -137,9 +137,9 @@ void radio_getIntFlags(void) {
     
 //    println("INTSTAT = 0x%.2X", intstat);
     
-    ifs.rx = (intstat & RXIF) != 0;
-    ifs.tx = (intstat & TXNIF) != 0;
-    ifs.wake = (intstat & WAKEIF) != 0;
+    ifs.tx = (intstat & 0x01) != 0;
+    ifs.rx = (intstat & 0x08) != 0;
+    ifs.wake = (intstat & 0x70) != 0;
 }
 
 void radio_sleep_timed(uint32_t ms) { // uint32_t with units of ms gives up to 49 days of sleep
@@ -200,7 +200,7 @@ void radio_mhr_write(uint16_t * fifo_i_p) {
 void radio_check_txstat(void) {
     uint8_t txstat = radio_read(TXSTAT);
 
-    if (~txstat & TXNSTAT) { // TXNSTAT == 0 shows a successful transmission
+    if (~txstat & 0x01) { // TXSTAT<0> = TXNSTAT == 0 shows a successful transmission
         println("TX successful, SN = %d, TXSTAT = 0x%.2X", payload_seqNum - 1, txstat);
     } else {
         println("TX failed, SN = %d, TXSTAT = 0x%.2X", payload_seqNum - 1, txstat);
@@ -258,7 +258,7 @@ uint16_t radio_read_rx(void) {
     
     println("%u RX", rxBuffer[2]);
 
-    radio_set_bit(RXFLUSH, 0); // reset the RXFIFO pointer, RXFLUSH = 1
+    radio_rxfifo_flush(); // reset the RXFIFO pointer
 
     radio_clear_bit(BBREG1, 2); // RXDECINV = 0, enable receiving packets off air.
     
@@ -266,7 +266,7 @@ uint16_t radio_read_rx(void) {
 }
 
 void radio_rxfifo_flush(void) {
-    radio_write(RXFLUSH, (radio_read(RXFLUSH) | _RXFLUSH));
+    radio_set_bit(RXFLUSH, 0); // RXFLUSH<0> = RXFLUSH = 1
 }
 
 void radio_printTxFifo() {

@@ -1135,7 +1135,7 @@ __CONFIG1
  *(.comment)
  .comment         0x000000         0x5e c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\liblega-c-elf.a(xfiles.DA_eo)
 
-.debug_info       0x000000       0x8ab6
+.debug_info       0x000000       0x8a81
  *(.debug_info)
  .debug_info      0x000000        0x230 build/default/production/mcc_generated_files/interrupt_manager.o
  .debug_info      0x000230        0x237 build/default/production/mcc_generated_files/mcc.o
@@ -1147,17 +1147,17 @@ __CONFIG1
  .debug_info      0x002c8d        0xf0b build/default/production/mcc_generated_files/i2c2.o
  .debug_info      0x003b98        0xa0e build/default/production/mcc_generated_files/adc1.o
  .debug_info      0x0045a6        0x7cb build/default/production/mcc_generated_files/tmr4.o
- .debug_info      0x004d71        0x56e build/default/production/main.o
- .debug_info      0x0052df        0x2e4 build/default/production/_ext/780245002/utils.o
- .debug_info      0x0055c3        0x86e build/default/production/_ext/780245002/delay.o
- .debug_info      0x005e31        0x73e build/default/production/_ext/780245002/tests.o
- .debug_info      0x00656f        0x835 build/default/production/_ext/780245002/payload.o
- .debug_info      0x006da4        0x6da build/default/production/_ext/780245002/sensor.o
- .debug_info      0x00747e        0xaf5 build/default/production/_ext/780245002/interface.o
- .debug_info      0x007f73        0xb43 build/default/production/radio.o
+ .debug_info      0x004d71        0x562 build/default/production/main.o
+ .debug_info      0x0052d3        0x2e4 build/default/production/_ext/780245002/utils.o
+ .debug_info      0x0055b7        0x86e build/default/production/_ext/780245002/delay.o
+ .debug_info      0x005e25        0x72e build/default/production/_ext/780245002/tests.o
+ .debug_info      0x006553        0x82b build/default/production/_ext/780245002/payload.o
+ .debug_info      0x006d7e        0x6da build/default/production/_ext/780245002/sensor.o
+ .debug_info      0x007458        0xaf5 build/default/production/_ext/780245002/interface.o
+ .debug_info      0x007f4d        0xb34 build/default/production/radio.o
  *(.gnu.linkonce.wi.*)
 
-.debug_abbrev     0x000000       0x156b
+.debug_abbrev     0x000000       0x15b5
  *(.debug_abbrev)
  .debug_abbrev    0x000000         0xb4 build/default/production/mcc_generated_files/interrupt_manager.o
  .debug_abbrev    0x0000b4         0x6a build/default/production/mcc_generated_files/mcc.o
@@ -1169,15 +1169,15 @@ __CONFIG1
  .debug_abbrev    0x000654        0x212 build/default/production/mcc_generated_files/i2c2.o
  .debug_abbrev    0x000866        0x165 build/default/production/mcc_generated_files/adc1.o
  .debug_abbrev    0x0009cb        0x148 build/default/production/mcc_generated_files/tmr4.o
- .debug_abbrev    0x000b13         0xe5 build/default/production/main.o
- .debug_abbrev    0x000bf8         0xe7 build/default/production/_ext/780245002/utils.o
- .debug_abbrev    0x000cdf        0x137 build/default/production/_ext/780245002/delay.o
- .debug_abbrev    0x000e16        0x13c build/default/production/_ext/780245002/tests.o
- .debug_abbrev    0x000f52        0x19c build/default/production/_ext/780245002/payload.o
- .debug_abbrev    0x0010ee        0x186 build/default/production/_ext/780245002/sensor.o
- .debug_abbrev    0x001274        0x128 build/default/production/_ext/780245002/interface.o
- .debug_abbrev    0x00139c        0x1ce build/default/production/radio.o
- .debug_abbrev    0x00156a          0x1 build/default/production/_ext/780245002/mrf24j40_driver_old.o
+ .debug_abbrev    0x000b13         0xf8 build/default/production/main.o
+ .debug_abbrev    0x000c0b         0xe7 build/default/production/_ext/780245002/utils.o
+ .debug_abbrev    0x000cf2        0x137 build/default/production/_ext/780245002/delay.o
+ .debug_abbrev    0x000e29        0x160 build/default/production/_ext/780245002/tests.o
+ .debug_abbrev    0x000f89        0x18b build/default/production/_ext/780245002/payload.o
+ .debug_abbrev    0x001114        0x186 build/default/production/_ext/780245002/sensor.o
+ .debug_abbrev    0x00129a        0x128 build/default/production/_ext/780245002/interface.o
+ .debug_abbrev    0x0013c2        0x1f2 build/default/production/radio.o
+ .debug_abbrev    0x0015b4          0x1 build/default/production/_ext/780245002/mrf24j40_driver_old.o
 
 .debug_line       0x000000       0x1887
  *(.debug_line)

@@ -56,19 +56,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "config.h"
-
-/* Return values */
-#define MRF24J40_INT_RX		0x01
-#define MRF24J40_INT_TX		0x02
-#define MRF24J40_INT_SEC	0x04
-#define MRF24J40_INT_SLP	0x08
-#define MRF24J40_INT_ENC	0x10
-#define MRF24J40_INT_DEC	0x20
-
-#define EIO	  1
-#define EBUSY 2
-
 /* IEEE 802.15.4 constants for building the MHR (MAC header) */
 #define IEEE_FRAME_TYPE_BEACON    0x0
 #define IEEE_FRAME_TYPE_DATA      0x1
@@ -92,20 +79,6 @@
 #define IEEE_802_15_4_HAS_SEC(x)      ((x >> 3) & 0x01)
 #define IEEE_802_15_4_WANTS_ACK(x)     ((x >> 5) & 0x01)
 
-/* enc dec parameters */
-#define MRF24J40_TX_KEY		0x01
-#define MRF24J40_RX_KEY		0x02
-#define MRF24J40_UP_KEY		MRF24J40_TX_KEY
-
-#define MRF24J40_AES_CBC_MAC32	0x07
-#define MRF24J40_AES_CBC_MAC64	0x06
-#define MRF24J40_AES_CBC_MAC128	0x05
-#define MRF24J40_AES_CCM32	0x04
-#define MRF24J40_AES_CCM64	0x03
-#define MRF24J40_AES_CCM128	0x02
-#define MRF24J40_AES_CTR	0x01
-#define MRF24J40_ALGO_NONE	0x00
-
 /* Short Address Control Register Map */
 #define RXMCR		0x00
 #define PANIDL		0x01
@@ -121,7 +94,6 @@
 #define EADR6		0x0B
 #define EADR7		0x0C
 #define RXFLUSH		0x0D
-
 #define ORDER		0x10
 #define TXMCR		0x11
 #define ACKTMOUT	0x12
@@ -137,7 +109,6 @@
 #define TXG2CON		0x1D
 #define ESLOTG23	0x1E
 #define ESLOTG45	0x1F
-
 #define ESLOTG67	0x20
 #define TXPEND		0x21
 #define WAKECON		0x22
@@ -152,7 +123,6 @@
 #define SECCON0		0x2c
 #define SECCON1		0x2d
 #define TXSTBL		0x2e
-
 #define RXSR		0x30
 #define INTSTAT		0x31
 #define MRF24J40_INTCON 0x32
@@ -182,19 +152,15 @@
 #define SLPCAL1     0x20A
 #define SLPCAL2     0x20B
 #define RFSTATE		0x20F
-
 #define RSSI		0x210
 #define SLPCON0		0x211
 #define SLPCON1		0x220
-
 #define WAKETIMEL	0x222
 #define WAKETIMEH	0x223
-
 #define MAINCNT0	0x226
 #define MAINCNT1	0x227
 #define MAINCNT2	0x228
 #define MAINCNT3	0x229
-
 #define ASSOEADR0       0x230
 #define ASSOEADR1       0x231
 #define ASSOEADR2       0x232
@@ -203,10 +169,8 @@
 #define ASSOEADR5       0x235
 #define ASSOEADR6       0x236
 #define ASSOEADR7       0x237
-
 #define ASSOSADR0       0x238
 #define ASSOSADR1       0x239
-
 #define UPNONCE0	0x240
 #define UPNONCE1	0x241
 #define UPNONCE2	0x242
@@ -233,164 +197,16 @@
 #define TXNFIFO_SIZE 128
 #define RXFIFO_SIZE  144
 
-/* RXMCR */
-#define NOACKRSP	(1<<5)
-#define PANCOORD	(1<<3)
-#define COORD		(1<<2)
-#define ERRPKT		(1<<1)
-#define PROMI		(1)
-
 /* RXFLUSH */
-#define WAKEPOL		(1<<6)
-#define WAKEPAD		(1<<5)
-#define CMDONLY		(1<<3)
-#define DATAONLY	(1<<2)
-#define BCNONLY		(1<<1)
 #define _RXFLUSH	(1)
 
-/* TXMCR */
-#define NOCSMA		(1<<7)
-#define BATLIFEXT	(1<<6)
-#define SLOTTED		(1<<5)
-#define MACMINBE(x)	((x & 0x03)<<3)
-#define CSMABF(x)	(x & 0x07)
-
-/* ACKTMOUT */
-#define DRPACK		(1<<7)
-
-/* PACON2 */
-#define FIFOEN		(1<<7)
-#define TXONTS(x)       (x & 0x3F)
-
-/* TXNCON */
-#define FPSTAT		(1<<4)
-#define INDIRECT	(1<<3)
-#define TXNACKREQ	(1<<2)
-#define TXNSECEN	(1<<1)
-#define TXNTRIG		(1)
-
-/* TXPEND */
-#define FPACK		(1)
-
-/* WAKECON */
-#define IMMWAKE		(1<<7)
-#define REGWAKE		(1<<6)
-
 /* TXSTAT */
-#define CCAFAIL		(1<<5)
 #define TXNSTAT		(1)
 
-/* SOFTRST */
-#define RSTPWR		(1<<2)
-#define RSTBB		(1<<1)
-#define RSTMAC		(1)
-
-/* SECCON0 */
-#define SECIGNORE	(1<<7)
-#define SECSTART	(1<<6)
-#define RXCIPHER(x)	((x & 0x07) << 3)
-#define TXNCIPHER(x)	((x & 0x07))
-
-/* SECCON1 */
-#define DISDEC		(1<<1)
-#define DISENC		(1)
-
-/* TXSTBL */
-#define RFSTBL(x)	((x & 0x0f) << 4)
-#define MSIFS(x)	((x & 0x0f))
-
-/* RXSR */
-#define UPSECERR	(1<<6)
-#define SECDECERR	(1<<2)
-
 /* INTSTAT */
-#define SLPIF		(1<<7)
 #define WAKEIF		(1<<6)
-#define HSYMTMRIF	(1<<5)
-#define SECIF		(1<<4)
 #define RXIF		(1<<3)
-#define TXG2IF		(1<<2)
-#define TXG1IF		(1<<1)
 #define TXNIF		(1)
-
-/* INTCON */
-#define SLPIE		(1<<7)
-#define WAKEIE		(1<<6)
-#define HSYMTMRIE	(1<<5)
-#define SECIE		(1<<4)
-#define RXIE		(1<<3)
-#define TXG2IE		(1<<2)
-#define TXG1IE		(1<<1)
-#define TXNIE		(1)
-
-/* SLPACK */
-#define _SLPACK		(1<<7)
-#define WAKECNT_L(x)	(x & 0x03F)
-
-/* RFCTL */
-#define WAKECNT_H(x)	((x & 0x03) << 3)
-#define RFRST		(1<<2)
-#define RFTXMODE	(1<<1)
-#define RFRXMODE	(1)
-
-/* SECCR2 */
-#define UPDEC		(1<<7)
-#define UPENC		(1<<6)
-
-/* BBREG0 */
-#define TURBO		(1)
-
-/* BBREG1 */
-#define RXDECINV	(1<<2)
-
-/* BBREG2 */
-#define CCAMODE(x)	((x & 0x03) <<6)
-#define CCASTH(x)	((x & 0x0F) <<2)
-
-/* BBREG3 */
-#define PREVALIDTH(x)	((x & 0x0F) <<4)
-
-/* BBREG4 */
-#define CSTH(x)		((x & 0x07) << 5)
-
-/* BBREG6 */
-#define RSSIMODE1	(1 << 7)
-#define RSSIMODE2	(1<<6)
-#define RSSIRDY		(1)
-
-/* RFCON0 */
-#define CHANNEL(x)	((x & 0x0F) << 4)
-#define RFOPT(x)	((x & 0x0F))
-
-/* RFCON1 */
-#define VCOOPT(x)	((x & 0xFF))
-
-/* RFCON2 */
-#define RADIO_PLLEN		(1<<7)
-
-/* RFCON3 */
-#define TXPWRL(x)	((x & 0x03) << 6)
-#define TXPWRS(x)	((x & 0x07) << 3)
-
-/* RFCON6 */
-#define TXFIL		(1 << 7)
-#define _20MRECVR       (1 << 4)
-#define BATEN           (1 << 3)
-
-/* RFCON 7 */
-#define SLPCLKSEL(x)	((x & 0x03) << 6)
-#define SLPCLKSEL_100k	(SLPCLKSEL(0x02))
-#define SLPCLKSEL_32k	(SLPCLKSEL(0x01))
-
-/* RFCON8 */
-#define RFVCO		(1 << 4)
-
-/* SLPCON0 */
-#define SLPCLKEN	(1)
-
-/* SLPCON1 */
-#define CLKOUTDIS	(1 << 5)	/* CLKOUTEN' */
-#define SLPCLKDIV(x)	((x & 0x1F))	/* division ratio: 2^(SLPCLKDIV) */
 
 #define radio_spi_preamble() volatile uint8_t tmpIE = radio_get_ie(); radio_set_ie(0); radio_cs_pin(0);
 #define radio_spi_postamble() radio_cs_pin(1); radio_set_ie(tmpIE);
