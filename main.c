@@ -130,7 +130,7 @@ void setup(void) {
     utils_flashLed(1);    
     delay_ms(1000);
     
-    if (button_down) { // perform tests if button not pushed
+    if (button_down) { // perform tests if button not pushed 
         if (tests_runAll()) {
             println("Testing complete");
         } else { 

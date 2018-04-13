@@ -175,6 +175,7 @@ void payload_write() {
 }
 
 void payload_writeReadingsRequest(void) {
+    payload_totalLength = mhrLength + _elementHeaderBits + 8;
     uint16_t fifo_i = TXNFIFO;
     radio_mhr_write(&fifo_i);
     

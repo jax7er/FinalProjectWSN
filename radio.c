@@ -163,22 +163,20 @@ void radio_trigger_tx(void) {
 // creates and writes the MAC header (MHR) to the TXNFIFO on the MRF24J40
 
 void radio_mhr_write(uint16_t * fifo_i_p) {
-    uint8_t mhr_i = 0;
-
     //TODO use destination address of other mote rather than just broadcast
 
     // frame control
-    mhr[mhr_i++] = 0x41; // pan ID compression, data frame
-    mhr[mhr_i++] = 0x88; // 16 bit addresses, 2003 frame version
+    mhr[0] = 0x41; // pan ID compression, data frame
+    mhr[1] = 0x88; // 16 bit addresses, 2003 frame version
     // sequence number
-    mhr[mhr_i++] = payload_seqNum;
+    mhr[2] = payload_seqNum;
     // address fields
-    mhr[mhr_i++] = 0xFF; // destination PAN ID LSByte (0xFFFF broadcast)
-    mhr[mhr_i++] = 0xFF; // MSByte
-    mhr[mhr_i++] = 0xFF; // destination address LSByte (0xFFFF broadcast)
-    mhr[mhr_i++] = 0xFF; // MSByte
-    mhr[mhr_i++] = srcAddrL; // source address LSByte
-    mhr[mhr_i++] = srcAddrH; // MSByte
+    mhr[3] = 0xFF; // destination PAN ID LSByte (0xFFFF broadcast)
+    mhr[4] = 0xFF; // MSByte
+    mhr[5] = 0xFF; // destination address LSByte (0xFFFF broadcast)
+    mhr[6] = 0xFF; // MSByte
+    mhr[7] = srcAddrL; // source address LSByte
+    mhr[8] = srcAddrH; // MSByte
     //memcpy(&(frame[mhrIndex]), sequenceNumberString, sequenceNumberLength); // payload
 
 //    println("TXing [%d]+%d bytes: [0x%.2X%.2X, 0x%.2X, 0x%.2X%.2X, 0x%.2X%.2X, 0x%.2X%.2X] \"%s\"", 
@@ -193,7 +191,7 @@ void radio_mhr_write(uint16_t * fifo_i_p) {
     // write to TXNFIFO
     radio_write_fifo((*fifo_i_p)++, mhrLength);
     radio_write_fifo((*fifo_i_p)++, payload_totalLength);
-    mhr_i = 0;
+    uint8_t mhr_i = 0;
     while (mhr_i < mhrLength) {
         radio_write_fifo((*fifo_i_p)++, mhr[mhr_i++]);
     }
@@ -297,7 +295,9 @@ void radio_printAllRegisters(void) {
     }
 }
 
-void radio_request_readings() {
+void radio_request_readings() {    
+    println("Requesting readings, seqNum = %u", payload_seqNum);
+    
     payload_writeReadingsRequest();
     
     LED_Toggle();
