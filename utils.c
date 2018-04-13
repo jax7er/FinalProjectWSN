@@ -14,7 +14,9 @@
 #include "payload.h"
 #include "delay.h"
 
-#define TOGGLE_LED_PERIOD_MS 250
+#define TOGGLE_LED_PERIOD_MS 150
+
+uint8_t prevButtonDown;
 
 void utils_uart1Print(char const * const str) {
     if (str) {

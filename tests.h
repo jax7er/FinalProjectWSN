@@ -45,6 +45,7 @@ typedef enum {
 
 uint8_t tests_runAll(void);
 uint8_t tests_run(testId_e id);
+void tests_runRadioSpeed(void);
 
 #endif	/* TESTS_H */
 

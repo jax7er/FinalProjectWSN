@@ -26,6 +26,7 @@
 #define _printChar(c) do { if (payload_isValidChar(c)) printf("%c", (c)); else printf("<%u>", (c)); } while (0)
 
 typedef enum payloadElementId {
+    REQUEST_READINGS_ID = 'r',
     SEQUENCE_NUM_ID = 'n',
     ADC_VALUE_ID = 'a',
     RH_ID = 'h',
@@ -78,9 +79,9 @@ static float _tempValue = 0;
 static uint32_t _pressureValue = 0;
 static uint8_t _testString[] = "Hello World...";
 
-void payload_init(void) {
+void payload_init() {
     _length_bits = _elementHeaderBits * NUM_ELEMENTS;
-    
+
     // build the payload array with elements, each element has an entry and new elements need to be added here
     // _makeElement(id, word length, number of words, pointer to data)
     for_range(e_i, NUM_ELEMENTS) {
@@ -93,16 +94,16 @@ void payload_init(void) {
             case TEST_STRING_INDEX:  _elements[e_i] = _makeElement(TEST_STRING_ID,  BITS_8,  _len(_testString), _testString);     break;
             default: println("Unknown payload element index: %u", e_i); continue;
         }
-        
+
         _length_bits += _sizeToWordLength(_elements[e_i].size) * _lengthToNumWords(_elements[e_i].length);
     }
-    
+
     payload_totalLength = mhrLength + (_length_bits / 8);
-    
+
     println("mhr length = %d", mhrLength);
     println("payload length bits (bytes) = %d (%d)", _length_bits, _length_bits / 8);
     println("total length = %d", payload_totalLength);
-    
+
     if (payload_totalLength > _maxLength) {
         println("Total length too big! Maximum is %d", _maxLength);
 
@@ -114,7 +115,7 @@ void payload_update(void) {
     _adcValue = sensor_readAdc();    
     _rhValue = sensor_readRh();    
     _tempValue = sensor_readTemp();    
-    _pressureValue = sensor_readPressure();
+//    _pressureValue = sensor_readPressure();
     
     println("adc = %u, rh = %u, temp = %f, pressure = %lu", _adcValue, _rhValue, d(_tempValue), _pressureValue);
 }
@@ -173,28 +174,20 @@ void payload_write() {
     println("%u TX", payload_seqNum);
 }
 
-void payload_read(void) {
-    radio_set_bit(BBREG1, 2); // RXDECINV = 1, disable receiving packets off air.
-
-    uint16_t fifo_i = RXFIFO;
-    uint8_t frameLength = radio_read_fifo(fifo_i++);
-    uint16_t rxPayloadLength = frameLength - 2; // -2 for the FCS bytes
-
-    uint16_t const fifoEnd = fifo_i + rxPayloadLength;
-    uint16_t buf_i = 0;
-    while (fifo_i < fifoEnd) {
-        rxBuffer[buf_i] = radio_read_fifo(fifo_i);
-        
-        buf_i++;
-        fifo_i++;
-    }
-
-    uint8_t const fcsL = radio_read_fifo(fifo_i++);
-    uint8_t const fcsH = radio_read_fifo(fifo_i++);
-    uint8_t const lqi = radio_read_fifo(fifo_i++);
-    uint8_t const rssi = radio_read_fifo(fifo_i++);  
+void payload_writeReadingsRequest(void) {
+    uint16_t fifo_i = TXNFIFO;
+    radio_mhr_write(&fifo_i);
     
-    println("%u RX", rxBuffer[2]);
+    // write the element header (total 2 bytes)
+    radio_write_fifo(fifo_i++, REQUEST_READINGS_ID);
+    radio_write_fifo(fifo_i++, (u8(BITS_8) << 6) | 0);
+    
+    // write data, 0 for all readings
+    radio_write_fifo(fifo_i++, 0);
+}
+
+void payload_read(void) {
+    uint16_t const rxPayloadLength = radio_read_rx();
     
     // cast data to proper type and print
 //    printf("RX payload: mhr = [");    
@@ -206,7 +199,7 @@ void payload_read(void) {
 //            println("0x%.2X]", rxBuffer[buf_i++]);
 //        }
 //    }
-    buf_i = mhrLength;
+    uint16_t buf_i = mhrLength;
     uint16_t element_i = 0;
     while (buf_i < rxPayloadLength) {
 //        println("- payload element %u -", element_i);
@@ -287,8 +280,8 @@ void payload_read(void) {
     println("FCSL = 0x%.2X", fcsL);
     println("LQI = %d", lqi);
     println("RSSI = %d", rssi);
+}
 
-    radio_set_bit(RXFLUSH, 0); // reset the RXFIFO pointer, RXFLUSH = 1
-
-    radio_clear_bit(BBREG1, 2); // RXDECINV = 0, enable receiving packets off air.
+uint8_t payload_isReadingsRequest(void) {
+    return rxBuffer[mhrLength] == REQUEST_READINGS_ID;
 }

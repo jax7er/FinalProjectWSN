@@ -41,6 +41,8 @@
 
 #define button_down (BUTTON_GetValue() == 0)
 #define button_up (BUTTON_GetValue() == 1)
+extern uint8_t prevButtonDown;
+#define button_press (button_down && !prevButtonDown)
 
 #define c(x) ((char)(x))
 #define f(x) ((float)(x))
@@ -66,6 +68,7 @@
 #define i64_p(x) ((int64_t *)(x))
 
 void utils_uart1Print(char const * const str);
+void utils_flashLed(uint16_t num);
 void utils_flashLedForever(void);
 
 #endif	/* UTILS_H */

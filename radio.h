@@ -423,6 +423,10 @@ typedef struct radio_interrupt_flags {
 
 extern radio_if_t ifs;
 extern uint8_t rxBuffer[];
+extern uint8_t fcsL;
+extern uint8_t fcsH;
+extern uint8_t lqi;
+extern uint8_t rssi;
 extern uint8_t txBuffer[];
 extern uint8_t srcAddrH;
 extern uint8_t srcAddrL;
@@ -439,9 +443,11 @@ uint8_t radio_read_long(uint16_t addr);
 uint8_t radio_read_short(uint8_t addr);
 void radio_write_long(uint16_t addr, uint8_t value);
 void radio_write_short(uint8_t addr, uint8_t value);
+uint16_t radio_read_rx(void);
 void radio_rxfifo_flush(void);
 void radio_printAllRegisters(void);
 void radio_printTxFifo();
+void radio_request_readings();
 
 #endif /* RADIO_H */
 

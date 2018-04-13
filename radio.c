@@ -65,6 +65,10 @@
 
 radio_if_t ifs = {.event = 0, .rx = 0, .tx = 0, .wake = 0};
 uint8_t rxBuffer[RXFIFO_SIZE] = {0};
+uint8_t fcsL = 0;
+uint8_t fcsH = 0;
+uint8_t lqi = 0;
+uint8_t rssi = 0;
 uint8_t txBuffer[TXNFIFO_SIZE] = {0};
 uint8_t srcAddrH = 0x13; // default address = 0x1357
 uint8_t srcAddrL = 0x57;
@@ -233,6 +237,36 @@ void radio_write_short(uint8_t addr, uint8_t value) {
     radio_spi_postamble();
 }
 
+uint16_t radio_read_rx(void) {
+    radio_set_bit(BBREG1, 2); // RXDECINV = 1, disable receiving packets off air.
+
+    uint16_t fifo_i = RXFIFO;
+    uint8_t const frameLength = radio_read_fifo(fifo_i++);
+    uint16_t const rxPayloadLength = frameLength - 2; // -2 for the FCS bytes
+
+    uint16_t const fifoEnd = fifo_i + rxPayloadLength;
+    uint16_t buf_i = 0;
+    while (fifo_i < fifoEnd) {
+        rxBuffer[buf_i] = radio_read_fifo(fifo_i);
+        
+        buf_i++;
+        fifo_i++;
+    }
+
+    fcsL = radio_read_fifo(fifo_i++);
+    fcsH = radio_read_fifo(fifo_i++);
+    lqi = radio_read_fifo(fifo_i++);
+    rssi = radio_read_fifo(fifo_i++);  
+    
+    println("%u RX", rxBuffer[2]);
+
+    radio_set_bit(RXFLUSH, 0); // reset the RXFIFO pointer, RXFLUSH = 1
+
+    radio_clear_bit(BBREG1, 2); // RXDECINV = 0, enable receiving packets off air.
+    
+    return rxPayloadLength;
+}
+
 void radio_rxfifo_flush(void) {
     radio_write(RXFLUSH, (radio_read(RXFLUSH) | _RXFLUSH));
 }
@@ -261,4 +295,21 @@ void radio_printAllRegisters(void) {
     for (addr = 0x200; addr <= 0x24C; addr++) {
         printf("%X=%X\r\n", addr, radio_read(addr));
     }
+}
+
+void radio_request_readings() {
+    payload_writeReadingsRequest();
+    
+    LED_Toggle();
+            
+    radio_trigger_tx(); // trigger transmit
+
+    do {
+        while (!(ifs.event)); // wait for interrupt    
+
+        radio_getIntFlags();
+    } while (!(ifs.tx));
+    ifs.tx = 0; // reset TX flag
+
+    LED_Toggle();
 }

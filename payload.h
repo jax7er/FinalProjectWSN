@@ -43,10 +43,12 @@
 extern uint16_t payload_totalLength;
 extern uint8_t payload_seqNum;
 
-void payload_init(void);
+void payload_init();
 void payload_update(void);
 void payload_write(void);
+void payload_writeReadingsRequest(void);
 void payload_read(void);
+uint8_t payload_isReadingsRequest(void);
 
 #endif	/* PAYLOAD_H */
 
