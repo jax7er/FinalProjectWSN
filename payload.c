@@ -23,7 +23,11 @@
 #define _numWordsToLength(w) ((w) - 1)
 #define _lengthToNumWords(l) ((l) + 1)
 #define _sizeToWordLength(s) ((s) == FLOAT ? 32 : 1 << ((s) + 3))
+#if (PRINT_EN == 1)
 #define _printChar(c) do { if (payload_isValidChar(c)) printf("%c", (c)); else printf("<%u>", (c)); } while (0)
+#else 
+#define _printChar(c) while (0)
+#endif
 
 typedef enum payloadElementId {
     REQUEST_READINGS_ID = 'r',
@@ -78,6 +82,161 @@ static uint8_t _rhValue = 0;
 static float _tempValue = 0;
 static uint32_t _pressureValue = 0;
 static uint8_t _testString[] = "Hello World...";
+
+static void _printMinimal(uint16_t rxPayloadLength) {
+    uint16_t buf_i = mhrLength;
+        
+    while (buf_i < rxPayloadLength) {
+//        println("- payload element %u -", element_i);
+        
+        if (buf_i > mhrLength) printf("|");
+        _elementId_e id = rxBuffer[buf_i++];
+        printf("%c", id);
+        
+        uint8_t sizeAndLength = rxBuffer[buf_i++];
+        uint8_t numWords = _lengthToNumWords(sizeAndLength & 0x3F);
+        
+        uint16_t word_i = 0;
+        uint32Float_u intFloat;
+        while (word_i < numWords) {            
+            switch (id) {
+                case REQUEST_READINGS_ID:
+                    println(":Reading request");
+                    return;
+                case SEQUENCE_NUM_ID:
+                case RH_ID:
+                    printf(word_i == 0 ? ":" : ",");
+                    printf("%u", rxBuffer[buf_i]);
+                    if (id == RH_ID) printf("%%");
+                    buf_i++;
+                    break;
+                case ADC_VALUE_ID:
+                    printf(word_i == 0 ? ":" : ",");
+                    printf("%u/4095", 
+                        (u16(rxBuffer[buf_i]) << 8) | 
+                        u16(rxBuffer[buf_i + 1]));
+                        buf_i += 2;
+                    break;
+                case TEMP_ID:
+                    intFloat.uint32_value = 
+                        (u32(rxBuffer[buf_i]) << 24) | 
+                        (u32(rxBuffer[buf_i + 1]) << 16) | 
+                        (u32(rxBuffer[buf_i + 2]) << 8) | 
+                        u32(rxBuffer[buf_i + 3]);     
+                    printf(word_i == 0 ? ":" : ",");           
+                    printf("%.2fC", d(intFloat.float_value));
+                    buf_i += 4;
+                    break;
+                case PRESSURE_ID:
+                    printf(word_i == 0 ? ":" : ",");
+                    printf("%luPa", 
+                        (u32(rxBuffer[buf_i]) << 24) | 
+                        (u32(rxBuffer[buf_i + 1]) << 16) | 
+                        (u32(rxBuffer[buf_i + 2]) << 8) | 
+                        u32(rxBuffer[buf_i + 3]));
+                    buf_i += 4;
+                    break;
+                case TEST_STRING_ID:
+                    if (word_i == 0) printf(":");
+                    _printChar(rxBuffer[buf_i]);
+                    buf_i++;
+                    break;
+                default:
+                    printf("?");
+                    buf_i++;
+                    break;
+            }
+
+            word_i++;
+        }
+    }
+    
+    printf("\r\n");
+}
+
+static void _printVerbose(uint16_t rxPayloadLength) {
+    uint16_t buf_i = mhrLength;
+    uint16_t element_i = 0;
+    while (buf_i < rxPayloadLength) {
+//        println("- payload element %u -", element_i);
+        
+        println("%u id = %c", element_i, rxBuffer[buf_i++]);
+        
+        uint8_t sizeAndLength = rxBuffer[buf_i++];
+        _elementDataSize_e size = sizeAndLength >> 6;
+        uint8_t numWords = _lengthToNumWords(sizeAndLength & 0x3F);
+        println("%u word length = %u", element_i, _sizeToWordLength(size));
+        println("%u number of words = %u", element_i, numWords);
+        
+        uint16_t word_i = 0;
+        if (size == BITS_8) {
+            uint8_t data_8[numWords];
+            
+            printf("%u data = ", element_i);
+            
+            while (word_i < numWords) {
+                data_8[word_i] = rxBuffer[buf_i];
+                
+                _printChar(data_8[word_i]);
+                
+                word_i++;
+                buf_i++; // 8 bits = 1 byte
+            }
+            
+            printf("\r\n");
+        } else if (size == BITS_16) {
+            uint16_t data_16[numWords];
+            
+            while (word_i < numWords) {
+                data_16[word_i] = 
+                        (u16(rxBuffer[buf_i]) << 8) | 
+                        u16(rxBuffer[buf_i + 1]);
+                                
+                println("%u data %u = %u", element_i, word_i, data_16[word_i]);
+                
+                word_i++;
+                buf_i += 2; // 16 bits = 2 bytes
+            }
+        } else if (size == BITS_32) {
+            uint32_t data_32[numWords];
+            
+            while (word_i < numWords) {
+                data_32[word_i] = 
+                        (u32(rxBuffer[buf_i]) << 24) | 
+                        (u32(rxBuffer[buf_i + 1]) << 16) | 
+                        (u32(rxBuffer[buf_i + 2]) << 8) | 
+                        u32(rxBuffer[buf_i + 3]);
+                
+                println("%u data %u = %lu", element_i, word_i, data_32[word_i]);
+                
+                word_i++;
+                buf_i += 4; // 32 bits = 4 bytes
+            }
+        } else if (size == FLOAT) {
+            uint32Float_u data_f[numWords];
+            
+            while (word_i < numWords) {
+                data_f[word_i].uint32_value = 
+                        (u32(rxBuffer[buf_i]) << 24) | 
+                        (u32(rxBuffer[buf_i + 1]) << 16) | 
+                        (u32(rxBuffer[buf_i + 2]) << 8) | 
+                        u32(rxBuffer[buf_i + 3]);
+                
+                println("%u data %u = %f", element_i, word_i, d(data_f[word_i].float_value));
+                
+                word_i++;
+                buf_i += 4; // 32 bits = 4 bytes
+            }
+        }
+        
+        element_i++;
+    }
+
+    println("FCSH = 0x%.2X", fcsH);
+    println("FCSL = 0x%.2X", fcsL);
+    println("LQI = %d", lqi);
+    println("RSSI = %d", rssi);
+}
 
 void payload_init() {
     _length_bits = _elementHeaderBits * NUM_ELEMENTS;
@@ -200,87 +359,7 @@ void payload_read(void) {
 //            println("0x%.2X]", rxBuffer[buf_i++]);
 //        }
 //    }
-    uint16_t buf_i = mhrLength;
-    uint16_t element_i = 0;
-    while (buf_i < rxPayloadLength) {
-//        println("- payload element %u -", element_i);
-        
-        println("%u id = %c", element_i, rxBuffer[buf_i++]);
-        
-        uint8_t sizeAndLength = rxBuffer[buf_i++];
-        _elementDataSize_e size = sizeAndLength >> 6;
-        uint8_t numWords = _lengthToNumWords(sizeAndLength & 0x3F);
-        println("%u word length = %u", element_i, _sizeToWordLength(size));
-        println("%u number of words = %u", element_i, numWords);
-        
-        uint16_t word_i = 0;
-        if (size == BITS_8) {
-            uint8_t data_8[numWords];
-            
-            printf("%u data = ", element_i);
-            
-            while (word_i < numWords) {
-                data_8[word_i] = rxBuffer[buf_i];
-                
-                _printChar(data_8[word_i]);
-                
-                word_i++;
-                buf_i++; // 8 bits = 1 byte
-            }
-            
-            printf("\r\n");
-        } else if (size == BITS_16) {
-            uint16_t data_16[numWords];
-            
-            while (word_i < numWords) {
-                data_16[word_i] = 
-                        (u16(rxBuffer[buf_i]) << 8) | 
-                        u16(rxBuffer[buf_i + 1]);
-                                
-                println("%u data %u = %u", element_i, word_i, data_16[word_i]);
-                
-                word_i++;
-                buf_i += 2; // 16 bits = 2 bytes
-            }
-        } else if (size == BITS_32) {
-            uint32_t data_32[numWords];
-            
-            while (word_i < numWords) {
-                data_32[word_i] = 
-                        (u32(rxBuffer[buf_i]) << 24) | 
-                        (u32(rxBuffer[buf_i + 1]) << 16) | 
-                        (u32(rxBuffer[buf_i + 2]) << 8) | 
-                        u32(rxBuffer[buf_i + 3]);
-                
-                println("%u data %u = %lu", element_i, word_i, data_32[word_i]);
-                
-                word_i++;
-                buf_i += 4; // 32 bits = 4 bytes
-            }
-        } else if (size == FLOAT) {
-            uint32Float_u data_f[numWords];
-            
-            while (word_i < numWords) {
-                data_f[word_i].uint32_value = 
-                        (u32(rxBuffer[buf_i]) << 24) | 
-                        (u32(rxBuffer[buf_i + 1]) << 16) | 
-                        (u32(rxBuffer[buf_i + 2]) << 8) | 
-                        u32(rxBuffer[buf_i + 3]);
-                
-                println("%u data %u = %f", element_i, word_i, d(data_f[word_i].float_value));
-                
-                word_i++;
-                buf_i += 4; // 32 bits = 4 bytes
-            }
-        }
-        
-        element_i++;
-    }
-
-    println("FCSH = 0x%.2X", fcsH);
-    println("FCSL = 0x%.2X", fcsL);
-    println("LQI = %d", lqi);
-    println("RSSI = %d", rssi);
+    _printMinimal(rxPayloadLength);
 }
 
 uint8_t payload_isReadingsRequest(void) {

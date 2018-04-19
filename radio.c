@@ -256,7 +256,7 @@ uint16_t radio_read_rx(void) {
     lqi = radio_read_fifo(fifo_i++);
     rssi = radio_read_fifo(fifo_i++);  
     
-    println("%u RX", rxBuffer[2]);
+//    println("%u RX", rxBuffer[2]);
 
     radio_rxfifo_flush(); // reset the RXFIFO pointer
 

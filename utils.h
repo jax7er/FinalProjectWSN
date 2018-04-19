@@ -34,15 +34,18 @@
 #include <stdio.h>
 #include <stdint.h>
 
+#define PRINT_EN 1
+#if (PRINT_EN == 1)
 #define println(...) do { printf(__VA_ARGS__); printf("\r\n"); } while (0)
+#else
+#define println(...) while (0);
+#endif
 
 #define range(counter, lessThan) ((counter) = 0; (counter) < (lessThan); (counter)++)
 #define for_range(counter, lessThan) uint16_t counter; for range(counter, lessThan)
 
 #define button_down (BUTTON_GetValue() == 0)
 #define button_up (BUTTON_GetValue() == 1)
-extern uint8_t prevButtonDown;
-#define button_press (button_down && !prevButtonDown)
 
 #define c(x) ((char)(x))
 #define f(x) ((float)(x))

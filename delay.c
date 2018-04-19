@@ -16,8 +16,15 @@
 
 uint32_t timer45StartValue = 0;
 
-static uint32_t timer45GetCurrentValue(void) { return ((u32(TMR5HLD) << 16) | u32(TMR4)); }
-static uint32_t timer45GetElapsedCounts(void) { return timer45GetCurrentValue() - timer45StartValue; }
+static uint32_t timer45GetCurrentValue(void) { 
+    uint32_t value = TMR4; // read TMR4 first to latch TMR5 value into TMR5HLD
+    value += (u32(TMR5HLD) << 16);
+    return value; 
+}
+
+static uint32_t timer45GetElapsedCounts(void) { 
+    return timer45GetCurrentValue() - timer45StartValue; 
+}
 
 /**
  * Blocks for a given number of microseconds
@@ -75,6 +82,10 @@ void timer_restart(void) {
  */
 float timer_getTime_us(void) {
     return 64.0 * f(timer45GetElapsedCounts()); // 64us per counter increment
+}
+
+uint32_t timer_getTime_ms(void) {
+    return (timer45GetElapsedCounts() / u32(1000)) * u32(64);
 }
 
 /**

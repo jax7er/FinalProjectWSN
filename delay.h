@@ -37,6 +37,7 @@ void timer_reset(void);
 void timer_start(void);
 void timer_restart(void);
 float timer_getTime_us(void);
+uint32_t timer_getTime_ms(void);
 void timer_stop(void);
 
 #endif	/* DELAY_H */

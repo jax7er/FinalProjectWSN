@@ -16,8 +16,6 @@
 
 #define TOGGLE_LED_PERIOD_MS 150
 
-uint8_t prevButtonDown;
-
 void utils_uart1Print(char const * const str) {
     if (str) {
         uint16_t i = 0; 
