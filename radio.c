@@ -70,8 +70,8 @@ uint8_t fcsH = 0;
 uint8_t lqi = 0;
 uint8_t rssi = 0;
 uint8_t txBuffer[TXNFIFO_SIZE] = {0};
-uint8_t srcAddrH = 0x13; // default address = 0x1357
-uint8_t srcAddrL = 0x57;
+uint8_t srcAddrH = 0xBA; // default (base) address = 0xBA5E
+uint8_t srcAddrL = 0x5E;
 uint8_t mhr[mhrLength] = {0};
 uint32_t slpclkPeriod_ns = 0;
 

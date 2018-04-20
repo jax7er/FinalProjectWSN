@@ -18,24 +18,44 @@
 #include "payload.h"
 #include "sensor.h" 
 
+typedef enum {
+    BASE,
+    MOTE
+} _nodeType_e;
+
+typedef enum {
+    TIMED,
+    REQUEST,
+    STREAM
+} _operationMode_e;
+
+typedef enum {
+    MANUAL,
+    AUTO
+} _requestMode_e;
+
 void setup(void);
 void testing(void);
 void modeSelection(void);
-void rxLoop(void);
-void txLoop(void);
+void baseLoop(_operationMode_e mode);
+void moteLoop(_operationMode_e mode);
 
-uint8_t rxMode = 1; // default to RX mode
-uint8_t moteId = 1; // default to mote 1
+_operationMode_e const operationMode = STREAM;
+_requestMode_e const requestMode = MANUAL;
+uint32_t const requestDelay_ms = 30000;
+
+_nodeType_e nodeType = BASE; // default to base
+uint8_t moteId = 0; // default to 0 (base)
 
 int main(void) {
     setup(); // 2 flashes
     testing(); // 2 flashes
     modeSelection(); // 1 flash then 2 for rx or 3 for tx
     
-    if (rxMode) {
-        rxLoop();
+    if (nodeType == BASE) {
+        baseLoop(operationMode);
     } else {
-        txLoop();
+        moteLoop(operationMode);
     }
     
     return 0;
@@ -66,7 +86,7 @@ void setup(void) {
 }
 
 void testing(void) {
-    delay_ms(1000);
+    delay_ms(700);
     
     if (button_down) { // radio speed test if button pressed
         tests_runRadioSpeed(); // does not return
@@ -75,7 +95,7 @@ void testing(void) {
     }
     
     utils_flashLed(1);    
-    delay_ms(1000);
+    delay_ms(700);
     
     if (button_down) { // perform tests if button not pushed 
         if (tests_runAll()) {
@@ -93,33 +113,18 @@ void testing(void) {
 }
 
 void modeSelection(void) {
-    delay_ms(1000);
-    
-    if (button_down) { // select which mote this one is
-        srcAddrH = 0x24; // mote 2 has address 0x2468
-        srcAddrL = 0x68;
-        moteId = 2; // mote 2 has id 2
-    }
-                
-    radio_write(SADRH, srcAddrH); // set source address
-    radio_write(SADRL, srcAddrL);
-    
-    println("Mote ID = %u, address = 0x%.2X%.2X", moteId, srcAddrH, srcAddrL); 
-    
-    utils_flashLed(1);
-    delay_ms(1000);
+    delay_ms(700);
         
-    rxMode = button_up; // rx mode if the button is not pressed (pulled up), tx mode if it is
+    nodeType = button_down ? MOTE : BASE; // base if the button is not pressed (pulled up), mote if it is
         
-    if (rxMode) {
-        println("RX mode");
-        delay_ms(10);
+    if (nodeType == BASE) {
+        println("Base node, address = 0x%.2X%.2X", srcAddrH, srcAddrL); 
         
         //radio_set_promiscuous(0); // accept all packets, good or bad CRC
         
         utils_flashLed(2);
     } else {
-        println("TX mode");        
+        println("Mote node");        
     
         sensor_init();
         println("Sensor init done");
@@ -128,18 +133,49 @@ void modeSelection(void) {
         println("Payload init done");
         
         utils_flashLed(3);
+    
+        delay_ms(700);
+
+        if (button_up) { // select which mote this one is
+            srcAddrH = 0x13; // mote 1 has address 0x1357
+            srcAddrL = 0x57;
+            moteId = 1; // mote 1 has id 1
+        } else {            
+            srcAddrH = 0x24; // mote 2 has address 0x2468
+            srcAddrL = 0x68;
+            moteId = 2; // mote 2 has id 2
+        }
+
+        println("ID = %u, address = 0x%.2X%.2X", moteId, srcAddrH, srcAddrL); 
+
+        utils_flashLed(moteId);
     } 
+
+    radio_write(SADRH, srcAddrH); // set source address
+    radio_write(SADRL, srcAddrL);
 }
 
-void rxLoop(void) {
-    uint32_t const numDelay_ms = 30 * 1000;
-    timer_restart();
-    do {
-//        Sleep();
-        while (!(button_down || ifs.event || (timer_getTime_ms() > numDelay_ms))) {
-            delay_ms(100);
-        }
+void baseLoop(_operationMode_e mode) {
+    if (mode == REQUEST && requestMode == AUTO) {
         timer_restart();
+    }
+    do {
+        if (!(ifs.event)) {
+            if (mode == REQUEST) {
+                while (!(button_down || ifs.event)) {
+                    if ((requestMode == AUTO) && (timer_getTime_ms() > requestDelay_ms)) {
+                        break;
+                    } else {
+                        delay_ms(100);
+                    }
+                }
+                if (requestMode == AUTO) {
+                    timer_restart();
+                }
+            } else {
+                Sleep();
+            }
+        }
 
         if (ifs.event) {
             radio_getIntFlags();
@@ -153,11 +189,6 @@ void rxLoop(void) {
 
                 LED_Toggle();
             }
-            if (ifs.wake) {
-                ifs.wake = 0;
-
-                println("Radio woke up"); 
-            }
         } else { // button_down || (timer_getTime_us() > numDelay_ms)
             while (button_down); // wait for button to be released
             radio_request_readings();
@@ -165,36 +196,45 @@ void rxLoop(void) {
     } while (1);
 }
 
-void txLoop(void) {
+void moteLoop(_operationMode_e mode) {
     do {
 //        while (button_down); // wait if pressing the button
 //        while (button_up) { // wait for button press or request   
-        do {
-            radio_sleep_timed(10000);
-            
-            if (!ifs.event) { // if already an event don't sleep as radio will not generate any more interrupts until INTSTAT is read
-                Sleep(); // sleep until interrupt from radio
-            }
-
-            if (ifs.event) {
-                radio_getIntFlags();
-
-                if (ifs.rx) {
-                    ifs.rx = 0;
-
-                    radio_read_rx();
-
-                    if (payload_isReadingsRequest()) {
-                        //TODO work out which readings have been requested, 0 is all readings
-
-                        break;
-                    }
-                } else if (ifs.wake) {
-                    ifs.wake = 0;
-                    break;
+        if (mode != STREAM) {
+            do {
+                if (mode == TIMED) {
+                    radio_sleep_timed(10000);
                 }
-            }
-        } while (1);
+
+                if (!ifs.event) { // if already an event don't sleep as radio will not generate any more interrupts until INTSTAT is read
+                    Sleep(); // sleep until interrupt from radio
+                }
+
+                if (ifs.event) {
+                    radio_getIntFlags();
+
+                    if (ifs.rx) {
+                        ifs.rx = 0;
+
+                        if (mode == REQUEST) {
+                            radio_read_rx();
+
+                            if (payload_isReadingsRequest()) {
+                                //TODO work out which readings have been requested, 0 is all readings
+
+                                break;
+                            }
+                        }
+                    } else if (ifs.wake) {
+                        ifs.wake = 0;
+                        
+                        if (mode == TIMED) {
+                            break;
+                        }
+                    }
+                }
+            } while (1);
+        }
 //        }
 //        while (button_down); // wait for button to be released if previously pressed
 

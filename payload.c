@@ -259,9 +259,9 @@ void payload_init() {
 
     payload_totalLength = mhrLength + (_length_bits / 8);
 
-    println("mhr length = %d", mhrLength);
-    println("payload length bits (bytes) = %d (%d)", _length_bits, _length_bits / 8);
-    println("total length = %d", payload_totalLength);
+//    println("mhr length = %d", mhrLength);
+//    println("payload length bits (bytes) = %d (%d)", _length_bits, _length_bits / 8);
+//    println("total length = %d", payload_totalLength);
 
     if (payload_totalLength > _maxLength) {
         println("Total length too big! Maximum is %d", _maxLength);
