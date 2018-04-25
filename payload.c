@@ -89,9 +89,9 @@ static void _printMinimal(uint16_t rxPayloadLength) {
     while (buf_i < rxPayloadLength) {
 //        println("- payload element %u -", element_i);
         
-        if (buf_i > mhrLength) printf("|");
+//        if (buf_i > mhrLength) printf("|");
         _elementId_e id = rxBuffer[buf_i++];
-        printf("%c", id);
+        printf("|%c:", id);
         
         uint8_t sizeAndLength = rxBuffer[buf_i++];
         uint8_t numWords = _lengthToNumWords(sizeAndLength & 0x3F);
@@ -101,18 +101,15 @@ static void _printMinimal(uint16_t rxPayloadLength) {
         while (word_i < numWords) {            
             switch (id) {
                 case REQUEST_READINGS_ID:
-                    println(":Reading request");
+                    println("Reading request");
                     return;
                 case SEQUENCE_NUM_ID:
                 case RH_ID:
-                    printf(word_i == 0 ? ":" : ",");
                     printf("%u", rxBuffer[buf_i]);
-                    if (id == RH_ID) printf("%%");
                     buf_i++;
                     break;
                 case ADC_VALUE_ID:
-                    printf(word_i == 0 ? ":" : ",");
-                    printf("%u/4095", 
+                    printf("%u", 
                         (u16(rxBuffer[buf_i]) << 8) | 
                         u16(rxBuffer[buf_i + 1]));
                         buf_i += 2;
@@ -122,14 +119,12 @@ static void _printMinimal(uint16_t rxPayloadLength) {
                         (u32(rxBuffer[buf_i]) << 24) | 
                         (u32(rxBuffer[buf_i + 1]) << 16) | 
                         (u32(rxBuffer[buf_i + 2]) << 8) | 
-                        u32(rxBuffer[buf_i + 3]);     
-                    printf(word_i == 0 ? ":" : ",");           
-                    printf("%.2fC", d(intFloat.float_value));
+                        u32(rxBuffer[buf_i + 3]);
+                    printf("%.2f", d(intFloat.float_value));
                     buf_i += 4;
                     break;
-                case PRESSURE_ID:
-                    printf(word_i == 0 ? ":" : ",");
-                    printf("%luPa", 
+                case PRESSURE_ID: 
+                    printf("%lu",  
                         (u32(rxBuffer[buf_i]) << 24) | 
                         (u32(rxBuffer[buf_i + 1]) << 16) | 
                         (u32(rxBuffer[buf_i + 2]) << 8) | 
@@ -137,7 +132,6 @@ static void _printMinimal(uint16_t rxPayloadLength) {
                     buf_i += 4;
                     break;
                 case TEST_STRING_ID:
-                    if (word_i == 0) printf(":");
                     _printChar(rxBuffer[buf_i]);
                     buf_i++;
                     break;
@@ -151,7 +145,7 @@ static void _printMinimal(uint16_t rxPayloadLength) {
         }
     }
     
-    printf("\r\n");
+//    printf("\r\n");
 }
 
 static void _printVerbose(uint16_t rxPayloadLength) {

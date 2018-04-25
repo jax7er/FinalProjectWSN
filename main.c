@@ -36,13 +36,14 @@ typedef enum {
 
 void setup(void);
 void testing(void);
-void modeSelection(void);
-void baseLoop(_operationMode_e mode);
-void moteLoop(_operationMode_e mode);
+void nodeSelection(void);
+void baseLoop(void);
+void moteLoop(void);
 
-_operationMode_e const operationMode = STREAM;
-_requestMode_e const requestMode = MANUAL;
-uint32_t const requestDelay_ms = 30000;
+_operationMode_e operationMode = TIMED;
+_requestMode_e requestMode = MANUAL;
+uint32_t requestDelay_ms = 30000;
+uint32_t radioTimedSleep_ms = 1000;
 
 _nodeType_e nodeType = BASE; // default to base
 uint8_t moteId = 0; // default to 0 (base)
@@ -50,12 +51,12 @@ uint8_t moteId = 0; // default to 0 (base)
 int main(void) {
     setup(); // 2 flashes
     testing(); // 2 flashes
-    modeSelection(); // 1 flash then 2 for rx or 3 for tx
+    nodeSelection(); // 1 flash then 2 for rx or 3 for tx
     
     if (nodeType == BASE) {
-        baseLoop(operationMode);
+        baseLoop();
     } else {
-        moteLoop(operationMode);
+        moteLoop();
     }
     
     return 0;
@@ -112,7 +113,7 @@ void testing(void) {
     utils_flashLed(1);      
 }
 
-void modeSelection(void) {
+void nodeSelection(void) {
     delay_ms(700);
         
     nodeType = button_down ? MOTE : BASE; // base if the button is not pressed (pulled up), mote if it is
@@ -155,13 +156,13 @@ void modeSelection(void) {
     radio_write(SADRL, srcAddrL);
 }
 
-void baseLoop(_operationMode_e mode) {
-    if (mode == REQUEST && requestMode == AUTO) {
+void baseLoop(void) {
+    if (operationMode == REQUEST && requestMode == AUTO) {
         timer_restart();
     }
     do {
         if (!(ifs.event)) {
-            if (mode == REQUEST) {
+//            if (mode == REQUEST) {
                 while (!(button_down || ifs.event)) {
                     if ((requestMode == AUTO) && (timer_getTime_ms() > requestDelay_ms)) {
                         break;
@@ -172,9 +173,9 @@ void baseLoop(_operationMode_e mode) {
                 if (requestMode == AUTO) {
                     timer_restart();
                 }
-            } else {
-                Sleep();
-            }
+//            } else {
+//                Sleep();
+//            }
         }
 
         if (ifs.event) {
@@ -196,14 +197,33 @@ void baseLoop(_operationMode_e mode) {
     } while (1);
 }
 
-void moteLoop(_operationMode_e mode) {
+void moteLoop() {
     do {
+        while (button_down) {
+            switch (operationMode) {
+                case TIMED:
+                    operationMode = REQUEST;
+                    utils_flashLed(2);
+                    break;
+                case REQUEST:
+                    operationMode = STREAM;
+                    utils_flashLed(3);
+                    break;
+                case STREAM:
+                    operationMode = TIMED;
+                    utils_flashLed(1);
+                    break;
+                default:
+                    operationMode = STREAM;
+            }
+            delay_ms(500);
+        }
 //        while (button_down); // wait if pressing the button
 //        while (button_up) { // wait for button press or request   
-        if (mode != STREAM) {
+        if (operationMode != STREAM) {
             do {
-                if (mode == TIMED) {
-                    radio_sleep_timed(10000);
+                if (operationMode == TIMED) {
+                    radio_sleep_timed(radioTimedSleep_ms);
                 }
 
                 if (!ifs.event) { // if already an event don't sleep as radio will not generate any more interrupts until INTSTAT is read
@@ -216,7 +236,7 @@ void moteLoop(_operationMode_e mode) {
                     if (ifs.rx) {
                         ifs.rx = 0;
 
-                        if (mode == REQUEST) {
+                        if (operationMode == REQUEST) {
                             radio_read_rx();
 
                             if (payload_isReadingsRequest()) {
@@ -228,7 +248,7 @@ void moteLoop(_operationMode_e mode) {
                     } else if (ifs.wake) {
                         ifs.wake = 0;
                         
-                        if (mode == TIMED) {
+                        if (operationMode == TIMED) {
                             break;
                         }
                     }
