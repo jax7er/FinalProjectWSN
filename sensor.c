@@ -44,9 +44,16 @@
 
 #define _readingToTemp(r) (((175.72 * f(r)) / 65536.0) - 46.85)
 #define _readingToRh(r)   u8(((125UL * u32(r)) / 65536UL) - 6UL)
+
+sensor_t sensor = (sensor_t){
+    .adcValue = 0,
+    .rhValue = 0,
+    .tempValue = 0,
+    .pressureValue = 0
+};
     
-int32_t c00, c10, c01, c11, c20, c21, c30, pressureRaw, tempRaw;
-int32_t const pressureScaleFactor = 524288; // from datasheet (Table 9) for single sample
+static int32_t _c00, _c10, _c01, _c11, _c20, _c21, _c30, _pressureRaw, _tempRaw;
+static const int32_t _PRESSURE_SCALE_FACTOR = 524288; // from datasheet (Table 9) for single sample
 
 //static void _rhTempSensorWriteCommand(uint8_t cmd) {    
 //    i2c_start(); 
@@ -158,30 +165,39 @@ void sensor_init(void) {
     delay_ms(50); // ensure pressure sensor has definitely had time to start up (>40ms)
     
     // get pressure sensor coefficient values
-    c00 = (u32(_pressureSensorRead(0x13)) << 12) | (u32(_pressureSensorRead(0x14)) << 4) | (u32(_pressureSensorRead(0x15)) >> 4);
-    c10 = (u32(_pressureSensorRead(0x15) & 0x0F) << 16) | (u32(_pressureSensorRead(0x16)) << 8) | u32(_pressureSensorRead(0x17));
-    c01 = (u16(_pressureSensorRead(0x18) << 8)) | u16(_pressureSensorRead(0x19));
-    c11 = (u16(_pressureSensorRead(0x1A) << 8)) | u16(_pressureSensorRead(0x1B));
-    c20 = (u16(_pressureSensorRead(0x1C) << 8)) | u16(_pressureSensorRead(0x1D));
-    c21 = (u16(_pressureSensorRead(0x1E) << 8)) | u16(_pressureSensorRead(0x1F));
-    c30 = (u16(_pressureSensorRead(0x20) << 8)) | u16(_pressureSensorRead(0x21));  
+    _c00 = (u32(_pressureSensorRead(0x13)) << 12) | (u32(_pressureSensorRead(0x14)) << 4) | (u32(_pressureSensorRead(0x15)) >> 4);
+    _c10 = (u32(_pressureSensorRead(0x15) & 0x0F) << 16) | (u32(_pressureSensorRead(0x16)) << 8) | u32(_pressureSensorRead(0x17));
+    _c01 = (u16(_pressureSensorRead(0x18) << 8)) | u16(_pressureSensorRead(0x19));
+    _c11 = (u16(_pressureSensorRead(0x1A) << 8)) | u16(_pressureSensorRead(0x1B));
+    _c20 = (u16(_pressureSensorRead(0x1C) << 8)) | u16(_pressureSensorRead(0x1D));
+    _c21 = (u16(_pressureSensorRead(0x1E) << 8)) | u16(_pressureSensorRead(0x1F));
+    _c30 = (u16(_pressureSensorRead(0x20) << 8)) | u16(_pressureSensorRead(0x21));  
     
 //    println("pressure coeffs pre 2's complement: %ld, %ld, %ld, %ld, %ld, %ld, %ld", c00, c10, c01, c11, c20, c21, c30);
     
     // 20-bit 2's complement so if bit 19 is set, subtract 2^20
-    c00 -= (c00 & (1UL << 19)) ? (1UL << 20) : 0;
-    c10 -= (c10 & (1UL << 19)) ? (1UL << 20) : 0;
+    _c00 -= (_c00 & (1UL << 19)) ? (1UL << 20) : 0;
+    _c10 -= (_c10 & (1UL << 19)) ? (1UL << 20) : 0;
     
     // 16-bit 2's complement so if bit 15 is set, subtract 2^16
-    c01 -= (c01 & (1UL << 15)) ? (1UL << 16) : 0;
-    c11 -= (c11 & (1UL << 15)) ? (1UL << 16) : 0;
-    c20 -= (c20 & (1UL << 15)) ? (1UL << 16) : 0;
-    c21 -= (c21 & (1UL << 15)) ? (1UL << 16) : 0;
-    c30 -= (c30 & (1UL << 15)) ? (1UL << 16) : 0;
+    _c01 -= (_c01 & (1UL << 15)) ? (1UL << 16) : 0;
+    _c11 -= (_c11 & (1UL << 15)) ? (1UL << 16) : 0;
+    _c20 -= (_c20 & (1UL << 15)) ? (1UL << 16) : 0;
+    _c21 -= (_c21 & (1UL << 15)) ? (1UL << 16) : 0;
+    _c30 -= (_c30 & (1UL << 15)) ? (1UL << 16) : 0;
     
 //    println("pressure coeffs: %ld, %ld, %ld, %ld, %ld, %ld, %ld", c00, c10, c01, c11, c20, c21, c30);
     
 //    _rhTempSensorWriteCommand(RH_TEMP_ADDR, RH_TEMP_RESET); 
+}
+
+void sensor_update(void) {    
+    sensor.adcValue = sensor_readAdc();    
+    sensor.rhValue = sensor_readRh();    
+    sensor.tempValue = sensor_readTemp();    
+//    _pressureValue = sensor_readPressure();
+    
+    println("adc = %u, rh = %u, temp = %f, pressure = %lu", sensor.adcValue, sensor.rhValue, d(sensor.tempValue), sensor.pressureValue);
 }
 
 uint8_t sensor_readRh(void) { 
@@ -209,10 +225,10 @@ uint32_t sensor_readPressure(void) {
     }
     uint32_t pressureReading = (u32(_pressureSensorRead(PRESSURE_PSR_B2)) << 16) | (u32(_pressureSensorRead(PRESSURE_PSR_B1)) << 8) | u32(_pressureSensorRead(PRESSURE_PSR_B0));
 //    println("pressure reading = %lu", pressureReading);
-    pressureRaw = (pressureReading & 0x00FFFFFF);    
+    _pressureRaw = (pressureReading & 0x00FFFFFF);    
 //    println("pressure raw pre 2's complement = %ld", pressureRaw);
     // 24-bit 2's complement so if bit 23 is set, subtract 2^24
-    pressureRaw -= (pressureReading & (1UL << 23)) ? (1UL << 24) : 0;    
+    _pressureRaw -= (pressureReading & (1UL << 23)) ? (1UL << 24) : 0;    
 //    println("pressure raw = %ld", pressureRaw);
     
     _pressureSensorWrite(PRESSURE_MEAS_CFG, PRESSURE_READ_TEMP);
@@ -221,23 +237,23 @@ uint32_t sensor_readPressure(void) {
     }
     uint32_t tempReading = (u32(_pressureSensorRead(PRESSURE_TMP_B2)) << 16) | (u32(_pressureSensorRead(PRESSURE_TMP_B1)) << 8) | u32(_pressureSensorRead(PRESSURE_TMP_B0));
 //    println("temp reading = %lu", tempReading);
-    tempRaw = (tempReading & 0x00FFFFFF);   
+    _tempRaw = (tempReading & 0x00FFFFFF);   
 //    println("temp raw pre 2's complement = %ld", tempRaw);
     // 24-bit 2's complement so if bit 23 is set, subtract 2^24
-    tempRaw -= (tempRaw & (1UL << 23)) ? (1UL << 24) : 0;
+    _tempRaw -= (_tempRaw & (1UL << 23)) ? (1UL << 24) : 0;
     
 //    println("temp raw = %ld", tempRaw);
     
-    float pressureScaled = f(pressureRaw) / f(pressureScaleFactor);
-    float tempScaled = f(tempRaw) / f(pressureScaleFactor);
+    float pressureScaled = f(_pressureRaw) / f(_PRESSURE_SCALE_FACTOR);
+    float tempScaled = f(_tempRaw) / f(_PRESSURE_SCALE_FACTOR);
     
 //    println("pressure scaled = %f", pressureScaled);
 //    println("temp scaled = %f", tempScaled);
     
-    return u32(f(c00)
-            + pressureScaled * (f(c10) + pressureScaled * (f(c20) + pressureScaled * f(c30)))
-            + tempScaled * f(c01)
-            + tempScaled * pressureScaled * (f(c11) + pressureScaled * f(c21)));
+    return u32(f(_c00)
+            + pressureScaled * (f(_c10) + pressureScaled * (f(_c20) + pressureScaled * f(_c30)))
+            + tempScaled * f(_c01)
+            + tempScaled * pressureScaled * (f(_c11) + pressureScaled * f(_c21)));
 }
 
 uint16_t sensor_readAdc(void) {

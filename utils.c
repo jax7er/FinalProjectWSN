@@ -16,7 +16,7 @@
 
 #define TOGGLE_LED_PERIOD_MS 150
 
-void utils_uart1Print(char const * const str) {
+void utils_uart1Print(const char * const str) {
     if (str) {
         uint16_t i = 0; 
         while (str[i] != '\0') {

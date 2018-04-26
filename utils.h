@@ -70,7 +70,7 @@
 #define i32_p(x) ((int32_t *)(x))
 #define i64_p(x) ((int64_t *)(x))
 
-void utils_uart1Print(char const * const str);
+void utils_uart1Print(const char * const str);
 void utils_flashLed(uint16_t num);
 void utils_flashLedForever(void);
 

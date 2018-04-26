@@ -70,17 +70,14 @@ typedef union uint32Float_union {
 } uint32Float_u;
 
 // externally visible
-uint16_t payload_totalLength = 0; 
-uint8_t payload_seqNum = 0;
+payload_t payload = (payload_t){
+    .totalLength = 0,
+    .seqNum = 0
+};
 
 // static
 static uint16_t _length_bits = 0;
-
 static _element_t _elements[NUM_ELEMENTS]; // allocate memory for elements
-static uint16_t _adcValue = 0;
-static uint8_t _rhValue = 0;
-static float _tempValue = 0;
-static uint32_t _pressureValue = 0;
 static uint8_t _testString[] = "Hello World...";
 
 static void _printMinimal(uint16_t rxPayloadLength) {
@@ -239,11 +236,11 @@ void payload_init() {
     // _makeElement(id, word length, number of words, pointer to data)
     for_range(e_i, NUM_ELEMENTS) {
         switch (e_i) {
-            case SEQUENCE_NUM_INDEX: _elements[e_i] = _makeElement(SEQUENCE_NUM_ID, BITS_8,  1,                 &payload_seqNum); break;       
-            case ADC_VALUE_INDEX:    _elements[e_i] = _makeElement(ADC_VALUE_ID,    BITS_16, 1,                 &_adcValue);      break; 
-            case RH_INDEX:           _elements[e_i] = _makeElement(RH_ID,           BITS_8,  1,                 &_rhValue);       break;
-            case TEMP_INDEX:         _elements[e_i] = _makeElement(TEMP_ID,         FLOAT,   1,                 &_tempValue);     break;  
-            case PRESSURE_INDEX:     _elements[e_i] = _makeElement(PRESSURE_ID,     BITS_32, 1,                 &_pressureValue); break;  
+            case SEQUENCE_NUM_INDEX: _elements[e_i] = _makeElement(SEQUENCE_NUM_ID, BITS_8,  1,                 &(payload.seqNum)); break;       
+            case ADC_VALUE_INDEX:    _elements[e_i] = _makeElement(ADC_VALUE_ID,    BITS_16, 1,                 &(sensor.adcValue));      break; 
+            case RH_INDEX:           _elements[e_i] = _makeElement(RH_ID,           BITS_8,  1,                 &(sensor.rhValue));       break;
+            case TEMP_INDEX:         _elements[e_i] = _makeElement(TEMP_ID,         FLOAT,   1,                 &(sensor.tempValue));     break;  
+            case PRESSURE_INDEX:     _elements[e_i] = _makeElement(PRESSURE_ID,     BITS_32, 1,                 &(sensor.pressureValue)); break;  
             case TEST_STRING_INDEX:  _elements[e_i] = _makeElement(TEST_STRING_ID,  BITS_8,  _len(_testString), _testString);     break;
             default: println("Unknown payload element index: %u", e_i); continue;
         }
@@ -251,26 +248,17 @@ void payload_init() {
         _length_bits += _sizeToWordLength(_elements[e_i].size) * _lengthToNumWords(_elements[e_i].length);
     }
 
-    payload_totalLength = MHR_LENGTH + (_length_bits / 8);
+    payload.totalLength = MHR_LENGTH + (_length_bits / 8);
 
 //    println("mhr length = %d", mhrLength);
 //    println("payload length bits (bytes) = %d (%d)", _length_bits, _length_bits / 8);
 //    println("total length = %d", payload_totalLength);
 
-    if (payload_totalLength > _maxLength) {
+    if (payload.totalLength > _maxLength) {
         println("Total length too big! Maximum is %d", _maxLength);
 
         utils_flashLedForever();
     }
-}
-
-void payload_update(void) {    
-    _adcValue = sensor_readAdc();    
-    _rhValue = sensor_readRh();    
-    _tempValue = sensor_readTemp();    
-//    _pressureValue = sensor_readPressure();
-    
-    println("adc = %u, rh = %u, temp = %f, pressure = %lu", _adcValue, _rhValue, d(_tempValue), _pressureValue);
 }
 
 void payload_write() {
@@ -281,7 +269,7 @@ void payload_write() {
     
     uint16_t element_i = 0;
     while (element_i < NUM_ELEMENTS) {
-        uint16_t const numWords = _lengthToNumWords(_elements[element_i].length);
+        const uint16_t numWords = _lengthToNumWords(_elements[element_i].length);
         
 //        println("payload[%d]: num words = %d, word length = %d bits", element_i, numWords, 1 << (payload_elements[element_i].size + 3));
 
@@ -324,11 +312,11 @@ void payload_write() {
         element_i++;
     }
     
-    println("%u TX", payload_seqNum);
+    println("%u TX", payload.seqNum);
 }
 
 void payload_writeReadingsRequest(void) {
-    payload_totalLength = MHR_LENGTH + _elementHeaderBits + 8;
+    payload.totalLength = MHR_LENGTH + _elementHeaderBits + 8;
     uint16_t fifo_i = TXNFIFO;
     radio_mhr_write(&fifo_i);
     
@@ -341,7 +329,7 @@ void payload_writeReadingsRequest(void) {
 }
 
 void payload_read(void) {
-    uint16_t const rxPayloadLength = radio_read_rx();
+    const uint16_t rxPayloadLength = radio_read_rx();
     
     // cast data to proper type and print
 //    printf("RX payload: mhr = [");    

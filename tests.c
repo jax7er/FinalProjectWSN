@@ -14,8 +14,8 @@
 #include "payload.h"
 #include "mcc_generated_files/pin_manager.h"
 
-uint8_t const mockData[] = {2, 45, 84, 78, 144, 240, 255, 254, 10, 50};
-uint16_t const mockDataCount = sizeof(mockData) / sizeof(mockData[0]);
+static const uint8_t mockData[] = {2, 45, 84, 78, 144, 240, 255, 254, 10, 50};
+static const uint16_t mockDataCount = sizeof(mockData) / sizeof(mockData[0]);
 
 uint8_t tests_runAll(void) {
     println("Start all tests...");
@@ -35,7 +35,7 @@ uint8_t tests_runAll(void) {
 uint8_t tests_run(testId_e id) {
     uint16_t mean = 0;
     uint16_t i;
-    uint32_t const desiredSleepTime_ms = 1000; // 1s
+    const uint32_t desiredSleepTime_ms = 1000; // 1s
     
     println("Start test, id = %d...", id);
     
@@ -140,9 +140,9 @@ void tests_runRadioSpeed(void) {
         
     delay_ms(1000);
 
-    uint16_t const payloadBytes = button_up ? 1 : 128;
-    uint16_t const totalBytes = 10240; // 10KB
-    uint16_t const numDummyFrames = totalBytes / payloadBytes;
+    const uint16_t payloadBytes = button_up ? 1 : 128;
+    const uint16_t totalBytes = 10240; // 10KB
+    const uint16_t numDummyFrames = totalBytes / payloadBytes;
     uint16_t fifo_i;
 
     println("Payload bytes = %u", payloadBytes);
@@ -150,7 +150,7 @@ void tests_runRadioSpeed(void) {
     delay_ms(1000);
 
     if (button_down) { // transmitter if button pressed
-        uint16_t const totalFrameBytes = MHR_LENGTH + payloadBytes;
+        const uint16_t totalFrameBytes = MHR_LENGTH + payloadBytes;
         uint16_t numSent;
         uint8_t mhr_i;
 
@@ -165,7 +165,7 @@ void tests_runRadioSpeed(void) {
                 radio.mhr[mhr_i++] = 0x41; // pan ID compression, data frame
                 radio.mhr[mhr_i++] = 0x88; // 16 bit addresses, 2003 frame version
                 // sequence number
-                radio.mhr[mhr_i++] = payload_seqNum;
+                radio.mhr[mhr_i++] = payload.seqNum;
                 // address fields
                 radio.mhr[mhr_i++] = 0xFF; // destination PAN ID LSByte (0xFFFF broadcast)
                 radio.mhr[mhr_i++] = 0xFF; // MSByte

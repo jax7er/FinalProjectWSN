@@ -33,7 +33,17 @@
 
 #include <xc.h> // include processor files - each processor file is guarded.  
 
+typedef struct sensor_ {    
+    uint16_t adcValue;
+    uint8_t rhValue;
+    float tempValue;
+    uint32_t pressureValue;
+} sensor_t ;
+
+extern sensor_t sensor;
+
 void sensor_init(void);
+void sensor_update(void);
 uint8_t sensor_readRh(void);
 float sensor_readTemp(void);
 float sensor_readLastTemp(void);

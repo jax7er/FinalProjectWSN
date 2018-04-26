@@ -160,7 +160,7 @@ void radio_sleep_timed(uint32_t ms) { // uint32_t with units of ms gives up to 4
 
 void radio_trigger_tx(void) {
     radio_set_bit(TXNCON, 0); // set the TXNTRIG bit
-    payload_seqNum++;
+    payload.seqNum++;
 }
 
 // creates and writes the MAC header (MHR) to the TXNFIFO on the MRF24J40
@@ -172,7 +172,7 @@ void radio_mhr_write(uint16_t * fifo_i_p) {
     radio.mhr[0] = 0x41; // pan ID compression, data frame
     radio.mhr[1] = 0x88; // 16 bit addresses, 2003 frame version
     // sequence number
-    radio.mhr[2] = payload_seqNum;
+    radio.mhr[2] = payload.seqNum;
     // address fields
     radio.mhr[3] = 0xFF; // destination PAN ID LSByte (0xFFFF broadcast)
     radio.mhr[4] = 0xFF; // MSByte
@@ -193,7 +193,7 @@ void radio_mhr_write(uint16_t * fifo_i_p) {
 
     // write to TXNFIFO
     radio_write_fifo((*fifo_i_p)++, MHR_LENGTH);
-    radio_write_fifo((*fifo_i_p)++, payload_totalLength);
+    radio_write_fifo((*fifo_i_p)++, payload.totalLength);
     uint8_t mhr_i = 0;
     while (mhr_i < MHR_LENGTH) {
         radio_write_fifo((*fifo_i_p)++, radio.mhr[mhr_i++]);
@@ -204,9 +204,9 @@ void radio_check_txstat(void) {
     uint8_t txstat = radio_read(TXSTAT);
 
     if (~txstat & 0x01) { // TXSTAT<0> = TXNSTAT == 0 shows a successful transmission
-        println("TX successful, SN = %d, TXSTAT = 0x%.2X", payload_seqNum - 1, txstat);
+        println("TX successful, SN = %d, TXSTAT = 0x%.2X", payload.seqNum - 1, txstat);
     } else {
-        println("TX failed, SN = %d, TXSTAT = 0x%.2X", payload_seqNum - 1, txstat);
+        println("TX failed, SN = %d, TXSTAT = 0x%.2X", payload.seqNum - 1, txstat);
     }
 }
 
@@ -242,10 +242,10 @@ uint16_t radio_read_rx(void) {
     radio_set_bit(BBREG1, 2); // RXDECINV = 1, disable receiving packets off air.
 
     uint16_t fifo_i = RXFIFO;
-    uint8_t const frameLength = radio_read_fifo(fifo_i++);
-    uint16_t const rxPayloadLength = frameLength - 2; // -2 for the FCS bytes
+    const uint8_t frameLength = radio_read_fifo(fifo_i++);
+    const uint16_t rxPayloadLength = frameLength - 2; // -2 for the FCS bytes
 
-    uint16_t const fifoEnd = fifo_i + rxPayloadLength;
+    const uint16_t fifoEnd = fifo_i + rxPayloadLength;
     uint16_t buf_i = 0;
     while (fifo_i < fifoEnd) {
         radio.rxBuffer[buf_i] = radio_read_fifo(fifo_i);
@@ -276,7 +276,7 @@ void radio_printTxFifo() {
     printf("TXNFIFO = \"");
     uint8_t value;
     uint16_t fifo_i;
-    for (fifo_i = 0; fifo_i < 6 + payload_totalLength; fifo_i++) {
+    for (fifo_i = 0; fifo_i < 6 + payload.totalLength; fifo_i++) {
         value = radio_read_long(fifo_i);    
         if (payload_isValidChar(value)) {
             printf("%c", value);
@@ -299,7 +299,7 @@ void radio_printAllRegisters(void) {
 }
 
 void radio_request_readings() {    
-    println("Requesting readings, seqNum = %u", payload_seqNum);
+    println("Requesting readings, seqNum = %u", payload.seqNum);
     
     payload_writeReadingsRequest();
     

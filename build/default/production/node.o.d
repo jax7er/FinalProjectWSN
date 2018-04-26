@@ -5,4 +5,5 @@ utils.h  \
 delay.h  \
 payload.h  \
  radio.h  \
+sensor.h  \
 mcc_generated_files/pin_manager.h 

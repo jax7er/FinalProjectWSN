@@ -32,11 +32,6 @@ int main(void) {
 void setup(void) {
     SYSTEM_Initialize();
     
-#if (PRINT_EN == 0)  
-    U1MODEbits.UARTEN = 0; // disable UART1
-    _LATB6 = 0; // set TX pin of UART1 low so it doesn't back power the FT232RL board
-#endif
-    
     println("Board init done");
     
     utils_flashLed(1);
@@ -92,7 +87,11 @@ void nodeSelection(void) {
         
         utils_flashLed(2);
     } else {
-        println("Mote node");        
+        println("Mote node");      
+        
+        
+        U1MODEbits.UARTEN = 0; // disable UART1
+        _LATB6 = 0; // set TX pin of UART1 low so it doesn't back power the FT232RL board
     
         sensor_init();
         println("Sensor init done");

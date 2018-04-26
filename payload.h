@@ -40,11 +40,14 @@
         || (value) == ' ' \
         || (value) == '.')
 
-extern uint16_t payload_totalLength;
-extern uint8_t payload_seqNum;
+typedef struct payload_ {
+    uint16_t totalLength;
+    uint8_t seqNum;
+} payload_t;
+
+extern payload_t payload;
 
 void payload_init();
-void payload_update(void);
 void payload_write(void);
 void payload_writeReadingsRequest(void);
 void payload_read(void);

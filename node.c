@@ -12,6 +12,7 @@
 #include "delay.h"
 #include "payload.h"
 #include "radio.h"
+#include "sensor.h"
 #include "mcc_generated_files/pin_manager.h"
 
 static void _baseLoop(void);
@@ -122,7 +123,7 @@ static void _moteLoop(void) {
 //        }
 //        while (button_down); // wait for button to be released if previously pressed
 
-        payload_update();          
+        sensor_update();          
 
         payload_write();
 
