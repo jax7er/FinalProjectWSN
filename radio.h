@@ -225,28 +225,32 @@
 
 // frame control | sequence number | address fields (dest PAN ID, dest addr, src addr)
 // 2 bytes       | 1 byte          | 6 bytes
-#define frameCtrlLength 2
-#define seqNumLength 1
-#define addrFieldsLength 6
-#define mhrLength (frameCtrlLength + seqNumLength + addrFieldsLength)
+#define FRAME_CTRL_LENGTH 2
+#define SEQ_NUM_LENGTH 1
+#define ADDR_FIELDS_LENGTH 6
+#define MHR_LENGTH (FRAME_CTRL_LENGTH + SEQ_NUM_LENGTH + ADDR_FIELDS_LENGTH)
 
 typedef struct radio_interrupt_flags {
     volatile uint8_t event : 1;
     volatile uint8_t rx : 1;
     volatile uint8_t tx : 1;
     volatile uint8_t wake : 1;
-} radio_if_t;
+} radio_ifs_t;
 
-extern radio_if_t ifs;
-extern uint8_t rxBuffer[];
-extern uint8_t fcsL;
-extern uint8_t fcsH;
-extern uint8_t lqi;
-extern uint8_t rssi;
-extern uint8_t txBuffer[];
-extern uint8_t srcAddrH;
-extern uint8_t srcAddrL;
-extern uint8_t mhr[]; 
+typedef struct radio_ {
+    radio_ifs_t ifs;
+    uint8_t rxBuffer[RXFIFO_SIZE];
+    uint8_t fcsL;
+    uint8_t fcsH;
+    uint8_t lqi;
+    uint8_t rssi;
+    uint8_t txBuffer[TXNFIFO_SIZE];
+    uint8_t srcAddrH;
+    uint8_t srcAddrL;
+    uint8_t mhr[MHR_LENGTH]; 
+} radio_t;
+
+extern radio_t radio;
 
 void radio_init(void);
 void radio_hard_reset(void);

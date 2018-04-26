@@ -13,7 +13,7 @@ mcc_generated_files/tmr4.h  \
 mcc_generated_files/interrupt_manager.h  \
  mcc_generated_files/uart1.h  \
 mcc_generated_files/i2c2.h  \
-interface.h  \
- tests.h  \
+tests.h  \
 payload.h  \
-sensor.h 
+ sensor.h  \
+node.h 

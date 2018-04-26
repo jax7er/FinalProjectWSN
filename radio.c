@@ -63,17 +63,20 @@
 #define radio_reset_pin(v) (_LATB11 = v)
 #define radio_cs_pin(v) (_LATB10 = v)
 
-radio_if_t ifs = {.event = 0, .rx = 0, .tx = 0, .wake = 0};
-uint8_t rxBuffer[RXFIFO_SIZE] = {0};
-uint8_t fcsL = 0;
-uint8_t fcsH = 0;
-uint8_t lqi = 0;
-uint8_t rssi = 0;
-uint8_t txBuffer[TXNFIFO_SIZE] = {0};
-uint8_t srcAddrH = 0xBA; // default (base) address = 0xBA5E
-uint8_t srcAddrL = 0x5E;
-uint8_t mhr[mhrLength] = {0};
-uint32_t slpclkPeriod_ns = 0;
+radio_t radio = (radio_t){
+    .ifs = {0},
+    .rxBuffer = {0},
+    .fcsL = 0,
+    .fcsH = 0,
+    .lqi = 0,
+    .rssi = 0,
+    .txBuffer = {0},
+    .srcAddrH = 0xBA, // default (base) address = 0xBA5E
+    .srcAddrL = 0x5E,
+    .mhr = {0}
+};
+
+static uint32_t _slpclkPeriod_ns = 0;
 
 void radio_init(void) {
     radio_cs_pin(1);
@@ -118,8 +121,8 @@ void radio_init(void) {
     radio_set_bit(SLPCAL2, 4); // start sleep clock calibration            
     delay_us(1); // sleep calibration takes 800ns            
     while (!radio_read_bit(SLPCAL2, 7)); // check sleep calibration is complete
-    slpclkPeriod_ns = (u32(radio_read(SLPCAL2) & 0x0F) << 16) | (u32(radio_read(SLPCAL1)) << 8) | u32(radio_read(SLPCAL0));
-    slpclkPeriod_ns = (slpclkPeriod_ns * 50UL) / 16UL; // *50ns/16
+    _slpclkPeriod_ns = (u32(radio_read(SLPCAL2) & 0x0F) << 16) | (u32(radio_read(SLPCAL1)) << 8) | u32(radio_read(SLPCAL0));
+    _slpclkPeriod_ns = (_slpclkPeriod_ns * 50UL) / 16UL; // *50ns/16
 //    println("Radio sleep clock calibration done, SLPCLK period = %luns", slpclkPeriod_ns);
 }
 
@@ -131,19 +134,19 @@ void radio_hard_reset(void) {
 }
 
 void radio_getIntFlags(void) {
-    ifs.event = 0;
+    radio.ifs.event = 0;
     
     uint8_t intstat = radio_read(INTSTAT);
     
 //    println("INTSTAT = 0x%.2X", intstat);
     
-    ifs.tx = (intstat & 0x01) != 0;
-    ifs.rx = (intstat & 0x08) != 0;
-    ifs.wake = (intstat & 0x70) != 0;
+    radio.ifs.tx = (intstat & 0x01) != 0;
+    radio.ifs.rx = (intstat & 0x08) != 0;
+    radio.ifs.wake = (intstat & 0x70) != 0;
 }
 
 void radio_sleep_timed(uint32_t ms) { // uint32_t with units of ms gives up to 49 days of sleep
-    uint32_t sleepClockCycles = u32((u64(ms) * 1000000) / u64(slpclkPeriod_ns)); // calculate the number of clock cycles needed to wait for desired time
+    uint32_t sleepClockCycles = u32((u64(ms) * 1000000) / u64(_slpclkPeriod_ns)); // calculate the number of clock cycles needed to wait for desired time
     
     println("sleepClockCycles = %lu", sleepClockCycles);
     
@@ -166,17 +169,17 @@ void radio_mhr_write(uint16_t * fifo_i_p) {
     //TODO use destination address of other mote rather than just broadcast
 
     // frame control
-    mhr[0] = 0x41; // pan ID compression, data frame
-    mhr[1] = 0x88; // 16 bit addresses, 2003 frame version
+    radio.mhr[0] = 0x41; // pan ID compression, data frame
+    radio.mhr[1] = 0x88; // 16 bit addresses, 2003 frame version
     // sequence number
-    mhr[2] = payload_seqNum;
+    radio.mhr[2] = payload_seqNum;
     // address fields
-    mhr[3] = 0xFF; // destination PAN ID LSByte (0xFFFF broadcast)
-    mhr[4] = 0xFF; // MSByte
-    mhr[5] = 0xFF; // destination address LSByte (0xFFFF broadcast)
-    mhr[6] = 0xFF; // MSByte
-    mhr[7] = srcAddrL; // source address LSByte
-    mhr[8] = srcAddrH; // MSByte
+    radio.mhr[3] = 0xFF; // destination PAN ID LSByte (0xFFFF broadcast)
+    radio.mhr[4] = 0xFF; // MSByte
+    radio.mhr[5] = 0xFF; // destination address LSByte (0xFFFF broadcast)
+    radio.mhr[6] = 0xFF; // MSByte
+    radio.mhr[7] = radio.srcAddrL; // source address LSByte
+    radio.mhr[8] = radio.srcAddrH; // MSByte
     //memcpy(&(frame[mhrIndex]), sequenceNumberString, sequenceNumberLength); // payload
 
 //    println("TXing [%d]+%d bytes: [0x%.2X%.2X, 0x%.2X, 0x%.2X%.2X, 0x%.2X%.2X, 0x%.2X%.2X] \"%s\"", 
@@ -189,11 +192,11 @@ void radio_mhr_write(uint16_t * fifo_i_p) {
 //    delay_ms(250);
 
     // write to TXNFIFO
-    radio_write_fifo((*fifo_i_p)++, mhrLength);
+    radio_write_fifo((*fifo_i_p)++, MHR_LENGTH);
     radio_write_fifo((*fifo_i_p)++, payload_totalLength);
     uint8_t mhr_i = 0;
-    while (mhr_i < mhrLength) {
-        radio_write_fifo((*fifo_i_p)++, mhr[mhr_i++]);
+    while (mhr_i < MHR_LENGTH) {
+        radio_write_fifo((*fifo_i_p)++, radio.mhr[mhr_i++]);
     }
 }
 
@@ -245,16 +248,16 @@ uint16_t radio_read_rx(void) {
     uint16_t const fifoEnd = fifo_i + rxPayloadLength;
     uint16_t buf_i = 0;
     while (fifo_i < fifoEnd) {
-        rxBuffer[buf_i] = radio_read_fifo(fifo_i);
+        radio.rxBuffer[buf_i] = radio_read_fifo(fifo_i);
         
         buf_i++;
         fifo_i++;
     }
 
-    fcsL = radio_read_fifo(fifo_i++);
-    fcsH = radio_read_fifo(fifo_i++);
-    lqi = radio_read_fifo(fifo_i++);
-    rssi = radio_read_fifo(fifo_i++);  
+    radio.fcsL = radio_read_fifo(fifo_i++);
+    radio.fcsH = radio_read_fifo(fifo_i++);
+    radio.lqi = radio_read_fifo(fifo_i++);
+    radio.rssi = radio_read_fifo(fifo_i++);  
     
 //    println("%u RX", rxBuffer[2]);
 
@@ -305,11 +308,11 @@ void radio_request_readings() {
     radio_trigger_tx(); // trigger transmit
 
     do {
-        while (!(ifs.event)); // wait for interrupt    
+        while (!(radio.ifs.event)); // wait for interrupt    
 
         radio_getIntFlags();
-    } while (!(ifs.tx));
-    ifs.tx = 0; // reset TX flag
+    } while (!(radio.ifs.tx));
+    radio.ifs.tx = 0; // reset TX flag
 
     LED_Toggle();
 }

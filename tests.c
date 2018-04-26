@@ -76,8 +76,8 @@ uint8_t tests_run(testId_e id) {
             
             radio_getIntFlags();
             
-            if (ifs.wake) {
-                ifs.wake = 0;
+            if (radio.ifs.wake) {
+                radio.ifs.wake = 0;
             
                 println("Radio woken");
                 
@@ -110,12 +110,12 @@ uint8_t tests_run(testId_e id) {
             
             println("Waiting for radio to wake after ~%lums...", desiredSleepTime_ms); 
             
-            while (!(ifs.event)); 
+            while (!(radio.ifs.event)); 
             
             radio_getIntFlags();
             
-            if (ifs.wake) {
-                ifs.wake = 0;
+            if (radio.ifs.wake) {
+                radio.ifs.wake = 0;
             
                 println("Radio woken");
             } else {
@@ -150,7 +150,7 @@ void tests_runRadioSpeed(void) {
     delay_ms(1000);
 
     if (button_down) { // transmitter if button pressed
-        uint16_t const totalFrameBytes = mhrLength + payloadBytes;
+        uint16_t const totalFrameBytes = MHR_LENGTH + payloadBytes;
         uint16_t numSent;
         uint8_t mhr_i;
 
@@ -162,25 +162,25 @@ void tests_runRadioSpeed(void) {
             do {
                 mhr_i = 0;
                 // frame control
-                mhr[mhr_i++] = 0x41; // pan ID compression, data frame
-                mhr[mhr_i++] = 0x88; // 16 bit addresses, 2003 frame version
+                radio.mhr[mhr_i++] = 0x41; // pan ID compression, data frame
+                radio.mhr[mhr_i++] = 0x88; // 16 bit addresses, 2003 frame version
                 // sequence number
-                mhr[mhr_i++] = payload_seqNum;
+                radio.mhr[mhr_i++] = payload_seqNum;
                 // address fields
-                mhr[mhr_i++] = 0xFF; // destination PAN ID LSByte (0xFFFF broadcast)
-                mhr[mhr_i++] = 0xFF; // MSByte
-                mhr[mhr_i++] = 0xFF; // destination address LSByte (0xFFFF broadcast)
-                mhr[mhr_i++] = 0xFF; // MSByte
-                mhr[mhr_i++] = srcAddrL; // source address LSByte
-                mhr[mhr_i++] = srcAddrH; // MSByte
+                radio.mhr[mhr_i++] = 0xFF; // destination PAN ID LSByte (0xFFFF broadcast)
+                radio.mhr[mhr_i++] = 0xFF; // MSByte
+                radio.mhr[mhr_i++] = 0xFF; // destination address LSByte (0xFFFF broadcast)
+                radio.mhr[mhr_i++] = 0xFF; // MSByte
+                radio.mhr[mhr_i++] = radio.srcAddrL; // source address LSByte
+                radio.mhr[mhr_i++] = radio.srcAddrH; // MSByte
 
                 // write to TXNFIFO
                 fifo_i = TXNFIFO;
-                radio_write_fifo(fifo_i++, mhrLength);
+                radio_write_fifo(fifo_i++, MHR_LENGTH);
                 radio_write_fifo(fifo_i++, totalFrameBytes);
                 mhr_i = 0;
-                while (mhr_i < mhrLength) {
-                    radio_write_fifo(fifo_i++, mhr[mhr_i++]);
+                while (mhr_i < MHR_LENGTH) {
+                    radio_write_fifo(fifo_i++, radio.mhr[mhr_i++]);
                 }
                 while (fifo_i < totalFrameBytes) {
                     radio_write_fifo(fifo_i, u8(fifo_i));
@@ -192,11 +192,11 @@ void tests_runRadioSpeed(void) {
                 radio_trigger_tx();
 
                 do {
-                    while (!(ifs.event)); // wait for interrupt    
+                    while (!(radio.ifs.event)); // wait for interrupt    
 
                     radio_getIntFlags();
-                } while (!(ifs.tx));
-                ifs.tx = 0; // reset TX flag
+                } while (!(radio.ifs.tx));
+                radio.ifs.tx = 0; // reset TX flag
 
                 LED_Toggle();
 
@@ -226,7 +226,7 @@ void tests_runRadioSpeed(void) {
             timer_reset();
 
             while (1) { // loop until button is pressed
-                while (!(ifs.event || button_down));
+                while (!(radio.ifs.event || button_down));
 
                 timeTaken_us = timer_getTime_us(); 
 
@@ -234,7 +234,7 @@ void tests_runRadioSpeed(void) {
                     break;
                 }
 
-                ifs.event = 0; // assume the event was an rx
+                radio.ifs.event = 0; // assume the event was an rx
                 radio_read(INTSTAT); // read INSTAT register so more interrupts are produced
 
                 if (numReceived == 0) { // first packet so start timing 
@@ -252,7 +252,7 @@ void tests_runRadioSpeed(void) {
                 fifoEnd = fifo_i + rxPayloadLength;
                 buf_i = 0;
                 while (fifo_i < fifoEnd) {
-                    rxBuffer[buf_i++] = radio_read_fifo(fifo_i++);
+                    radio.rxBuffer[buf_i++] = radio_read_fifo(fifo_i++);
                 }
 
                 radio_read_fifo(fifo_i++); // fcsL

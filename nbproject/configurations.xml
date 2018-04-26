@@ -26,6 +26,7 @@
       <itemPath>C:/jmm546MPLABXProjects/MRF24J40_test.X/interface.h</itemPath>
       <itemPath>radio.h</itemPath>
       <itemPath>C:/jmm546MPLABXProjects/MRF24J40_test.X/mrf24j40_driver_old.h</itemPath>
+      <itemPath>node.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -57,6 +58,7 @@
       <itemPath>C:/jmm546MPLABXProjects/MRF24J40_test.X/interface.c</itemPath>
       <itemPath>radio.c</itemPath>
       <itemPath>C:/jmm546MPLABXProjects/MRF24J40_test.X/mrf24j40_driver_old.c</itemPath>
+      <itemPath>node.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"

@@ -84,16 +84,16 @@ static uint32_t _pressureValue = 0;
 static uint8_t _testString[] = "Hello World...";
 
 static void _printMinimal(uint16_t rxPayloadLength) {
-    uint16_t buf_i = mhrLength;
+    uint16_t buf_i = MHR_LENGTH;
         
     while (buf_i < rxPayloadLength) {
 //        println("- payload element %u -", element_i);
         
 //        if (buf_i > mhrLength) printf("|");
-        _elementId_e id = rxBuffer[buf_i++];
+        _elementId_e id = radio.rxBuffer[buf_i++];
         printf("|%c:", id);
         
-        uint8_t sizeAndLength = rxBuffer[buf_i++];
+        uint8_t sizeAndLength = radio.rxBuffer[buf_i++];
         uint8_t numWords = _lengthToNumWords(sizeAndLength & 0x3F);
         
         uint16_t word_i = 0;
@@ -105,34 +105,34 @@ static void _printMinimal(uint16_t rxPayloadLength) {
                     return;
                 case SEQUENCE_NUM_ID:
                 case RH_ID:
-                    printf("%u", rxBuffer[buf_i]);
+                    printf("%u", radio.rxBuffer[buf_i]);
                     buf_i++;
                     break;
                 case ADC_VALUE_ID:
                     printf("%u", 
-                        (u16(rxBuffer[buf_i]) << 8) | 
-                        u16(rxBuffer[buf_i + 1]));
+                        (u16(radio.rxBuffer[buf_i]) << 8) | 
+                        u16(radio.rxBuffer[buf_i + 1]));
                         buf_i += 2;
                     break;
                 case TEMP_ID:
                     intFloat.uint32_value = 
-                        (u32(rxBuffer[buf_i]) << 24) | 
-                        (u32(rxBuffer[buf_i + 1]) << 16) | 
-                        (u32(rxBuffer[buf_i + 2]) << 8) | 
-                        u32(rxBuffer[buf_i + 3]);
+                        (u32(radio.rxBuffer[buf_i]) << 24) | 
+                        (u32(radio.rxBuffer[buf_i + 1]) << 16) | 
+                        (u32(radio.rxBuffer[buf_i + 2]) << 8) | 
+                        u32(radio.rxBuffer[buf_i + 3]);
                     printf("%.2f", d(intFloat.float_value));
                     buf_i += 4;
                     break;
                 case PRESSURE_ID: 
                     printf("%lu",  
-                        (u32(rxBuffer[buf_i]) << 24) | 
-                        (u32(rxBuffer[buf_i + 1]) << 16) | 
-                        (u32(rxBuffer[buf_i + 2]) << 8) | 
-                        u32(rxBuffer[buf_i + 3]));
+                        (u32(radio.rxBuffer[buf_i]) << 24) | 
+                        (u32(radio.rxBuffer[buf_i + 1]) << 16) | 
+                        (u32(radio.rxBuffer[buf_i + 2]) << 8) | 
+                        u32(radio.rxBuffer[buf_i + 3]));
                     buf_i += 4;
                     break;
                 case TEST_STRING_ID:
-                    _printChar(rxBuffer[buf_i]);
+                    _printChar(radio.rxBuffer[buf_i]);
                     buf_i++;
                     break;
                 default:
@@ -149,14 +149,14 @@ static void _printMinimal(uint16_t rxPayloadLength) {
 }
 
 static void _printVerbose(uint16_t rxPayloadLength) {
-    uint16_t buf_i = mhrLength;
+    uint16_t buf_i = MHR_LENGTH;
     uint16_t element_i = 0;
     while (buf_i < rxPayloadLength) {
 //        println("- payload element %u -", element_i);
         
-        println("%u id = %c", element_i, rxBuffer[buf_i++]);
+        println("%u id = %c", element_i, radio.rxBuffer[buf_i++]);
         
-        uint8_t sizeAndLength = rxBuffer[buf_i++];
+        uint8_t sizeAndLength = radio.rxBuffer[buf_i++];
         _elementDataSize_e size = sizeAndLength >> 6;
         uint8_t numWords = _lengthToNumWords(sizeAndLength & 0x3F);
         println("%u word length = %u", element_i, _sizeToWordLength(size));
@@ -169,7 +169,7 @@ static void _printVerbose(uint16_t rxPayloadLength) {
             printf("%u data = ", element_i);
             
             while (word_i < numWords) {
-                data_8[word_i] = rxBuffer[buf_i];
+                data_8[word_i] = radio.rxBuffer[buf_i];
                 
                 _printChar(data_8[word_i]);
                 
@@ -183,8 +183,8 @@ static void _printVerbose(uint16_t rxPayloadLength) {
             
             while (word_i < numWords) {
                 data_16[word_i] = 
-                        (u16(rxBuffer[buf_i]) << 8) | 
-                        u16(rxBuffer[buf_i + 1]);
+                        (u16(radio.rxBuffer[buf_i]) << 8) | 
+                        u16(radio.rxBuffer[buf_i + 1]);
                                 
                 println("%u data %u = %u", element_i, word_i, data_16[word_i]);
                 
@@ -196,10 +196,10 @@ static void _printVerbose(uint16_t rxPayloadLength) {
             
             while (word_i < numWords) {
                 data_32[word_i] = 
-                        (u32(rxBuffer[buf_i]) << 24) | 
-                        (u32(rxBuffer[buf_i + 1]) << 16) | 
-                        (u32(rxBuffer[buf_i + 2]) << 8) | 
-                        u32(rxBuffer[buf_i + 3]);
+                        (u32(radio.rxBuffer[buf_i]) << 24) | 
+                        (u32(radio.rxBuffer[buf_i + 1]) << 16) | 
+                        (u32(radio.rxBuffer[buf_i + 2]) << 8) | 
+                        u32(radio.rxBuffer[buf_i + 3]);
                 
                 println("%u data %u = %lu", element_i, word_i, data_32[word_i]);
                 
@@ -211,10 +211,10 @@ static void _printVerbose(uint16_t rxPayloadLength) {
             
             while (word_i < numWords) {
                 data_f[word_i].uint32_value = 
-                        (u32(rxBuffer[buf_i]) << 24) | 
-                        (u32(rxBuffer[buf_i + 1]) << 16) | 
-                        (u32(rxBuffer[buf_i + 2]) << 8) | 
-                        u32(rxBuffer[buf_i + 3]);
+                        (u32(radio.rxBuffer[buf_i]) << 24) | 
+                        (u32(radio.rxBuffer[buf_i + 1]) << 16) | 
+                        (u32(radio.rxBuffer[buf_i + 2]) << 8) | 
+                        u32(radio.rxBuffer[buf_i + 3]);
                 
                 println("%u data %u = %f", element_i, word_i, d(data_f[word_i].float_value));
                 
@@ -226,10 +226,10 @@ static void _printVerbose(uint16_t rxPayloadLength) {
         element_i++;
     }
 
-    println("FCSH = 0x%.2X", fcsH);
-    println("FCSL = 0x%.2X", fcsL);
-    println("LQI = %d", lqi);
-    println("RSSI = %d", rssi);
+    println("FCSH = 0x%.2X", radio.fcsH);
+    println("FCSL = 0x%.2X", radio.fcsL);
+    println("LQI = %d", radio.lqi);
+    println("RSSI = %d", radio.rssi);
 }
 
 void payload_init() {
@@ -251,7 +251,7 @@ void payload_init() {
         _length_bits += _sizeToWordLength(_elements[e_i].size) * _lengthToNumWords(_elements[e_i].length);
     }
 
-    payload_totalLength = mhrLength + (_length_bits / 8);
+    payload_totalLength = MHR_LENGTH + (_length_bits / 8);
 
 //    println("mhr length = %d", mhrLength);
 //    println("payload length bits (bytes) = %d (%d)", _length_bits, _length_bits / 8);
@@ -328,7 +328,7 @@ void payload_write() {
 }
 
 void payload_writeReadingsRequest(void) {
-    payload_totalLength = mhrLength + _elementHeaderBits + 8;
+    payload_totalLength = MHR_LENGTH + _elementHeaderBits + 8;
     uint16_t fifo_i = TXNFIFO;
     radio_mhr_write(&fifo_i);
     
@@ -357,5 +357,5 @@ void payload_read(void) {
 }
 
 uint8_t payload_isReadingsRequest(void) {
-    return rxBuffer[mhrLength] == REQUEST_READINGS_ID;
+    return radio.rxBuffer[MHR_LENGTH] == REQUEST_READINGS_ID;
 }
