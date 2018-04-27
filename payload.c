@@ -11,12 +11,12 @@
 #include "radio.h"
 #include "sensor.h"
 
-#define _elementIdBits     8
-#define _elementSizeBits   2
-#define _elementLengthBits 6
-#define _elementHeaderBits (_elementIdBits + _elementSizeBits + _elementLengthBits)
+#define _ELEMENT_ID_BITS     8
+#define _ELEMENT_SIZE_BITS   2
+#define _ELEMENT_LENGTH_BITS 6
+#define _ELEMENT_HEADER_BITS (_ELEMENT_ID_BITS + _ELEMENT_SIZE_BITS + _ELEMENT_LENGTH_BITS)
 
-#define _maxLength (TXNFIFO_SIZE - 3)
+#define _MAX_LENGTH (TXNFIFO_SIZE - 3)
 
 #define _makeElement(i, s, w, d_p) (_element_t){.id = (i), .size = (s), .length = _numWordsToLength(w), .data_p = (d_p)}
 #define _len(arr) (sizeof(arr) / sizeof((arr)[0]))
@@ -31,12 +31,12 @@
 
 typedef enum payloadElementId {
     REQUEST_READINGS_ID = 'r',
-    SEQUENCE_NUM_ID = 'n',
-    ADC_VALUE_ID = 'a',
-    RH_ID = 'h',
-    TEMP_ID = 't',
-    PRESSURE_ID = 'p',
-    TEST_STRING_ID = 's'
+    SEQUENCE_NUM_ID =     'n',
+    ADC_VALUE_ID =        'a',
+    RH_ID =               'h',
+    TEMP_ID =             't',
+    PRESSURE_ID =         'p',
+    TEST_STRING_ID =      's'
 } _elementId_e;
 
 typedef enum payloadElementDataSize {
@@ -48,10 +48,10 @@ typedef enum payloadElementDataSize {
 
 // size in bits of payload element = 8 + 2 + 6 + (8 * 2^size * (length + 1)) = 16 + 2^(3 + size) * (length + 1)
 typedef struct payloadElementFormat {
-    _elementId_e id : _elementIdBits; // up to 256 ids
-    _elementDataSize_e size : _elementSizeBits; // number of bits per word
-    unsigned int length : _elementLengthBits; // number of words per element - 1, up to length + 1 words
-    void * data_p; // pointer to data
+    _elementId_e       id :     _ELEMENT_ID_BITS; // up to 256 ids
+    _elementDataSize_e size :   _ELEMENT_SIZE_BITS; // number of bits per word
+    unsigned int       length : _ELEMENT_LENGTH_BITS; // number of words per element - 1, up to length + 1 words
+    void *             data_p; // pointer to data
 } _element_t;
 
 typedef enum payloadElementIndex {
@@ -65,8 +65,8 @@ typedef enum payloadElementIndex {
 } _elementIndex_e;
 
 typedef union uint32Float_union {
-    uint32_t uint32_value;
-    float    float_value;
+    uint32_t u32;
+    float    f;
 } uint32Float_u;
 
 // externally visible
@@ -112,12 +112,12 @@ static void _printMinimal(uint16_t rxPayloadLength) {
                         buf_i += 2;
                     break;
                 case TEMP_ID:
-                    intFloat.uint32_value = 
+                    intFloat.u32 = 
                         (u32(radio.rxBuffer[buf_i]) << 24) | 
                         (u32(radio.rxBuffer[buf_i + 1]) << 16) | 
                         (u32(radio.rxBuffer[buf_i + 2]) << 8) | 
                         u32(radio.rxBuffer[buf_i + 3]);
-                    printf("%.2f", d(intFloat.float_value));
+                    printf("%.2f", d(intFloat.f));
                     buf_i += 4;
                     break;
                 case PRESSURE_ID: 
@@ -207,13 +207,13 @@ static void _printVerbose(uint16_t rxPayloadLength) {
             uint32Float_u data_f[numWords];
             
             while (word_i < numWords) {
-                data_f[word_i].uint32_value = 
+                data_f[word_i].u32 = 
                         (u32(radio.rxBuffer[buf_i]) << 24) | 
                         (u32(radio.rxBuffer[buf_i + 1]) << 16) | 
                         (u32(radio.rxBuffer[buf_i + 2]) << 8) | 
                         u32(radio.rxBuffer[buf_i + 3]);
                 
-                println("%u data %u = %f", element_i, word_i, d(data_f[word_i].float_value));
+                println("%u data %u = %f", element_i, word_i, d(data_f[word_i].f));
                 
                 word_i++;
                 buf_i += 4; // 32 bits = 4 bytes
@@ -230,19 +230,19 @@ static void _printVerbose(uint16_t rxPayloadLength) {
 }
 
 void payload_init() {
-    _length_bits = _elementHeaderBits * NUM_ELEMENTS;
+    _length_bits = _ELEMENT_HEADER_BITS * NUM_ELEMENTS;
 
     // build the payload array with elements, each element has an entry and new elements need to be added here
     // _makeElement(id, word length, number of words, pointer to data)
     for_range(e_i, NUM_ELEMENTS) {
         switch (e_i) {
-            case SEQUENCE_NUM_INDEX: _elements[e_i] = _makeElement(SEQUENCE_NUM_ID, BITS_8,  1,                 &(payload.seqNum)); break;       
+            case SEQUENCE_NUM_INDEX: _elements[e_i] = _makeElement(SEQUENCE_NUM_ID, BITS_8,  1,                 &(payload.seqNum));       break;       
             case ADC_VALUE_INDEX:    _elements[e_i] = _makeElement(ADC_VALUE_ID,    BITS_16, 1,                 &(sensor.adcValue));      break; 
             case RH_INDEX:           _elements[e_i] = _makeElement(RH_ID,           BITS_8,  1,                 &(sensor.rhValue));       break;
             case TEMP_INDEX:         _elements[e_i] = _makeElement(TEMP_ID,         FLOAT,   1,                 &(sensor.tempValue));     break;  
             case PRESSURE_INDEX:     _elements[e_i] = _makeElement(PRESSURE_ID,     BITS_32, 1,                 &(sensor.pressureValue)); break;  
-            case TEST_STRING_INDEX:  _elements[e_i] = _makeElement(TEST_STRING_ID,  BITS_8,  _len(_testString), _testString);     break;
-            default: println("Unknown payload element index: %u", e_i); continue;
+            case TEST_STRING_INDEX:  _elements[e_i] = _makeElement(TEST_STRING_ID,  BITS_8,  _len(_testString), _testString);             break;
+            default:                 println("Unknown payload element index: %u", e_i);                                                   continue;
         }
 
         _length_bits += _sizeToWordLength(_elements[e_i].size) * _lengthToNumWords(_elements[e_i].length);
@@ -254,8 +254,8 @@ void payload_init() {
 //    println("payload length bits (bytes) = %d (%d)", _length_bits, _length_bits / 8);
 //    println("total length = %d", payload_totalLength);
 
-    if (payload.totalLength > _maxLength) {
-        println("Total length too big! Maximum is %d", _maxLength);
+    if (payload.totalLength > _MAX_LENGTH) {
+        println("Total length too big! Maximum is %d", _MAX_LENGTH);
 
         utils_flashLedForever();
     }
@@ -284,11 +284,11 @@ void payload_write() {
         while (word_i < numWords) {
             switch (_elements[element_i].size) {
                 case FLOAT: { // floats are also 32 bits
-                    uint32Float.float_value = f_p(data_p)[word_i]; // use union to get the correct bit pattern as a uint32
-                    radio_write_fifo(fifo_i++, u8(uint32Float.uint32_value >> 24));
-                    radio_write_fifo(fifo_i++, u8(uint32Float.uint32_value >> 16));
-                    radio_write_fifo(fifo_i++, u8(uint32Float.uint32_value >> 8));
-                    radio_write_fifo(fifo_i++, u8(uint32Float.uint32_value));
+                    uint32Float.f = f_p(data_p)[word_i]; // use union to get the correct bit pattern as a uint32
+                    radio_write_fifo(fifo_i++, u8(uint32Float.u32 >> 24));
+                    radio_write_fifo(fifo_i++, u8(uint32Float.u32 >> 16));
+                    radio_write_fifo(fifo_i++, u8(uint32Float.u32 >> 8));
+                    radio_write_fifo(fifo_i++, u8(uint32Float.u32));
                     break;
                 }
                 case BITS_32: { // 4 writes are required, allow fallthrough to save lines of code
@@ -316,7 +316,7 @@ void payload_write() {
 }
 
 void payload_writeReadingsRequest(void) {
-    payload.totalLength = MHR_LENGTH + _elementHeaderBits + 8;
+    payload.totalLength = MHR_LENGTH + _ELEMENT_HEADER_BITS + 8;
     uint16_t fifo_i = TXNFIFO;
     radio_mhr_write(&fifo_i);
     

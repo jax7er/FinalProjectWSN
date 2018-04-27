@@ -39,19 +39,20 @@ void node_run(void) {
 static void _baseLoop(void) {
     if (node.mode == REQUEST && node.requestMode == AUTO) {
         timer_restart();
+    } else {
+        timer_stop();
     }
+    
     while (1) {
         if (!(radio.ifs.event)) {
 //            if (mode == REQUEST) {
                 while (!(button_down || radio.ifs.event)) {
                     if ((node.requestMode == AUTO) && (timer_getTime_ms() > node.requestDelay_ms)) {
+                        timer_restart();
                         break;
                     } else {
-                        delay_ms(100);
+                        delay_ms(10);
                     }
-                }
-                if (node.requestMode == AUTO) {
-                    timer_restart();
                 }
 //            } else {
 //                Sleep();
@@ -85,40 +86,38 @@ static void _moteLoop(void) {
         }
 //        while (button_down); // wait if pressing the button
 //        while (button_up) { // wait for button press or request   
-        if (node.mode != STREAM) {
-            do {
-                if (node.mode == TIMED) {
-                    radio_sleep_timed(node.radioTimedSleep_ms);
-                }
+        while (node.mode != STREAM) {
+            if (node.mode == TIMED) {
+                radio_sleep_timed(node.radioTimedSleep_ms);
+            }
 
-                if (!(radio.ifs.event)) { // if already an event don't sleep as radio will not generate any more interrupts until INTSTAT is read
-                    Sleep(); // sleep until interrupt from radio
-                }
+            if (!(radio.ifs.event)) { // if already an event don't sleep as radio will not generate any more interrupts until INTSTAT is read
+                Sleep(); // sleep until interrupt from radio
+            }
 
-                if (radio.ifs.event) {
-                    radio_getIntFlags();
+            if (radio.ifs.event) {
+                radio_getIntFlags();
 
-                    if (radio.ifs.rx) {
-                        radio.ifs.rx = 0;
+                if (radio.ifs.rx) {
+                    radio.ifs.rx = 0;
 
-                        if (node.mode == REQUEST) {
-                            radio_read_rx();
+                    if (node.mode == REQUEST) {
+                        radio_read_rx();
 
-                            if (payload_isReadingsRequest()) {
-                                //TODO work out which readings have been requested, 0 is all readings
+                        if (payload_isReadingsRequest()) {
+                            //TODO work out which readings have been requested, 0 is all readings
 
-                                break;
-                            }
-                        }
-                    } else if (radio.ifs.wake) {
-                        radio.ifs.wake = 0;
-                        
-                        if (node.mode == TIMED) {
                             break;
                         }
                     }
+                } else if (radio.ifs.wake) {
+                    radio.ifs.wake = 0;
+
+                    if (node.mode == TIMED) {
+                        break;
+                    }
                 }
-            } while (1);
+            }
         }
 //        }
 //        while (button_down); // wait for button to be released if previously pressed

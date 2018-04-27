@@ -15,21 +15,21 @@
 #include "sensor.h" 
 #include "node.h"
 
-void setup(void);
-void testing(void);
-void nodeSelection(void);
+static void _setup(void);
+static void _testing(void);
+static void _nodeSelection(void);
 
 int main(void) {
-    setup(); // 2 flashes
-    testing(); // 2 flashes
-    nodeSelection(); // 2 flashes for base or 3+x flashes for mote x
+    _setup(); // 2 flashes
+    _testing(); // 2 flashes
+    _nodeSelection(); // 2 flashes for base or 3+x flashes for mote x
     
     node_run(); // never returns
     
     return 0;
 }
 
-void setup(void) {
+void _setup(void) {
     SYSTEM_Initialize();
     
     println("Board init done");
@@ -48,7 +48,7 @@ void setup(void) {
     utils_flashLed(1);
 }
 
-void testing(void) {
+void _testing(void) {
     delay_ms(700);
     
     if (button_down) { // radio speed test if button pressed
@@ -75,7 +75,7 @@ void testing(void) {
     utils_flashLed(1);      
 }
 
-void nodeSelection(void) {
+void _nodeSelection(void) {
     delay_ms(700);
         
     node.type = button_down ? MOTE : BASE; // base if the button is not pressed (pulled up), mote if it is
