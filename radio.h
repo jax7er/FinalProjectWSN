@@ -69,11 +69,11 @@
 #define IEEE_FRAME_VER_2003       0x0
 #define IEEE_FRAME_VER_2011       0x1
 
-#define IEEE_MAKE_FRAME_CTRL(srcAddrMode, frameVer, destAddrMode, panIdComp, ackReq, framePend, secEn, frameType) \
+#define radio_makeFrameControl(srcAddrMode, frameVer, destAddrMode, panIdComp, ackReq, framePend, secEn, frameType) \
         (((srcAddrMode) << 14) | ((frameVer) << 12) | ((destAddrMode) << 10) | ((panIdComp) << 6) | ((ackReq) << 5) | ((framePend) << 4) | ((secEn) << 3) | (frameType))
 
-#define IEEE_FRAME_CTRL_16BIT_2003_ACK_NO_SEC_DATA IEEE_MAKE_FRAME_CTRL(IEEE_ADDR_MODE_16BIT, IEEE_FRAME_VER_2003, IEEE_ADDR_MODE_16BIT, 0, 1, 0, 0, IEEE_FRAME_TYPE_DATA)
-#define IEEE_FRAME_CTRL_16BIT_2003_NO_ACK_NO_SEC_DATA IEEE_MAKE_FRAME_CTRL(IEEE_ADDR_MODE_16BIT, IEEE_FRAME_VER_2003, IEEE_ADDR_MODE_16BIT, 0, 0, 0, 0, IEEE_FRAME_TYPE_DATA)
+#define radio_frameControl16Bit2003PanIdCompAckData radio_makeFrameControl(IEEE_ADDR_MODE_16BIT, IEEE_FRAME_VER_2003, IEEE_ADDR_MODE_16BIT, 1, 1, 0, 0, IEEE_FRAME_TYPE_DATA)
+#define radio_frameControl16Bit2003PanIdCompData radio_makeFrameControl(IEEE_ADDR_MODE_16BIT, IEEE_FRAME_VER_2003, IEEE_ADDR_MODE_16BIT, 1, 0, 0, 0, IEEE_FRAME_TYPE_DATA)
 
 /* IEEE 802.15.4 constants needed for some flags */
 #define IEEE_802_15_4_HAS_SEC(x)      ((x >> 3) & 0x01)

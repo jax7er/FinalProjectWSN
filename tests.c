@@ -152,32 +152,55 @@ void tests_runRadioSpeed(void) {
     if (button_down) { // transmitter if button pressed
         const uint16_t totalFrameBytes = MHR_LENGTH + payloadBytes;
         uint16_t numSent;
-        uint8_t mhr_i;
+        uint8_t mhr_i;        
+        
+        const uint16_t fc = radio_frameControl16Bit2003PanIdCompData;
+        // frame control
+        radio.mhr[0] = fc & 0xFF;
+        radio.mhr[1] = fc >> 8;
+        // address fields
+        radio.mhr[3] = 0xFF; // destination PAN ID LSByte (0xFFFF broadcast)
+        radio.mhr[4] = 0xFF; // MSByte
+        radio.mhr[5] = 0xFF; // destination address LSByte (0xFFFF broadcast)
+        radio.mhr[6] = 0xFF; // MSByte
+        radio.mhr[7] = radio.srcAddrL; // source address LSByte
+        radio.mhr[8] = radio.srcAddrH; // MSByte
 
         while (1) { // test tx forever
             printf("Transmitter, starting TXs...");      
 
-            numSent = 0;
+            numSent = 0;            
+            
+            // sequence number
+            radio.mhr[2] = payload.seqNum;
+
+            // write to TXNFIFO
+            fifo_i = TXNFIFO;
+            radio_write_fifo(fifo_i++, MHR_LENGTH);
+            radio_write_fifo(fifo_i++, totalFrameBytes);
+
+            mhr_i = 0;
+            while (mhr_i < MHR_LENGTH) {
+                radio_write_fifo(fifo_i++, radio.mhr[mhr_i++]);
+            }
+            while (fifo_i < totalFrameBytes) {
+                radio_write_fifo(fifo_i, u8(fifo_i));
+                fifo_i++;
+            }
 
             do {
-                mhr_i = 0;
-                // frame control
-                radio.mhr[mhr_i++] = 0x41; // pan ID compression, data frame
-                radio.mhr[mhr_i++] = 0x88; // 16 bit addresses, 2003 frame version
+                LED_Toggle();
+
+                radio_trigger_tx();                
+                
                 // sequence number
-                radio.mhr[mhr_i++] = payload.seqNum;
-                // address fields
-                radio.mhr[mhr_i++] = 0xFF; // destination PAN ID LSByte (0xFFFF broadcast)
-                radio.mhr[mhr_i++] = 0xFF; // MSByte
-                radio.mhr[mhr_i++] = 0xFF; // destination address LSByte (0xFFFF broadcast)
-                radio.mhr[mhr_i++] = 0xFF; // MSByte
-                radio.mhr[mhr_i++] = radio.srcAddrL; // source address LSByte
-                radio.mhr[mhr_i++] = radio.srcAddrH; // MSByte
+                radio.mhr[2] = payload.seqNum;
 
                 // write to TXNFIFO
                 fifo_i = TXNFIFO;
                 radio_write_fifo(fifo_i++, MHR_LENGTH);
                 radio_write_fifo(fifo_i++, totalFrameBytes);
+                
                 mhr_i = 0;
                 while (mhr_i < MHR_LENGTH) {
                     radio_write_fifo(fifo_i++, radio.mhr[mhr_i++]);
@@ -186,10 +209,6 @@ void tests_runRadioSpeed(void) {
                     radio_write_fifo(fifo_i, u8(fifo_i));
                     fifo_i++;
                 }
-
-                LED_Toggle();
-
-                radio_trigger_tx();
 
                 do {
                     while (!(radio.ifs.event)); // wait for interrupt    
@@ -210,10 +229,9 @@ void tests_runRadioSpeed(void) {
         }
     } else { // receiver if button not pressed
         float timeTaken_us;       
-        float numSeconds;   
-        float averageLqi;
-        float averageRssi;
-        uint8_t frameLength;
+        float numSeconds;
+        uint8_t lqis[payloadBytes > 1 ? numDummyFrames : numDummyFrames / 8];
+        uint8_t rssis[payloadBytes > 1 ? numDummyFrames : numDummyFrames / 8];
         uint16_t numReceived;
         uint16_t rxPayloadLength;
         uint16_t  fifoEnd;
@@ -228,50 +246,45 @@ void tests_runRadioSpeed(void) {
             while (1) { // loop until button is pressed
                 while (!(radio.ifs.event || button_down));
 
-                timeTaken_us = timer_getTime_us(); 
-
-                if (button_down) { // if button pressed end of transmission
+                if (radio.ifs.event) { 
+                    if (numReceived == 0) { // first packet so start timing 
+                        timer_start();
+                    }
+                    
+                    // assume the event was an rx
+                    radio_getIntFlags(); // read INSTAT register so more interrupts are produced
+                } else { // if button pressed end of transmission   
                     break;
                 }
-
-                radio.ifs.event = 0; // assume the event was an rx
-                radio_read(INTSTAT); // read INSTAT register so more interrupts are produced
-
-                if (numReceived == 0) { // first packet so start timing 
-                    timer_start();
-                }
+                
+                fifo_i = RXFIFO;
+                buf_i = 0;
 
                 LED_Toggle();
 
                 radio_set_bit(BBREG1, 2); // RXDECINV = 1, disable receiving packets off air.
 
-                fifo_i = RXFIFO;
-                frameLength = radio_read_fifo(fifo_i++);
-                rxPayloadLength = frameLength - 2; // -2 for the FCS bytes
+                rxPayloadLength = radio_read_fifo(fifo_i++);
 
                 fifoEnd = fifo_i + rxPayloadLength;
-                buf_i = 0;
-                while (fifo_i < fifoEnd) {
-                    radio.rxBuffer[buf_i++] = radio_read_fifo(fifo_i++);
+                while (fifo_i < fifoEnd) { // read all the payload bytes and 2 FCS bytes
+                    radio_read_fifo(fifo_i++);
                 }
-
-                radio_read_fifo(fifo_i++); // fcsL
-                radio_read_fifo(fifo_i++); // fcsH
 
                 // calculate recursive mean of lqi and rssi
-                if (numReceived == 0) {
-                    averageLqi = radio_read_fifo(fifo_i++);
-                    averageRssi = radio_read_fifo(fifo_i++);
-                } else {
-                    averageLqi += (f(radio_read_fifo(fifo_i++)) - averageLqi) / f(numReceived);
-                    averageRssi += (f(radio_read_fifo(fifo_i++)) - averageRssi) / f(numReceived);
-                }
+                radio.lqi = radio_read_fifo(fifo_i++);
+                radio.rssi = radio_read_fifo(fifo_i);
 
 //                    radio_set_bit(RXFLUSH, 0); // reset the RXFIFO pointer, RXFLUSH = 1
 
                 radio_clear_bit(BBREG1, 2); // RXDECINV = 0, enable receiving packets off air.
 
-                LED_Toggle();
+                LED_Toggle();             
+                    
+                timeTaken_us = timer_getTime_us();
+                
+                lqis[payloadBytes > 1 ? numReceived : numReceived / 8] = radio.lqi;
+                rssis[payloadBytes > 1 ? numReceived : numReceived / 8] = radio.rssi;
 
                 numReceived++;
 
@@ -279,19 +292,28 @@ void tests_runRadioSpeed(void) {
             }
 
             timer_stop();
+            
+            float averageLqi = 0.0;
+            float averageRssi = 0.0;
+            for_range(i, payloadBytes > 1 ? numReceived : numReceived / 8) {
+                averageLqi += f(lqis[i]);
+                averageRssi += f(rssis[i]);
+            }
+            averageLqi /= f(payloadBytes > 1 ? numReceived : numReceived / 8);
+            averageRssi /= f(payloadBytes > 1 ? numReceived : numReceived / 8);
 
             println("done");
             numSeconds = timeTaken_us / 1000000.0;
-            println("%u/%u=%lu%% in %.3fs @ %.0fB/s with avg lqi=%.1f rssi=%.1f", 
+            println("%u/%u=%lu%% in %.3fs @ %.3fkb/s with avg lqi=%.1f rssi=%.1f", 
                     numReceived, 
                     numDummyFrames,  
-                    (u32(numReceived) * 100UL) / u32(numDummyFrames), 
+                    (u32(numReceived) * 100UL) / u32(numDummyFrames), +
                     d(numSeconds), 
-                    d(f(numReceived * payloadBytes) / numSeconds), 
+                    d(f(numReceived * payloadBytes) * 8.0 / 1000.0 / numSeconds), 
                     d(averageLqi), 
                     d(averageRssi));
 
-            delay_ms(1000); // delay so button press does not skip next loop
+            while (button_down); // wait until button released
         }  
     }
 }

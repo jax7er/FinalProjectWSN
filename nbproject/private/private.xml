@@ -13,9 +13,11 @@
             <file>file:/C:/jmm546MPLABXProjects/MRF24J40_test.X/radio.c</file>
             <file>file:/C:/jmm546MPLABXProjects/MRF24J40_test.X/nbproject/Makefile-default.mk</file>
             <file>file:/C:/jmm546MPLABXProjects/MRF24J40_test.X/utils.h</file>
+            <file>file:/C:/jmm546MPLABXProjects/MRF24J40_test.X/interface.h</file>
             <file>file:/C:/jmm546MPLABXProjects/MRF24J40_test.X/sensor.h</file>
             <file>file:/C:/jmm546MPLABXProjects/MRF24J40_test.X/sensor.c</file>
             <file>file:/C:/jmm546MPLABXProjects/MRF24J40_test.X/main.c</file>
+            <file>file:/C:/jmm546MPLABXProjects/MRF24J40_test.X/delay.c</file>
             <file>file:/C:/jmm546MPLABXProjects/MRF24J40_test.X/interface.c</file>
         </group>
     </open-files>
