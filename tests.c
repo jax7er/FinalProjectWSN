@@ -238,7 +238,7 @@ void tests_runRadioSpeed(void) {
         uint16_t buf_i;
 
         while (1) { // continue to to rx test forever           
-            printf("Receiver, waiting for TXs to complete...");
+//            printf("Receiver, waiting for TXs to complete...");
 
             numReceived = 0;
             timer_reset();
@@ -302,16 +302,25 @@ void tests_runRadioSpeed(void) {
             averageLqi /= f(payloadBytes > 1 ? numReceived : numReceived / 8);
             averageRssi /= f(payloadBytes > 1 ? numReceived : numReceived / 8);
 
-            println("done");
+//            println("done");
             numSeconds = timeTaken_us / 1000000.0;
-            println("%u/%u=%lu%% in %.3fs @ %.3fkb/s with avg lqi=%.1f rssi=%.1f", 
-                    numReceived, 
+            println("%u,%u,%u,%lu,%.3f,%.3f,%.1f,%.1f",
+                    payloadBytes,
                     numDummyFrames,  
-                    (u32(numReceived) * 100UL) / u32(numDummyFrames), +
+                    numReceived, 
+                    (u32(numReceived) * 100UL) / u32(numDummyFrames),
                     d(numSeconds), 
                     d(f(numReceived * payloadBytes) * 8.0 / 1000.0 / numSeconds), 
                     d(averageLqi), 
                     d(averageRssi));
+//            println("%u/%u=%lu%% in %.3fs @ %.3fkb/s with avg lqi=%.1f rssi=%.1f", 
+//                    numReceived, 
+//                    numDummyFrames,  
+//                    (u32(numReceived) * 100UL) / u32(numDummyFrames),
+//                    d(numSeconds), 
+//                    d(f(numReceived * payloadBytes) * 8.0 / 1000.0 / numSeconds), 
+//                    d(averageLqi), 
+//                    d(averageRssi));
 
             while (button_down); // wait until button released
         }  

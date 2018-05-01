@@ -239,12 +239,12 @@ Program Memory  [Origin = 0x200, Length = 0xa9f8]
 section                    address   length (PC units)   length (bytes) (dec)
 -------                    -------   -----------------   --------------------
 .text                        0x200              0x2288          0x33cc  (13260)
-.const                      0x2488               0x574           0x82e  (2094)
-.text                       0x29fc              0x2042          0x3063  (12387)
-.dinit                      0x4a3e               0x22a           0x33f  (831)
-.text                       0x4c68               0xb6c          0x1122  (4386)
+.const                      0x2488               0x530           0x7c8  (1992)
+.text                       0x29b8              0x2032          0x304b  (12363)
+.dinit                      0x49ea               0x22a           0x33f  (831)
+.text                       0x4c14               0xb6c          0x1122  (4386)
 
-                 Total program memory used (bytes):         0x80be  (32958) 50%
+                 Total program memory used (bytes):         0x8040  (32832) 50%
 
 
 Ivt Memory  [Origin = 0x4, Length = 0xfc]
@@ -416,180 +416,180 @@ External Symbols in Program Memory (by address):
                   0x002030                  ___Ldtob_cdfFnopsuxX
                   0x002280                  ___Genld_cdfFnopuxX
                   0x002280                  ___Genld_cdfFnopsuxX
-                  0x003002                  _payload_init
-                  0x00321c                  _payload_write
-                  0x0033d4                  _payload_writeReadingsRequest
-                  0x003410                  _payload_read
-                  0x00341e                  _payload_isReadingsRequest
-                  0x00352a                  _sensor_init
-                  0x0037f8                  _sensor_update
-                  0x003832                  _sensor_readRh
-                  0x003860                  _sensor_readTemp
-                  0x003884                  _sensor_readLastTemp
-                  0x0038a8                  _sensor_readPressure
-                  0x003aac                  _sensor_readAdc
-                  0x003ac2                  _tests_runAll
-                  0x003afc                  _tests_run
-                  0x003cd4                  _tests_runRadioSpeed
-                  0x00414c                  _radio_init
-                  0x004294                  _radio_hard_reset
-                  0x0042a6                  _radio_getIntFlags
-                  0x004310                  _radio_sleep_timed
-                  0x0043a2                  _radio_trigger_tx
-                  0x0043ba                  _radio_mhr_write
-                  0x00444e                  _radio_check_txstat
-                  0x004494                  _radio_read_long
-                  0x0044c6                  _radio_read_short
-                  0x0044f8                  _radio_write_long
-                  0x00452a                  _radio_write_short
-                  0x00455c                  _radio_read_rx
-                  0x0045e4                  _radio_rxfifo_flush
-                  0x0045f6                  _radio_printTxFifo
-                  0x004688                  _radio_printAllRegisters
-                  0x0046f6                  _radio_request_readings
-                  0x00476a                  _i2c_sendAck
-                  0x004780                  _i2c_sendNack
-                  0x004796                  _i2c_stop
-                  0x0047aa                  _i2c_repeatedStart
-                  0x0047be                  _i2c_start
-                  0x0047d2                  _i2c_tx
-                  0x0047ea                  _i2c_rx
-                  0x004802                  _i2c_gotAck
-                  0x004810                  _i2c_gotNack
-                  0x00481c                  _i2c_addrWrite
-                  0x00482a                  _i2c_addrRead
-                  0x00483a                  _spi_read
-                  0x004860                  _spi_write
-                  0x00488a                  _spi_read_short
-                  0x0048de                  _spi_write_short
-                  0x004938                  _spi_read_long
-                  0x0049b8                  _spi_write_long
-                  0x004c68                  _node_run
-                  0x004e4e                  _I2C2_Initialize
-                  0x004e84                  _I2C2_ErrorCountGet
-                  0x004ece                  _I2C2_MasterWrite
-                  0x004f00                  _I2C2_MasterRead
-                  0x004f32                  _I2C2_MasterTRBInsert
-                  0x004fac                  _I2C2_MasterReadTRBBuild
-                  0x004fdc                  _I2C2_MasterWriteTRBBuild
-                  0x005000                  _I2C2_MasterQueueIsEmpty
-                  0x00501a                  _I2C2_MasterQueueIsFull
-                  0x005032                  _main
-                  0x0051b4                  _SPI1_Initialize
-                  0x0051d0                  _SPI1_Exchange
-                  0x005200                  _SPI1_ExchangeBuffer
-                  0x0052ca                  _SPI1_Exchange8bit
-                  0x0052da                  _SPI1_Exchange8bitBuffer
-                  0x0052ee                  _SPI1_TransferModeGet
-                  0x005312                  _SPI1_StatusGet
-                  0x00531a                  _TMR4_Initialize
-                  0x005336                  _TMR4_Tasks_32BitOperation
-                  0x005358                  _TMR4_Period32BitSet
-                  0x00536c                  _TMR4_Period32BitGet
-                  0x00538a                  _TMR4_Counter32BitSet
-                  0x00539e                  _TMR4_Counter32BitGet
-                  0x0053c4                  _TMR4_Start
-                  0x0053d2                  _TMR4_Stop
-                  0x0053da                  _TMR4_GetElapsedThenClear
-                  0x0053f2                  _TMR4_SoftwareCounterGet
-                  0x0053fe                  _TMR4_SoftwareCounterClear
-                  0x005436                  _delay_us
-                  0x00545a                  _delay_ms
-                  0x00547a                  _timer_reset
-                  0x005484                  _timer_start
-                  0x005492                  _timer_restart
-                  0x00549c                  _timer_getTime_us
-                  0x0054ac                  _timer_getTime_ms
-                  0x0054c4                  _timer_stop
-                  0x0054cc                  _TMR3_Initialize
-                  0x0054e2                  _TMR3_Tasks_16BitOperation
-                  0x005504                  _TMR3_Period16BitSet
-                  0x005516                  _TMR3_Period16BitGet
-                  0x00551e                  _TMR3_Counter16BitSet
-                  0x005530                  _TMR3_Counter16BitGet
-                  0x005538                  _TMR3_Start
-                  0x005546                  _TMR3_Stop
-                  0x00554e                  _TMR3_GetElapsedThenClear
-                  0x005566                  _TMR3_SoftwareCounterGet
-                  0x005572                  _TMR3_SoftwareCounterClear
-                  0x00557e                  _ADC1_Initialize
-                  0x00559e                  _ADC1_Start
-                  0x0055a6                  _ADC1_Stop
-                  0x0055ae                  _ADC1_ConversionResultBufferGet
-                  0x0055e0                  _ADC1_ConversionResultGet
-                  0x0055e8                  _ADC1_IsConversionComplete
-                  0x005600                  _ADC1_ChannelSelect
-                  0x00560c                  _ADC1_Tasks
-                  0x005614                  _PIN_MANAGER_Initialize
-                  0x0056a4                  _utils_uart1Print
-                  0x0056cc                  _utils_flashLed
-                  0x005716                  _utils_flashLedForever
-                  0x00571e                  _UART1_Initialize
-                  0x005740                  _UART1_Read
-                  0x00575e                  _UART1_Write
-                  0x005776                  _UART1_StatusGet
-                  0x00577e                  _SYSTEM_Initialize
-                  0x005798                  _OSCILLATOR_Initialize
-                  0x0057b8                  _INTERRUPT_Initialize
-                  0x0057c8                  _EXT_INT_Initialize
+                  0x002fbe                  _payload_init
+                  0x0031d8                  _payload_write
+                  0x003390                  _payload_writeReadingsRequest
+                  0x0033cc                  _payload_read
+                  0x0033da                  _payload_isReadingsRequest
+                  0x0034e6                  _sensor_init
+                  0x0037b4                  _sensor_update
+                  0x0037ee                  _sensor_readRh
+                  0x00381c                  _sensor_readTemp
+                  0x003840                  _sensor_readLastTemp
+                  0x003864                  _sensor_readPressure
+                  0x003a68                  _sensor_readAdc
+                  0x003a7e                  _tests_runAll
+                  0x003ab8                  _tests_run
+                  0x003c90                  _tests_runRadioSpeed
+                  0x0040f8                  _radio_init
+                  0x004240                  _radio_hard_reset
+                  0x004252                  _radio_getIntFlags
+                  0x0042bc                  _radio_sleep_timed
+                  0x00434e                  _radio_trigger_tx
+                  0x004366                  _radio_mhr_write
+                  0x0043fa                  _radio_check_txstat
+                  0x004440                  _radio_read_long
+                  0x004472                  _radio_read_short
+                  0x0044a4                  _radio_write_long
+                  0x0044d6                  _radio_write_short
+                  0x004508                  _radio_read_rx
+                  0x004590                  _radio_rxfifo_flush
+                  0x0045a2                  _radio_printTxFifo
+                  0x004634                  _radio_printAllRegisters
+                  0x0046a2                  _radio_request_readings
+                  0x004716                  _i2c_sendAck
+                  0x00472c                  _i2c_sendNack
+                  0x004742                  _i2c_stop
+                  0x004756                  _i2c_repeatedStart
+                  0x00476a                  _i2c_start
+                  0x00477e                  _i2c_tx
+                  0x004796                  _i2c_rx
+                  0x0047ae                  _i2c_gotAck
+                  0x0047bc                  _i2c_gotNack
+                  0x0047c8                  _i2c_addrWrite
+                  0x0047d6                  _i2c_addrRead
+                  0x0047e6                  _spi_read
+                  0x00480c                  _spi_write
+                  0x004836                  _spi_read_short
+                  0x00488a                  _spi_write_short
+                  0x0048e4                  _spi_read_long
+                  0x004964                  _spi_write_long
+                  0x004c14                  _node_run
+                  0x004dfa                  _I2C2_Initialize
+                  0x004e30                  _I2C2_ErrorCountGet
+                  0x004e7a                  _I2C2_MasterWrite
+                  0x004eac                  _I2C2_MasterRead
+                  0x004ede                  _I2C2_MasterTRBInsert
+                  0x004f58                  _I2C2_MasterReadTRBBuild
+                  0x004f88                  _I2C2_MasterWriteTRBBuild
+                  0x004fac                  _I2C2_MasterQueueIsEmpty
+                  0x004fc6                  _I2C2_MasterQueueIsFull
+                  0x004fde                  _main
+                  0x005160                  _SPI1_Initialize
+                  0x00517c                  _SPI1_Exchange
+                  0x0051ac                  _SPI1_ExchangeBuffer
+                  0x005276                  _SPI1_Exchange8bit
+                  0x005286                  _SPI1_Exchange8bitBuffer
+                  0x00529a                  _SPI1_TransferModeGet
+                  0x0052be                  _SPI1_StatusGet
+                  0x0052c6                  _TMR4_Initialize
+                  0x0052e2                  _TMR4_Tasks_32BitOperation
+                  0x005304                  _TMR4_Period32BitSet
+                  0x005318                  _TMR4_Period32BitGet
+                  0x005336                  _TMR4_Counter32BitSet
+                  0x00534a                  _TMR4_Counter32BitGet
+                  0x005370                  _TMR4_Start
+                  0x00537e                  _TMR4_Stop
+                  0x005386                  _TMR4_GetElapsedThenClear
+                  0x00539e                  _TMR4_SoftwareCounterGet
+                  0x0053aa                  _TMR4_SoftwareCounterClear
+                  0x0053e2                  _delay_us
+                  0x005406                  _delay_ms
+                  0x005426                  _timer_reset
+                  0x005430                  _timer_start
+                  0x00543e                  _timer_restart
+                  0x005448                  _timer_getTime_us
+                  0x005458                  _timer_getTime_ms
+                  0x005470                  _timer_stop
+                  0x005478                  _TMR3_Initialize
+                  0x00548e                  _TMR3_Tasks_16BitOperation
+                  0x0054b0                  _TMR3_Period16BitSet
+                  0x0054c2                  _TMR3_Period16BitGet
+                  0x0054ca                  _TMR3_Counter16BitSet
+                  0x0054dc                  _TMR3_Counter16BitGet
+                  0x0054e4                  _TMR3_Start
+                  0x0054f2                  _TMR3_Stop
+                  0x0054fa                  _TMR3_GetElapsedThenClear
+                  0x005512                  _TMR3_SoftwareCounterGet
+                  0x00551e                  _TMR3_SoftwareCounterClear
+                  0x00552a                  _ADC1_Initialize
+                  0x00554a                  _ADC1_Start
+                  0x005552                  _ADC1_Stop
+                  0x00555a                  _ADC1_ConversionResultBufferGet
+                  0x00558c                  _ADC1_ConversionResultGet
+                  0x005594                  _ADC1_IsConversionComplete
+                  0x0055ac                  _ADC1_ChannelSelect
+                  0x0055b8                  _ADC1_Tasks
+                  0x0055c0                  _PIN_MANAGER_Initialize
+                  0x005650                  _utils_uart1Print
+                  0x005678                  _utils_flashLed
+                  0x0056c2                  _utils_flashLedForever
+                  0x0056ca                  _UART1_Initialize
+                  0x0056ec                  _UART1_Read
+                  0x00570a                  _UART1_Write
+                  0x005722                  _UART1_StatusGet
+                  0x00572a                  _SYSTEM_Initialize
+                  0x005744                  _OSCILLATOR_Initialize
+                  0x005764                  _INTERRUPT_Initialize
+                  0x005774                  _EXT_INT_Initialize
 
 External Symbols in Program Memory (by name):
 
-                  0x005600                  _ADC1_ChannelSelect
-                  0x0055ae                  _ADC1_ConversionResultBufferGet
-                  0x0055e0                  _ADC1_ConversionResultGet
-                  0x00557e                  _ADC1_Initialize
-                  0x0055e8                  _ADC1_IsConversionComplete
-                  0x00559e                  _ADC1_Start
-                  0x0055a6                  _ADC1_Stop
-                  0x00560c                  _ADC1_Tasks
-                  0x0057c8                  _EXT_INT_Initialize
-                  0x004e84                  _I2C2_ErrorCountGet
-                  0x004e4e                  _I2C2_Initialize
-                  0x005000                  _I2C2_MasterQueueIsEmpty
-                  0x00501a                  _I2C2_MasterQueueIsFull
-                  0x004f00                  _I2C2_MasterRead
-                  0x004fac                  _I2C2_MasterReadTRBBuild
-                  0x004f32                  _I2C2_MasterTRBInsert
-                  0x004ece                  _I2C2_MasterWrite
-                  0x004fdc                  _I2C2_MasterWriteTRBBuild
-                  0x0057b8                  _INTERRUPT_Initialize
-                  0x005798                  _OSCILLATOR_Initialize
-                  0x005614                  _PIN_MANAGER_Initialize
-                  0x0051d0                  _SPI1_Exchange
-                  0x0052ca                  _SPI1_Exchange8bit
-                  0x0052da                  _SPI1_Exchange8bitBuffer
-                  0x005200                  _SPI1_ExchangeBuffer
-                  0x0051b4                  _SPI1_Initialize
-                  0x005312                  _SPI1_StatusGet
-                  0x0052ee                  _SPI1_TransferModeGet
-                  0x00577e                  _SYSTEM_Initialize
-                  0x005530                  _TMR3_Counter16BitGet
-                  0x00551e                  _TMR3_Counter16BitSet
-                  0x00554e                  _TMR3_GetElapsedThenClear
-                  0x0054cc                  _TMR3_Initialize
-                  0x005516                  _TMR3_Period16BitGet
-                  0x005504                  _TMR3_Period16BitSet
-                  0x005572                  _TMR3_SoftwareCounterClear
-                  0x005566                  _TMR3_SoftwareCounterGet
-                  0x005538                  _TMR3_Start
-                  0x005546                  _TMR3_Stop
-                  0x0054e2                  _TMR3_Tasks_16BitOperation
-                  0x00539e                  _TMR4_Counter32BitGet
-                  0x00538a                  _TMR4_Counter32BitSet
-                  0x0053da                  _TMR4_GetElapsedThenClear
-                  0x00531a                  _TMR4_Initialize
-                  0x00536c                  _TMR4_Period32BitGet
-                  0x005358                  _TMR4_Period32BitSet
-                  0x0053fe                  _TMR4_SoftwareCounterClear
-                  0x0053f2                  _TMR4_SoftwareCounterGet
-                  0x0053c4                  _TMR4_Start
-                  0x0053d2                  _TMR4_Stop
-                  0x005336                  _TMR4_Tasks_32BitOperation
-                  0x00571e                  _UART1_Initialize
-                  0x005740                  _UART1_Read
-                  0x005776                  _UART1_StatusGet
-                  0x00575e                  _UART1_Write
+                  0x0055ac                  _ADC1_ChannelSelect
+                  0x00555a                  _ADC1_ConversionResultBufferGet
+                  0x00558c                  _ADC1_ConversionResultGet
+                  0x00552a                  _ADC1_Initialize
+                  0x005594                  _ADC1_IsConversionComplete
+                  0x00554a                  _ADC1_Start
+                  0x005552                  _ADC1_Stop
+                  0x0055b8                  _ADC1_Tasks
+                  0x005774                  _EXT_INT_Initialize
+                  0x004e30                  _I2C2_ErrorCountGet
+                  0x004dfa                  _I2C2_Initialize
+                  0x004fac                  _I2C2_MasterQueueIsEmpty
+                  0x004fc6                  _I2C2_MasterQueueIsFull
+                  0x004eac                  _I2C2_MasterRead
+                  0x004f58                  _I2C2_MasterReadTRBBuild
+                  0x004ede                  _I2C2_MasterTRBInsert
+                  0x004e7a                  _I2C2_MasterWrite
+                  0x004f88                  _I2C2_MasterWriteTRBBuild
+                  0x005764                  _INTERRUPT_Initialize
+                  0x005744                  _OSCILLATOR_Initialize
+                  0x0055c0                  _PIN_MANAGER_Initialize
+                  0x00517c                  _SPI1_Exchange
+                  0x005276                  _SPI1_Exchange8bit
+                  0x005286                  _SPI1_Exchange8bitBuffer
+                  0x0051ac                  _SPI1_ExchangeBuffer
+                  0x005160                  _SPI1_Initialize
+                  0x0052be                  _SPI1_StatusGet
+                  0x00529a                  _SPI1_TransferModeGet
+                  0x00572a                  _SYSTEM_Initialize
+                  0x0054dc                  _TMR3_Counter16BitGet
+                  0x0054ca                  _TMR3_Counter16BitSet
+                  0x0054fa                  _TMR3_GetElapsedThenClear
+                  0x005478                  _TMR3_Initialize
+                  0x0054c2                  _TMR3_Period16BitGet
+                  0x0054b0                  _TMR3_Period16BitSet
+                  0x00551e                  _TMR3_SoftwareCounterClear
+                  0x005512                  _TMR3_SoftwareCounterGet
+                  0x0054e4                  _TMR3_Start
+                  0x0054f2                  _TMR3_Stop
+                  0x00548e                  _TMR3_Tasks_16BitOperation
+                  0x00534a                  _TMR4_Counter32BitGet
+                  0x005336                  _TMR4_Counter32BitSet
+                  0x005386                  _TMR4_GetElapsedThenClear
+                  0x0052c6                  _TMR4_Initialize
+                  0x005318                  _TMR4_Period32BitGet
+                  0x005304                  _TMR4_Period32BitSet
+                  0x0053aa                  _TMR4_SoftwareCounterClear
+                  0x00539e                  _TMR4_SoftwareCounterGet
+                  0x005370                  _TMR4_Start
+                  0x00537e                  _TMR4_Stop
+                  0x0052e2                  _TMR4_Tasks_32BitOperation
+                  0x0056ca                  _UART1_Initialize
+                  0x0056ec                  _UART1_Read
+                  0x005722                  _UART1_StatusGet
+                  0x00570a                  _UART1_Write
                   0x000ee0                  __Atexit
                   0x000e1e                  __Closreg
                   0x000c58                  __DNKfflush
@@ -673,82 +673,82 @@ External Symbols in Program Memory (by name):
                   0x000f6c                  __printf_s
                   0x00023c                  __psv_init
                   0x000200                  __resetPRI
-                  0x00545a                  _delay_ms
-                  0x005436                  _delay_us
+                  0x005406                  _delay_ms
+                  0x0053e2                  _delay_us
                   0x000f7c                  _div
                   0x000e30                  _fclose
                   0x000c0c                  _fputc
                   0x000cce                  _fputs
                   0x000f92                  _free
                   0x000ff6                  _fwrite
-                  0x00482a                  _i2c_addrRead
-                  0x00481c                  _i2c_addrWrite
-                  0x004802                  _i2c_gotAck
-                  0x004810                  _i2c_gotNack
-                  0x0047aa                  _i2c_repeatedStart
-                  0x0047ea                  _i2c_rx
-                  0x00476a                  _i2c_sendAck
-                  0x004780                  _i2c_sendNack
-                  0x0047be                  _i2c_start
-                  0x004796                  _i2c_stop
-                  0x0047d2                  _i2c_tx
+                  0x0047d6                  _i2c_addrRead
+                  0x0047c8                  _i2c_addrWrite
+                  0x0047ae                  _i2c_gotAck
+                  0x0047bc                  _i2c_gotNack
+                  0x004756                  _i2c_repeatedStart
+                  0x004796                  _i2c_rx
+                  0x004716                  _i2c_sendAck
+                  0x00472c                  _i2c_sendNack
+                  0x00476a                  _i2c_start
+                  0x004742                  _i2c_stop
+                  0x00477e                  _i2c_tx
                   0x00109e                  _ldiv
-                  0x005032                  _main
+                  0x004fde                  _main
                   0x00112e                  _malloc
                   0x001182                  _memchr
                   0x000d5e                  _memcpy
-                  0x004c68                  _node_run
-                  0x003002                  _payload_init
-                  0x00341e                  _payload_isReadingsRequest
-                  0x003410                  _payload_read
-                  0x00321c                  _payload_write
-                  0x0033d4                  _payload_writeReadingsRequest
+                  0x004c14                  _node_run
+                  0x002fbe                  _payload_init
+                  0x0033da                  _payload_isReadingsRequest
+                  0x0033cc                  _payload_read
+                  0x0031d8                  _payload_write
+                  0x003390                  _payload_writeReadingsRequest
                   0x000bf2                  _putchar
                   0x000bf6                  _puts
-                  0x00444e                  _radio_check_txstat
-                  0x0042a6                  _radio_getIntFlags
-                  0x004294                  _radio_hard_reset
-                  0x00414c                  _radio_init
-                  0x0043ba                  _radio_mhr_write
-                  0x004688                  _radio_printAllRegisters
-                  0x0045f6                  _radio_printTxFifo
-                  0x004494                  _radio_read_long
-                  0x00455c                  _radio_read_rx
-                  0x0044c6                  _radio_read_short
-                  0x0046f6                  _radio_request_readings
-                  0x0045e4                  _radio_rxfifo_flush
-                  0x004310                  _radio_sleep_timed
-                  0x0043a2                  _radio_trigger_tx
-                  0x0044f8                  _radio_write_long
-                  0x00452a                  _radio_write_short
-                  0x00352a                  _sensor_init
-                  0x003aac                  _sensor_readAdc
-                  0x003884                  _sensor_readLastTemp
-                  0x0038a8                  _sensor_readPressure
-                  0x003832                  _sensor_readRh
-                  0x003860                  _sensor_readTemp
-                  0x0037f8                  _sensor_update
-                  0x00483a                  _spi_read
-                  0x004938                  _spi_read_long
-                  0x00488a                  _spi_read_short
-                  0x004860                  _spi_write
-                  0x0049b8                  _spi_write_long
-                  0x0048de                  _spi_write_short
+                  0x0043fa                  _radio_check_txstat
+                  0x004252                  _radio_getIntFlags
+                  0x004240                  _radio_hard_reset
+                  0x0040f8                  _radio_init
+                  0x004366                  _radio_mhr_write
+                  0x004634                  _radio_printAllRegisters
+                  0x0045a2                  _radio_printTxFifo
+                  0x004440                  _radio_read_long
+                  0x004508                  _radio_read_rx
+                  0x004472                  _radio_read_short
+                  0x0046a2                  _radio_request_readings
+                  0x004590                  _radio_rxfifo_flush
+                  0x0042bc                  _radio_sleep_timed
+                  0x00434e                  _radio_trigger_tx
+                  0x0044a4                  _radio_write_long
+                  0x0044d6                  _radio_write_short
+                  0x0034e6                  _sensor_init
+                  0x003a68                  _sensor_readAdc
+                  0x003840                  _sensor_readLastTemp
+                  0x003864                  _sensor_readPressure
+                  0x0037ee                  _sensor_readRh
+                  0x00381c                  _sensor_readTemp
+                  0x0037b4                  _sensor_update
+                  0x0047e6                  _spi_read
+                  0x0048e4                  _spi_read_long
+                  0x004836                  _spi_read_short
+                  0x00480c                  _spi_write
+                  0x004964                  _spi_write_long
+                  0x00488a                  _spi_write_short
                   0x001196                  _strchr
                   0x000d6c                  _strlen
                   0x000d78                  _strrchr
-                  0x003afc                  _tests_run
-                  0x003ac2                  _tests_runAll
-                  0x003cd4                  _tests_runRadioSpeed
-                  0x0054ac                  _timer_getTime_ms
-                  0x00549c                  _timer_getTime_us
-                  0x00547a                  _timer_reset
-                  0x005492                  _timer_restart
-                  0x005484                  _timer_start
-                  0x0054c4                  _timer_stop
-                  0x0056cc                  _utils_flashLed
-                  0x005716                  _utils_flashLedForever
-                  0x0056a4                  _utils_uart1Print
+                  0x003ab8                  _tests_run
+                  0x003a7e                  _tests_runAll
+                  0x003c90                  _tests_runRadioSpeed
+                  0x005458                  _timer_getTime_ms
+                  0x005448                  _timer_getTime_us
+                  0x005426                  _timer_reset
+                  0x00543e                  _timer_restart
+                  0x005430                  _timer_start
+                  0x005470                  _timer_stop
+                  0x005678                  _utils_flashLed
+                  0x0056c2                  _utils_flashLedForever
+                  0x005650                  _utils_uart1Print
                   0x0005e8                  _write
                   0x000ec0                  fclose.DA_elo:_closeall
                   0x000f24                  printf_cdfFnopuxX.DAeo:_prout
@@ -1132,7 +1132,7 @@ __CONFIG1
  .debug_abbrev    0x00164d          0x1 build/default/production/_ext/780245002/mrf24j40_driver_old.o
  .debug_abbrev    0x00164e        0x129 build/default/production/node.o
 
-.debug_line       0x000000       0x1a22
+.debug_line       0x000000       0x1a23
  *(.debug_line)
  .debug_line      0x000000        0x108 build/default/production/mcc_generated_files/interrupt_manager.o
  .debug_line      0x000108        0x10c build/default/production/mcc_generated_files/mcc.o
@@ -1147,15 +1147,15 @@ __CONFIG1
  .debug_line      0x000c1f        0x149 build/default/production/main.o
  .debug_line      0x000d68        0x120 build/default/production/_ext/780245002/utils.o
  .debug_line      0x000e88        0x13b build/default/production/_ext/780245002/delay.o
- .debug_line      0x000fc3        0x1f5 build/default/production/_ext/780245002/tests.o
- .debug_line      0x0011b8        0x1fa build/default/production/_ext/780245002/payload.o
- .debug_line      0x0013b2        0x1b5 build/default/production/_ext/780245002/sensor.o
- .debug_line      0x001567        0x18b build/default/production/_ext/780245002/interface.o
- .debug_line      0x0016f2        0x1bb build/default/production/radio.o
- .debug_line      0x0018ad         0x1a build/default/production/_ext/780245002/mrf24j40_driver_old.o
- .debug_line      0x0018c7        0x15b build/default/production/node.o
+ .debug_line      0x000fc3        0x1f6 build/default/production/_ext/780245002/tests.o
+ .debug_line      0x0011b9        0x1fa build/default/production/_ext/780245002/payload.o
+ .debug_line      0x0013b3        0x1b5 build/default/production/_ext/780245002/sensor.o
+ .debug_line      0x001568        0x18b build/default/production/_ext/780245002/interface.o
+ .debug_line      0x0016f3        0x1bb build/default/production/radio.o
+ .debug_line      0x0018ae         0x1a build/default/production/_ext/780245002/mrf24j40_driver_old.o
+ .debug_line      0x0018c8        0x15b build/default/production/node.o
 
-.debug_frame      0x000000       0x1454
+.debug_frame      0x000000       0x1438
  *(.debug_frame)
  .debug_frame     0x000000         0x30 build/default/production/mcc_generated_files/interrupt_manager.o
  .debug_frame     0x000030         0x4c build/default/production/mcc_generated_files/mcc.o
@@ -1170,12 +1170,12 @@ __CONFIG1
  .debug_frame     0x000760        0x142 build/default/production/main.o
  .debug_frame     0x0008a2         0x68 build/default/production/_ext/780245002/utils.o
  .debug_frame     0x00090a        0x12c build/default/production/_ext/780245002/delay.o
- .debug_frame     0x000a36        0x1f6 build/default/production/_ext/780245002/tests.o
- .debug_frame     0x000c2c        0x1f6 build/default/production/_ext/780245002/payload.o
- .debug_frame     0x000e22        0x174 build/default/production/_ext/780245002/sensor.o
- .debug_frame     0x000f96        0x1f0 build/default/production/_ext/780245002/interface.o
- .debug_frame     0x001186        0x24a build/default/production/radio.o
- .debug_frame     0x0013d0         0x84 build/default/production/node.o
+ .debug_frame     0x000a36        0x1da build/default/production/_ext/780245002/tests.o
+ .debug_frame     0x000c10        0x1f6 build/default/production/_ext/780245002/payload.o
+ .debug_frame     0x000e06        0x174 build/default/production/_ext/780245002/sensor.o
+ .debug_frame     0x000f7a        0x1f0 build/default/production/_ext/780245002/interface.o
+ .debug_frame     0x00116a        0x24a build/default/production/radio.o
+ .debug_frame     0x0013b4         0x84 build/default/production/node.o
 
 .debug_str        0x000000        0x311
  *(.debug_str)
@@ -2860,151 +2860,151 @@ __c30_signature
  .ivt._INT1Interrupt
                   0x00003c          0x2 build/default/production/main.o
 
-.const              0xa488        0x574 load address 0x002488  
- .const             0xa488        0x26e build/default/production/_ext/780245002/tests.o
- .const             0xa6f6        0x12c build/default/production/_ext/780245002/payload.o
- .const             0xa822         0xd6 build/default/production/main.o
- .const             0xa8f8         0xa2 build/default/production/radio.o
- .const             0xa99a         0x62 build/default/production/_ext/780245002/sensor.o
+.const              0xa488        0x530 load address 0x002488  
+ .const             0xa488        0x22a build/default/production/_ext/780245002/tests.o
+ .const             0xa6b2        0x12c build/default/production/_ext/780245002/payload.o
+ .const             0xa7de         0xd6 build/default/production/main.o
+ .const             0xa8b4         0xa2 build/default/production/radio.o
+ .const             0xa956         0x62 build/default/production/_ext/780245002/sensor.o
 
-.text             0x0029fc       0x2042
- .text            0x0029fc        0xa38 build/default/production/_ext/780245002/payload.o
-                  0x003002                  _payload_init
-                  0x00321c                  _payload_write
-                  0x0033d4                  _payload_writeReadingsRequest
-                  0x003410                  _payload_read
-                  0x00341e                  _payload_isReadingsRequest
- .text            0x003434        0x68e build/default/production/_ext/780245002/sensor.o
-                  0x00352a                  _sensor_init
-                  0x0037f8                  _sensor_update
-                  0x003832                  _sensor_readRh
-                  0x003860                  _sensor_readTemp
-                  0x003884                  _sensor_readLastTemp
-                  0x0038a8                  _sensor_readPressure
-                  0x003aac                  _sensor_readAdc
- .text            0x003ac2        0x68a build/default/production/_ext/780245002/tests.o
-                  0x003ac2                  _tests_runAll
-                  0x003afc                  _tests_run
-                  0x003cd4                  _tests_runRadioSpeed
- .text            0x00414c        0x61e build/default/production/radio.o
-                  0x00414c                  _radio_init
-                  0x004294                  _radio_hard_reset
-                  0x0042a6                  _radio_getIntFlags
-                  0x004310                  _radio_sleep_timed
-                  0x0043a2                  _radio_trigger_tx
-                  0x0043ba                  _radio_mhr_write
-                  0x00444e                  _radio_check_txstat
-                  0x004494                  _radio_read_long
-                  0x0044c6                  _radio_read_short
-                  0x0044f8                  _radio_write_long
-                  0x00452a                  _radio_write_short
-                  0x00455c                  _radio_read_rx
-                  0x0045e4                  _radio_rxfifo_flush
-                  0x0045f6                  _radio_printTxFifo
-                  0x004688                  _radio_printAllRegisters
-                  0x0046f6                  _radio_request_readings
- .text            0x00476a        0x2d4 build/default/production/_ext/780245002/interface.o
-                  0x00476a                  _i2c_sendAck
-                  0x004780                  _i2c_sendNack
-                  0x004796                  _i2c_stop
-                  0x0047aa                  _i2c_repeatedStart
-                  0x0047be                  _i2c_start
-                  0x0047d2                  _i2c_tx
-                  0x0047ea                  _i2c_rx
-                  0x004802                  _i2c_gotAck
-                  0x004810                  _i2c_gotNack
-                  0x00481c                  _i2c_addrWrite
-                  0x00482a                  _i2c_addrRead
-                  0x00483a                  _spi_read
-                  0x004860                  _spi_write
-                  0x00488a                  _spi_read_short
-                  0x0048de                  _spi_write_short
-                  0x004938                  _spi_read_long
-                  0x0049b8                  _spi_write_long
+.text             0x0029b8       0x2032
+ .text            0x0029b8        0xa38 build/default/production/_ext/780245002/payload.o
+                  0x002fbe                  _payload_init
+                  0x0031d8                  _payload_write
+                  0x003390                  _payload_writeReadingsRequest
+                  0x0033cc                  _payload_read
+                  0x0033da                  _payload_isReadingsRequest
+ .text            0x0033f0        0x68e build/default/production/_ext/780245002/sensor.o
+                  0x0034e6                  _sensor_init
+                  0x0037b4                  _sensor_update
+                  0x0037ee                  _sensor_readRh
+                  0x00381c                  _sensor_readTemp
+                  0x003840                  _sensor_readLastTemp
+                  0x003864                  _sensor_readPressure
+                  0x003a68                  _sensor_readAdc
+ .text            0x003a7e        0x67a build/default/production/_ext/780245002/tests.o
+                  0x003a7e                  _tests_runAll
+                  0x003ab8                  _tests_run
+                  0x003c90                  _tests_runRadioSpeed
+ .text            0x0040f8        0x61e build/default/production/radio.o
+                  0x0040f8                  _radio_init
+                  0x004240                  _radio_hard_reset
+                  0x004252                  _radio_getIntFlags
+                  0x0042bc                  _radio_sleep_timed
+                  0x00434e                  _radio_trigger_tx
+                  0x004366                  _radio_mhr_write
+                  0x0043fa                  _radio_check_txstat
+                  0x004440                  _radio_read_long
+                  0x004472                  _radio_read_short
+                  0x0044a4                  _radio_write_long
+                  0x0044d6                  _radio_write_short
+                  0x004508                  _radio_read_rx
+                  0x004590                  _radio_rxfifo_flush
+                  0x0045a2                  _radio_printTxFifo
+                  0x004634                  _radio_printAllRegisters
+                  0x0046a2                  _radio_request_readings
+ .text            0x004716        0x2d4 build/default/production/_ext/780245002/interface.o
+                  0x004716                  _i2c_sendAck
+                  0x00472c                  _i2c_sendNack
+                  0x004742                  _i2c_stop
+                  0x004756                  _i2c_repeatedStart
+                  0x00476a                  _i2c_start
+                  0x00477e                  _i2c_tx
+                  0x004796                  _i2c_rx
+                  0x0047ae                  _i2c_gotAck
+                  0x0047bc                  _i2c_gotNack
+                  0x0047c8                  _i2c_addrWrite
+                  0x0047d6                  _i2c_addrRead
+                  0x0047e6                  _spi_read
+                  0x00480c                  _spi_write
+                  0x004836                  _spi_read_short
+                  0x00488a                  _spi_write_short
+                  0x0048e4                  _spi_read_long
+                  0x004964                  _spi_write_long
 
-.dinit            0x004a3e        0x22a
- .dinit           0x004a3e        0x22a data_init
+.dinit            0x0049ea        0x22a
+ .dinit           0x0049ea        0x22a data_init
 
-.text             0x004c68        0xb6c
- .text            0x004c68        0x1e6 build/default/production/node.o
-                  0x004c68                  _node_run
- .text            0x004e4e        0x1e4 build/default/production/mcc_generated_files/i2c2.o
-                  0x004e4e                  _I2C2_Initialize
-                  0x004e84                  _I2C2_ErrorCountGet
-                  0x004ece                  _I2C2_MasterWrite
-                  0x004f00                  _I2C2_MasterRead
-                  0x004f32                  _I2C2_MasterTRBInsert
-                  0x004fac                  _I2C2_MasterReadTRBBuild
-                  0x004fdc                  _I2C2_MasterWriteTRBBuild
-                  0x005000                  _I2C2_MasterQueueIsEmpty
-                  0x00501a                  _I2C2_MasterQueueIsFull
- .text            0x005032        0x182 build/default/production/main.o
-                  0x005032                  _main
- .text            0x0051b4        0x166 build/default/production/mcc_generated_files/spi1.o
-                  0x0051b4                  _SPI1_Initialize
-                  0x0051d0                  _SPI1_Exchange
-                  0x005200                  _SPI1_ExchangeBuffer
-                  0x0052ca                  _SPI1_Exchange8bit
-                  0x0052da                  _SPI1_Exchange8bitBuffer
-                  0x0052ee                  _SPI1_TransferModeGet
-                  0x005312                  _SPI1_StatusGet
- .text            0x00531a         0xf0 build/default/production/mcc_generated_files/tmr4.o
-                  0x00531a                  _TMR4_Initialize
-                  0x005336                  _TMR4_Tasks_32BitOperation
-                  0x005358                  _TMR4_Period32BitSet
-                  0x00536c                  _TMR4_Period32BitGet
-                  0x00538a                  _TMR4_Counter32BitSet
-                  0x00539e                  _TMR4_Counter32BitGet
-                  0x0053c4                  _TMR4_Start
-                  0x0053d2                  _TMR4_Stop
-                  0x0053da                  _TMR4_GetElapsedThenClear
-                  0x0053f2                  _TMR4_SoftwareCounterGet
-                  0x0053fe                  _TMR4_SoftwareCounterClear
- .text            0x00540a         0xc2 build/default/production/_ext/780245002/delay.o
-                  0x005436                  _delay_us
-                  0x00545a                  _delay_ms
-                  0x00547a                  _timer_reset
-                  0x005484                  _timer_start
-                  0x005492                  _timer_restart
-                  0x00549c                  _timer_getTime_us
-                  0x0054ac                  _timer_getTime_ms
-                  0x0054c4                  _timer_stop
- .text            0x0054cc         0xb2 build/default/production/mcc_generated_files/tmr3.o
-                  0x0054cc                  _TMR3_Initialize
-                  0x0054e2                  _TMR3_Tasks_16BitOperation
-                  0x005504                  _TMR3_Period16BitSet
-                  0x005516                  _TMR3_Period16BitGet
-                  0x00551e                  _TMR3_Counter16BitSet
-                  0x005530                  _TMR3_Counter16BitGet
-                  0x005538                  _TMR3_Start
-                  0x005546                  _TMR3_Stop
-                  0x00554e                  _TMR3_GetElapsedThenClear
-                  0x005566                  _TMR3_SoftwareCounterGet
-                  0x005572                  _TMR3_SoftwareCounterClear
- .text            0x00557e         0x96 build/default/production/mcc_generated_files/adc1.o
-                  0x00557e                  _ADC1_Initialize
-                  0x00559e                  _ADC1_Start
-                  0x0055a6                  _ADC1_Stop
-                  0x0055ae                  _ADC1_ConversionResultBufferGet
-                  0x0055e0                  _ADC1_ConversionResultGet
-                  0x0055e8                  _ADC1_IsConversionComplete
-                  0x005600                  _ADC1_ChannelSelect
-                  0x00560c                  _ADC1_Tasks
- .text            0x005614         0x90 build/default/production/mcc_generated_files/pin_manager.o
-                  0x005614                  _PIN_MANAGER_Initialize
- .text            0x0056a4         0x7a build/default/production/_ext/780245002/utils.o
-                  0x0056a4                  _utils_uart1Print
-                  0x0056cc                  _utils_flashLed
-                  0x005716                  _utils_flashLedForever
- .text            0x00571e         0x60 build/default/production/mcc_generated_files/uart1.o
-                  0x00571e                  _UART1_Initialize
-                  0x005740                  _UART1_Read
-                  0x00575e                  _UART1_Write
-                  0x005776                  _UART1_StatusGet
- .text            0x00577e         0x3a build/default/production/mcc_generated_files/mcc.o
-                  0x00577e                  _SYSTEM_Initialize
-                  0x005798                  _OSCILLATOR_Initialize
- .text            0x0057b8         0x10 build/default/production/mcc_generated_files/interrupt_manager.o
-                  0x0057b8                  _INTERRUPT_Initialize
- .text            0x0057c8          0xc build/default/production/mcc_generated_files/ext_int.o
-                  0x0057c8                  _EXT_INT_Initialize
+.text             0x004c14        0xb6c
+ .text            0x004c14        0x1e6 build/default/production/node.o
+                  0x004c14                  _node_run
+ .text            0x004dfa        0x1e4 build/default/production/mcc_generated_files/i2c2.o
+                  0x004dfa                  _I2C2_Initialize
+                  0x004e30                  _I2C2_ErrorCountGet
+                  0x004e7a                  _I2C2_MasterWrite
+                  0x004eac                  _I2C2_MasterRead
+                  0x004ede                  _I2C2_MasterTRBInsert
+                  0x004f58                  _I2C2_MasterReadTRBBuild
+                  0x004f88                  _I2C2_MasterWriteTRBBuild
+                  0x004fac                  _I2C2_MasterQueueIsEmpty
+                  0x004fc6                  _I2C2_MasterQueueIsFull
+ .text            0x004fde        0x182 build/default/production/main.o
+                  0x004fde                  _main
+ .text            0x005160        0x166 build/default/production/mcc_generated_files/spi1.o
+                  0x005160                  _SPI1_Initialize
+                  0x00517c                  _SPI1_Exchange
+                  0x0051ac                  _SPI1_ExchangeBuffer
+                  0x005276                  _SPI1_Exchange8bit
+                  0x005286                  _SPI1_Exchange8bitBuffer
+                  0x00529a                  _SPI1_TransferModeGet
+                  0x0052be                  _SPI1_StatusGet
+ .text            0x0052c6         0xf0 build/default/production/mcc_generated_files/tmr4.o
+                  0x0052c6                  _TMR4_Initialize
+                  0x0052e2                  _TMR4_Tasks_32BitOperation
+                  0x005304                  _TMR4_Period32BitSet
+                  0x005318                  _TMR4_Period32BitGet
+                  0x005336                  _TMR4_Counter32BitSet
+                  0x00534a                  _TMR4_Counter32BitGet
+                  0x005370                  _TMR4_Start
+                  0x00537e                  _TMR4_Stop
+                  0x005386                  _TMR4_GetElapsedThenClear
+                  0x00539e                  _TMR4_SoftwareCounterGet
+                  0x0053aa                  _TMR4_SoftwareCounterClear
+ .text            0x0053b6         0xc2 build/default/production/_ext/780245002/delay.o
+                  0x0053e2                  _delay_us
+                  0x005406                  _delay_ms
+                  0x005426                  _timer_reset
+                  0x005430                  _timer_start
+                  0x00543e                  _timer_restart
+                  0x005448                  _timer_getTime_us
+                  0x005458                  _timer_getTime_ms
+                  0x005470                  _timer_stop
+ .text            0x005478         0xb2 build/default/production/mcc_generated_files/tmr3.o
+                  0x005478                  _TMR3_Initialize
+                  0x00548e                  _TMR3_Tasks_16BitOperation
+                  0x0054b0                  _TMR3_Period16BitSet
+                  0x0054c2                  _TMR3_Period16BitGet
+                  0x0054ca                  _TMR3_Counter16BitSet
+                  0x0054dc                  _TMR3_Counter16BitGet
+                  0x0054e4                  _TMR3_Start
+                  0x0054f2                  _TMR3_Stop
+                  0x0054fa                  _TMR3_GetElapsedThenClear
+                  0x005512                  _TMR3_SoftwareCounterGet
+                  0x00551e                  _TMR3_SoftwareCounterClear
+ .text            0x00552a         0x96 build/default/production/mcc_generated_files/adc1.o
+                  0x00552a                  _ADC1_Initialize
+                  0x00554a                  _ADC1_Start
+                  0x005552                  _ADC1_Stop
+                  0x00555a                  _ADC1_ConversionResultBufferGet
+                  0x00558c                  _ADC1_ConversionResultGet
+                  0x005594                  _ADC1_IsConversionComplete
+                  0x0055ac                  _ADC1_ChannelSelect
+                  0x0055b8                  _ADC1_Tasks
+ .text            0x0055c0         0x90 build/default/production/mcc_generated_files/pin_manager.o
+                  0x0055c0                  _PIN_MANAGER_Initialize
+ .text            0x005650         0x7a build/default/production/_ext/780245002/utils.o
+                  0x005650                  _utils_uart1Print
+                  0x005678                  _utils_flashLed
+                  0x0056c2                  _utils_flashLedForever
+ .text            0x0056ca         0x60 build/default/production/mcc_generated_files/uart1.o
+                  0x0056ca                  _UART1_Initialize
+                  0x0056ec                  _UART1_Read
+                  0x00570a                  _UART1_Write
+                  0x005722                  _UART1_StatusGet
+ .text            0x00572a         0x3a build/default/production/mcc_generated_files/mcc.o
+                  0x00572a                  _SYSTEM_Initialize
+                  0x005744                  _OSCILLATOR_Initialize
+ .text            0x005764         0x10 build/default/production/mcc_generated_files/interrupt_manager.o
+                  0x005764                  _INTERRUPT_Initialize
+ .text            0x005774          0xc build/default/production/mcc_generated_files/ext_int.o
+                  0x005774                  _EXT_INT_Initialize
